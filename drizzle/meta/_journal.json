@@ -15,6 +15,20 @@
       "when": 1791825010913,
       "tag": "0001_users",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1791825887832,
+      "tag": "0002_profiles",
+      "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1791825888157,
+      "tag": "0003_seed_causes",
+      "breakpoints": true
     }
   ]
 }
