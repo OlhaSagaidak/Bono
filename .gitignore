@@ -1,2 +1,28 @@
-.env
+# dependencies
+/node_modules
+/.pnp
+.pnp.*
+
+# next.js
+/.next/
+/out/
+/build
+/coverage
+
+# misc
 .DS_Store
+*.pem
+
+# debug
+npm-debug.log*
+
+# env files: secrets stay local, only the example is committed
+.env*
+!.env.example
+
+# local demo seed data (sandbox account emails)
+seed.local.json
+
+# typescript
+*.tsbuildinfo
+next-env.d.ts
