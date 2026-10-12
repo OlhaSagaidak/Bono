@@ -1,5 +1,6 @@
 import {
   customType,
+  index,
   integer,
   pgEnum,
   pgTable,
@@ -91,6 +92,38 @@ export const sponsorProfiles = pgTable("sponsor_profiles", {
   logoImageId: uuid("logo_image_id").references(() => images.id, { onDelete: "set null" }),
   ...timestamps,
 });
+
+// Only nonprofits post. The embedding column for the AI feed arrives in week 3.
+export const posts = pgTable(
+  "posts",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    nonprofitId: uuid("nonprofit_id")
+      .notNull()
+      .references(() => nonprofitProfiles.userId, { onDelete: "cascade" }),
+    body: text("body").notNull(),
+    // ISO 639-1 code the post is written in; decides when to offer "Translate".
+    language: text("language").notNull().default("en"),
+    imageId: uuid("image_id").references(() => images.id, { onDelete: "set null" }),
+    imageAlt: text("image_alt"),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [
+    // Newest-first paging, for the whole feed and per nonprofit. id breaks ties.
+    index("posts_created_at_idx").on(t.createdAt.desc(), t.id.desc()),
+    index("posts_nonprofit_created_at_idx").on(t.nonprofitId, t.createdAt.desc(), t.id.desc()),
+  ],
+);
+
+// Cause tags per post: shown as chips now, embedded with the text later.
+export const postCauses = pgTable(
+  "post_causes",
+  {
+    postId: uuid("post_id").notNull().references(() => posts.id, { onDelete: "cascade" }),
+    causeSlug: text("cause_slug").notNull().references(() => causes.slug),
+  },
+  (t) => [primaryKey({ columns: [t.postId, t.causeSlug] })],
+);
 
 export type User = typeof users.$inferSelect;
 export type Cause = typeof causes.$inferSelect;

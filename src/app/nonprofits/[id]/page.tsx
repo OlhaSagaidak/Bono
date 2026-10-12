@@ -1,24 +1,36 @@
 import { notFound } from "next/navigation";
 import { Suspense } from "react";
 import { z } from "zod";
+import { PostList } from "@/components/post-list";
 import { ProfileHeader } from "@/components/profile-header";
+import { getPosts } from "@/lib/posts/queries";
 import { getNonprofitProfile } from "@/lib/profiles/queries";
 
-export default function NonprofitPage({ params }: PageProps<"/nonprofits/[id]">) {
+export default function NonprofitPage({ params, searchParams }: PageProps<"/nonprofits/[id]">) {
   return (
     <main className="mx-auto flex w-full max-w-2xl flex-1 flex-col gap-6 px-4 py-12">
       <Suspense fallback={<p className="text-zinc-600 dark:text-zinc-400">Loading…</p>}>
-        <NonprofitProfile params={params} />
+        <NonprofitProfile params={params} searchParams={searchParams} />
       </Suspense>
     </main>
   );
 }
 
-async function NonprofitProfile({ params }: { params: Promise<{ id: string }> }) {
+async function NonprofitProfile({
+  params,
+  searchParams,
+}: Pick<PageProps<"/nonprofits/[id]">, "params" | "searchParams">) {
   const { id } = await params;
   if (!z.uuid().safeParse(id).success) notFound();
   const profile = await getNonprofitProfile(id);
   if (!profile) notFound();
+
+  const { before } = await searchParams;
+  const cursor = z.uuid().safeParse(before);
+  const { posts, nextBefore, fetchedAt } = await getPosts({
+    nonprofitId: id,
+    before: cursor.success ? cursor.data : undefined,
+  });
 
   // The PayPal payee email is deliberately not shown: it's only used server-side.
   return (
@@ -36,6 +48,17 @@ async function NonprofitProfile({ params }: { params: Promise<{ id: string }> })
           </li>
         ))}
       </ul>
+      <section aria-labelledby="posts-heading" className="flex flex-col gap-4">
+        <h2 id="posts-heading" className="text-xl font-semibold">
+          Posts
+        </h2>
+        <PostList
+          posts={posts}
+          fetchedAt={fetchedAt}
+          nextHref={nextBefore && `/nonprofits/${id}?before=${nextBefore}`}
+          empty="No posts yet."
+        />
+      </section>
     </>
   );
 }

@@ -63,7 +63,12 @@ export function TextField({
   );
 }
 
-export function TextArea({ maxLength, required = true, ...p }: FieldProps & { maxLength: number }) {
+export function TextArea({
+  maxLength,
+  required = true,
+  rows = 4,
+  ...p
+}: FieldProps & { maxLength: number; rows?: number }) {
   return (
     <div className="flex flex-col gap-1">
       <label htmlFor={p.name} className="text-sm font-medium">
@@ -73,7 +78,7 @@ export function TextArea({ maxLength, required = true, ...p }: FieldProps & { ma
       <textarea
         id={p.name}
         name={p.name}
-        rows={4}
+        rows={rows}
         maxLength={maxLength}
         required={required}
         defaultValue={p.defaultValue}
@@ -81,6 +86,32 @@ export function TextArea({ maxLength, required = true, ...p }: FieldProps & { ma
         aria-describedby={describedBy(p.name, p.hint, p.errors)}
         className={inputClass}
       />
+      <FieldError name={p.name} errors={p.errors} />
+    </div>
+  );
+}
+
+export function SelectField({ options, ...p }: FieldProps & { options: readonly { value: string; label: string }[] }) {
+  return (
+    <div className="flex flex-col gap-1">
+      <label htmlFor={p.name} className="text-sm font-medium">
+        {p.label}
+      </label>
+      <Hint name={p.name} hint={p.hint} />
+      <select
+        id={p.name}
+        name={p.name}
+        defaultValue={p.defaultValue}
+        aria-invalid={p.errors ? true : undefined}
+        aria-describedby={describedBy(p.name, p.hint, p.errors)}
+        className={inputClass}
+      >
+        {options.map((o) => (
+          <option key={o.value} value={o.value}>
+            {o.label}
+          </option>
+        ))}
+      </select>
       <FieldError name={p.name} errors={p.errors} />
     </div>
   );
