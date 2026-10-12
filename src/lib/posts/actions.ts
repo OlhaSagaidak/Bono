@@ -1,12 +1,12 @@
 "use server";
 
-import { eq } from "drizzle-orm";
+import { and, eq } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { z } from "zod";
 import { auth } from "@/auth";
 import { db } from "@/db";
-import { nonprofitCauses, postCauses, posts } from "@/db/schema";
+import { images, nonprofitCauses, nonprofitProfiles, postCauses, posts } from "@/db/schema";
 import { formText, type FormState } from "@/lib/forms";
 import { checkUploadedImage, storeImage } from "@/lib/images";
 import { postSchema } from "./validation";
@@ -18,12 +18,18 @@ export async function createPostAction(_prev: FormState, formData: FormData): Pr
   if (session.user.role !== "nonprofit") return { error: "Only nonprofits can post." };
   const nonprofitId = session.user.id;
 
-  // Posts hang off the nonprofit profile, and may only use its own causes.
+  const profile = await db.query.nonprofitProfiles.findFirst({
+    where: eq(nonprofitProfiles.userId, nonprofitId),
+    columns: { verifiedAt: true },
+  });
+  if (!profile) redirect("/onboarding");
+  if (!profile.verifiedAt) return { error: "Your nonprofit needs to be verified before it can post." };
+
+  // Posts may only use the nonprofit's own causes.
   const allowed = await db
     .select({ slug: nonprofitCauses.causeSlug })
     .from(nonprofitCauses)
     .where(eq(nonprofitCauses.nonprofitId, nonprofitId));
-  if (allowed.length === 0) redirect("/onboarding");
 
   const values = {
     body: formText(formData, "body"),
@@ -62,4 +68,26 @@ export async function createPostAction(_prev: FormState, formData: FormData): Pr
   revalidatePath("/feed");
   revalidatePath(`/nonprofits/${nonprofitId}`);
   redirect("/feed");
+}
+
+export async function deletePostAction(postId: string): Promise<{ error?: string }> {
+  const session = await auth();
+  if (!session) redirect("/login");
+  if (!z.uuid().safeParse(postId).success) return { error: "That post doesn't exist." };
+
+  // Matching on the owner in the WHERE clause means a nonprofit can only ever
+  // delete its own posts, whatever id is sent.
+  const deleted = await db.transaction(async (tx) => {
+    const [post] = await tx
+      .delete(posts)
+      .where(and(eq(posts.id, postId), eq(posts.nonprofitId, session.user.id)))
+      .returning({ imageId: posts.imageId });
+    if (post?.imageId) await tx.delete(images).where(eq(images.id, post.imageId));
+    return Boolean(post);
+  });
+  if (!deleted) return { error: "That post was already deleted, or isn't yours." };
+
+  revalidatePath("/feed");
+  revalidatePath(`/nonprofits/${session.user.id}`);
+  return {};
 }

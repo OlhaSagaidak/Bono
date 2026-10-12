@@ -3,6 +3,7 @@ import { Suspense } from "react";
 import { z } from "zod";
 import { PostList } from "@/components/post-list";
 import { ProfileHeader } from "@/components/profile-header";
+import { getSession } from "@/lib/auth/session";
 import { getPosts } from "@/lib/posts/queries";
 import { getNonprofitProfile } from "@/lib/profiles/queries";
 
@@ -22,8 +23,12 @@ async function NonprofitProfile({
 }: Pick<PageProps<"/nonprofits/[id]">, "params" | "searchParams">) {
   const { id } = await params;
   if (!z.uuid().safeParse(id).success) notFound();
-  const profile = await getNonprofitProfile(id);
+  const [profile, session] = await Promise.all([getNonprofitProfile(id), getSession()]);
   if (!profile) notFound();
+  const viewerId = session?.user.id ?? null;
+  const isOwner = viewerId === id;
+  // Unverified nonprofits are invisible to everyone else, as if they didn't exist yet.
+  if (!profile.verifiedAt && !isOwner) notFound();
 
   const { before } = await searchParams;
   const cursor = z.uuid().safeParse(before);
@@ -36,7 +41,19 @@ async function NonprofitProfile({
   return (
     <>
       <title>{`${profile.name} · Bono`}</title>
-      <ProfileHeader name={profile.name} imageId={profile.logoImageId} kicker="Nonprofit" />
+      {!profile.verifiedAt && (
+        <p className="rounded-lg bg-amber-50 px-4 py-3 text-sm text-amber-900 dark:bg-amber-950 dark:text-amber-100">
+          <strong>Only you can see this page for now.</strong> Bono shows supporters verified
+          nonprofits only. Once your EIN is checked and the verification fee is paid, your page goes
+          live and you can start posting.
+        </p>
+      )}
+      <ProfileHeader
+        name={profile.name}
+        imageId={profile.logoImageId}
+        kicker="Nonprofit"
+        verified={Boolean(profile.verifiedAt)}
+      />
       <p className="text-lg">{profile.mission}</p>
       <ul className="flex flex-wrap gap-2" aria-label="Causes">
         {profile.causes.map((c) => (
@@ -55,6 +72,7 @@ async function NonprofitProfile({
         <PostList
           posts={posts}
           fetchedAt={fetchedAt}
+          viewerId={viewerId}
           nextHref={nextBefore && `/nonprofits/${id}?before=${nextBefore}`}
           empty="No posts yet."
         />

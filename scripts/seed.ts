@@ -91,6 +91,9 @@ async function main() {
         name: np.name,
         mission: np.mission,
         paypalPayeeEmail: config.nonprofits[np.slug].toLowerCase(),
+        // Demo nonprofits start verified so the feed has content. Their EINs
+        // are fictional and go in the labeled demo registry (week 2).
+        verifiedAt: new Date(now),
       });
       await tx.insert(nonprofitCauses).values(np.causes.map((causeSlug) => ({ nonprofitId: id, causeSlug })));
 

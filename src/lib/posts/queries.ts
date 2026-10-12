@@ -1,4 +1,4 @@
-import { and, asc, desc, eq, inArray, sql, type SQL } from "drizzle-orm";
+import { and, asc, desc, eq, inArray, isNotNull, sql, type SQL } from "drizzle-orm";
 import { db } from "@/db";
 import { causes, nonprofitProfiles, postCauses, posts } from "@/db/schema";
 
@@ -11,11 +11,15 @@ export type FeedPost = Awaited<ReturnType<typeof getPosts>>["posts"][number];
  * on the previous page: paging by (created_at, id) of a real row stays correct
  * even when posts share a timestamp, and avoids round-tripping Postgres'
  * microsecond timestamps through JS Dates (which keep only milliseconds).
+ * Only verified nonprofits appear in the shared feed.
  * This is the week-1 chronological feed; the AI ranking replaces it in week 3.
  */
 export async function getPosts({ nonprofitId, before }: { nonprofitId?: string; before?: string }) {
   const filters: SQL[] = [];
+  // The shared feed only ever shows verified nonprofits. A single nonprofit's
+  // page decides for itself who may see it (see app/nonprofits/[id]).
   if (nonprofitId) filters.push(eq(posts.nonprofitId, nonprofitId));
+  else filters.push(isNotNull(nonprofitProfiles.verifiedAt));
   if (before) {
     filters.push(
       sql`(${posts.createdAt}, ${posts.id}) < (SELECT created_at, id FROM ${posts} WHERE id = ${before})`,

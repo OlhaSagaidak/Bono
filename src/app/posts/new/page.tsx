@@ -23,6 +23,14 @@ async function NewPost() {
   if (session.user.role !== "nonprofit") redirect("/feed");
   const profile = await getNonprofitProfile(session.user.id);
   if (!profile) redirect("/onboarding");
+  if (!profile.verifiedAt) {
+    return (
+      <p className="rounded-lg bg-amber-50 px-4 py-3 text-amber-900 dark:bg-amber-950 dark:text-amber-100">
+        Posting opens once your nonprofit is verified. Bono only shows supporters organizations whose
+        EIN has been checked, so everyone can give without second-guessing.
+      </p>
+    );
+  }
 
   return <PostForm causes={profile.causes.map((c) => ({ value: c.slug, label: c.label }))} />;
 }
