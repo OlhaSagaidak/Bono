@@ -187,7 +187,10 @@ and pass the promise to `session.start({ presentationMode: "auto" }, promise)`; 
   `PayPal-Mock-Response`) → `declined`, unknown order → `unknown`.
 - Browser: Donate dialog → PayPal button renders (v6 SDK, eligibility checked) → popup opens on
   `www.sandbox.paypal.com` titled "Pay with PayPal" → donation row `created` with order id, payee and post; closing
-  the popup shows "Payment cancelled". **Approve + capture end to end is pending the sandbox buyer login.**
+  the popup shows "Payment cancelled". - **End to end (2026-10-12, approved by hand in the popup with a sandbox Personal account — PayPal rejected the
+  same login from headless Chromium):** $10 from a supporter to Open Pantry. Bono row `completed` with order and
+  capture ids; `getOrder` at PayPal: order `COMPLETED`, payee = Open Pantry's sandbox account, capture `COMPLETED`
+  $10.00 USD, PayPal fee $0.84, net $9.16 to the nonprofit.
 
 ## Not built here, by decision
 
@@ -200,8 +203,8 @@ No SDK retries added (POSTs must not be blindly retried; idempotency comes from 
 2. Server: create a donation order for a seeded nonprofit → `getOrder` shows the right payee and amount.
 3. Error paths: mocked `INSTRUMENT_DECLINED` → `{ declined: true }`; unapproved capture → honest error; capture by a
    different user → refused; donating to your own organization → refused; unverified nonprofit → refused; amount tampering → refused.
-4. Browser (needs blocker 1): supporter → Donate → $25 → PayPal popup → approve → thank-you; DB row `completed` with
-   capture id; PayPal order `COMPLETED`.
+4. Browser: supporter → Donate → amount → PayPal popup → approve → thank-you; DB row `completed` with capture id;
+   PayPal order `COMPLETED`. ✔ (see Findings)
 
 ## REQUIRED READING
 
