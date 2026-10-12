@@ -1,9 +1,9 @@
 "use client";
 
-import { useEffect, useId, useRef, useState } from "react";
+import { useId, useRef, useState } from "react";
 import { captureDonationAction, createDonationOrderAction } from "@/lib/donations/actions";
 import { amountSchema, formatCents, PRESET_DOLLARS } from "@/lib/donations/amounts";
-import { loadPayPal } from "@/lib/paypal/web-sdk";
+import { PayPalCheckout } from "@/components/paypal-checkout";
 
 type Props = {
   nonprofitId: string;
@@ -13,13 +13,6 @@ type Props = {
   /** "small" sits in a post's footer; "large" on the nonprofit's profile. */
   size?: "small" | "large";
 };
-
-type Step =
-  | { kind: "choose" }
-  | { kind: "thanks"; amountCents: number; pending: boolean };
-
-// Thrown inside the order promise so PayPal's session rejects with our message.
-class DonationError extends Error {}
 
 export function DonateButton({ nonprofitId, nonprofitName, postId, clientId, size = "small" }: Props) {
   const dialogRef = useRef<HTMLDialogElement>(null);
@@ -73,90 +66,31 @@ function DonateFlow({
   clientId,
   onClose,
 }: Omit<Props, "size"> & { titleId: string; onClose: () => void }) {
-  const [step, setStep] = useState<Step>({ kind: "choose" });
+  const [thanks, setThanks] = useState<{ amountCents: number; pending: boolean } | null>(null);
   const [choice, setChoice] = useState<string>("25"); // a preset, or "other"
   const [custom, setCustom] = useState("");
-  const [message, setMessage] = useState<{ tone: "error" | "info"; text: string } | null>(null);
-  const [paypal, setPayPal] = useState<"loading" | "ready" | "unavailable">("loading");
-  const sessionRef = useRef<PayPalOneTimePaymentSession | null>(null);
 
   const rawAmount = choice === "other" ? custom : choice;
   const amount = amountSchema.safeParse(rawAmount);
 
-  // Load PayPal once the dialog opens, check the donor can pay with it, and
-  // set up the payment session. Its callbacks only use setters and refs, so
-  // one session serves every attempt in this dialog.
-  useEffect(() => {
-    let cancelled = false;
-    loadPayPal(clientId)
-      .then(async (sdk) => {
-        const eligibility = await sdk.findEligibleMethods({ currencyCode: "USD" });
-        if (cancelled) return;
-        if (!eligibility.isEligible("paypal")) return setPayPal("unavailable");
-        sessionRef.current = sdk.createPayPalOneTimePaymentSession({
-          async onApprove({ orderId }) {
-            setMessage({ tone: "info", text: "Confirming your donation…" });
-            const result = await captureDonationAction(orderId);
-            if ("declined" in result) {
-              setMessage({ tone: "error", text: "Your payment method was declined. Try another one." });
-            } else if ("error" in result) {
-              setMessage({ tone: "error", text: result.error });
-            } else {
-              setMessage(null);
-              setStep({ kind: "thanks", amountCents: result.amountCents, pending: result.status === "pending" });
-            }
-          },
-          onCancel() {
-            setMessage({ tone: "info", text: "Payment cancelled. You weren't charged." });
-          },
-          onError() {
-            setMessage((current) =>
-              current?.tone === "error"
-                ? current // keep our own, more specific message
-                : { tone: "error", text: "PayPal ran into a problem. You weren't charged. Please try again." },
-            );
-          },
-        });
-        setPayPal("ready");
-      })
-      .catch(() => !cancelled && setPayPal("unavailable"));
-    return () => {
-      cancelled = true;
-    };
-  }, [clientId]);
-
-  async function pay() {
-    const session = sessionRef.current;
-    if (!session || !amount.success) return;
-    setMessage(null);
-    // Not awaited before start(): the PayPal window has to open inside this click.
-    const order = createDonationOrderAction({ nonprofitId, postId: postId ?? null, amount: rawAmount }).then(
-      (result) => {
-        if ("error" in result) throw new DonationError(result.error);
-        return { orderId: result.orderId };
-      },
-    );
-    try {
-      await session.start({ presentationMode: "auto" }, order);
-    } catch {
-      const reason = await order.then(
-        () => null,
-        (e: unknown) => (e instanceof DonationError ? e.message : null),
-      );
-      setMessage({ tone: "error", text: reason ?? "PayPal ran into a problem. You weren't charged. Please try again." });
-    }
+  async function capture(orderId: string): Promise<string | null> {
+    const result = await captureDonationAction(orderId);
+    if ("declined" in result) return "Your payment method was declined. Try another one.";
+    if ("error" in result) return result.error;
+    setThanks({ amountCents: result.amountCents, pending: result.status === "pending" });
+    return null;
   }
 
-  if (step.kind === "thanks") {
+  if (thanks) {
     return (
       <div className="flex flex-col gap-4 p-6">
         <h2 id={titleId} className="text-xl font-bold">
           Thank you!
         </h2>
         <p role="status">
-          {step.pending
-            ? `PayPal is still processing your ${formatCents(step.amountCents)} donation to ${nonprofitName}. It goes straight to them once it clears.`
-            : `Your ${formatCents(step.amountCents)} donation went straight to ${nonprofitName}. PayPal will email you a receipt.`}
+          {thanks.pending
+            ? `PayPal is still processing your ${formatCents(thanks.amountCents)} donation to ${nonprofitName}. It goes straight to them once it clears.`
+            : `Your ${formatCents(thanks.amountCents)} donation went straight to ${nonprofitName}. PayPal will email you a receipt.`}
         </p>
         <button
           type="button"
@@ -236,31 +170,12 @@ function DonateFlow({
         Your donation goes directly to {nonprofitName}&apos;s PayPal account. Bono never holds it.
       </p>
 
-      {message && (
-        <p
-          role={message.tone === "error" ? "alert" : "status"}
-          className={
-            message.tone === "error"
-              ? "rounded-lg bg-red-50 px-3 py-2 text-sm text-red-800 dark:bg-red-950 dark:text-red-200"
-              : "rounded-lg bg-zinc-100 px-3 py-2 text-sm dark:bg-zinc-800"
-          }
-        >
-          {message.text}
-        </p>
-      )}
-
-      {paypal === "loading" && <p className="text-sm text-zinc-600 dark:text-zinc-400">Loading PayPal…</p>}
-      {paypal === "unavailable" && (
-        <p role="alert" className="text-sm text-red-700 dark:text-red-400">
-          PayPal isn&apos;t available right now. Please try again later.
-        </p>
-      )}
-      {/* PayPal's own branded button; hidden until the SDK is ready and the amount is valid. */}
-      <paypal-button
-        hidden={paypal !== "ready" || !amount.success}
-        onClick={pay}
-        className="block w-full"
-      ></paypal-button>
+      <PayPalCheckout
+        clientId={clientId}
+        disabled={!amount.success}
+        createOrder={() => createDonationOrderAction({ nonprofitId, postId: postId ?? null, amount: rawAmount })}
+        onApprove={capture}
+      />
     </div>
   );
 }

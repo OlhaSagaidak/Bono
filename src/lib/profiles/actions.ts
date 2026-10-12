@@ -16,6 +16,7 @@ import {
 } from "@/db/schema";
 import { formText, type FormState } from "@/lib/forms";
 import { checkUploadedImage, replaceImage } from "@/lib/images";
+import { completeVerificationIfReady } from "@/lib/verification/queries";
 import { getCauses } from "./queries";
 import { interestsSchema, nonprofitProfileSchema, sponsorProfileSchema } from "./validation";
 
@@ -87,6 +88,22 @@ export async function saveNonprofitProfileAction(
   if (await unknownCauses(parsed.data.causes)) return { error: "Unknown cause selected.", values };
 
   const { causes, ...profile } = parsed.data;
+
+  // Verification proved this PayPal account belongs to the nonprofit, so a
+  // verified nonprofit can't silently redirect donations elsewhere.
+  const current = await db.query.nonprofitProfiles.findFirst({
+    where: eq(nonprofitProfiles.userId, userId),
+    columns: { verifiedAt: true, paypalPayeeEmail: true },
+  });
+  if (current?.verifiedAt && current.paypalPayeeEmail !== profile.paypalPayeeEmail) {
+    return {
+      fieldErrors: {
+        paypalPayeeEmail: ["Your PayPal email is locked after verification. Contact Bono to change it."],
+      },
+      values,
+    };
+  }
+
   await db.transaction(async (tx) => {
     const existing = await tx.query.nonprofitProfiles.findFirst({
       where: eq(nonprofitProfiles.userId, userId),
@@ -107,6 +124,9 @@ export async function saveNonprofitProfileAction(
     await tx.execute(markOnboarded(userId));
   });
 
+  // A nonprofit whose fee came from another PayPal account finishes here by
+  // switching its donation email to that account.
+  await completeVerificationIfReady(userId);
   refreshAllPages();
   redirect(`/nonprofits/${userId}`);
 }

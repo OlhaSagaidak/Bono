@@ -64,6 +64,28 @@ export const images = pgTable("images", {
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
 });
 
+// Where an EIN was found: the IRS list of tax-exempt organizations, or the
+// labeled registry of fictional EINs the demo nonprofits use.
+export const einSourceEnum = pgEnum("ein_source", ["irs", "demo"]);
+
+// Eligible rows from the IRS Exempt Organizations Business Master File (EO BMF),
+// loaded by `npm run irs:load` (not committed). Only 501(c)(3) organizations
+// with deductible contributions and unconditional exemption are kept.
+export const irsExemptOrgs = pgTable("irs_exempt_orgs", {
+  ein: text("ein").primaryKey(), // 9 digits, no dash
+  name: text("name").notNull(),
+  city: text("city").notNull(),
+  state: text("state").notNull(),
+  loadedAt: timestamp("loaded_at", { withTimezone: true }).notNull().defaultNow(),
+});
+
+// DEMO DATA: fictional EINs for the fictional demo nonprofits, so the demo can
+// pass the EIN check. Shown as "demo registry" in the UI, never as IRS data.
+export const demoEinRegistry = pgTable("demo_ein_registry", {
+  ein: text("ein").primaryKey(),
+  name: text("name").notNull(),
+});
+
 export const nonprofitProfiles = pgTable("nonprofit_profiles", {
   userId: uuid("user_id").primaryKey().references(() => users.id, { onDelete: "cascade" }),
   name: text("name").notNull(),
@@ -75,6 +97,10 @@ export const nonprofitProfiles = pgTable("nonprofit_profiles", {
   // Until then the nonprofit can't post and is hidden from everyone but itself:
   // supporters should never have to wonder whether an organization is legit.
   verifiedAt: timestamp("verified_at", { withTimezone: true }),
+  // Set once the EIN check passes (step 1 of verification). Unique: one EIN, one Bono account.
+  ein: text("ein").unique(),
+  einSource: einSourceEnum("ein_source"),
+  einCheckedAt: timestamp("ein_checked_at", { withTimezone: true }),
   ...timestamps,
 });
 
@@ -160,6 +186,25 @@ export const donations = pgTable(
     index("donations_donor_idx").on(t.donorId, t.createdAt.desc()),
   ],
 );
+
+// The one-time fee a nonprofit pays to the platform to get verified. Paying it
+// from the nonprofit's own donation PayPal account (payer email = payee email)
+// is what confirms that account is real and theirs.
+export const verificationFees = pgTable("verification_fees", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  nonprofitId: uuid("nonprofit_id")
+    .notNull()
+    .references(() => nonprofitProfiles.userId, { onDelete: "cascade" }),
+  amountCents: integer("amount_cents").notNull(),
+  currency: text("currency").notNull().default("USD"),
+  status: donationStatusEnum("status").notNull().default("created"),
+  paypalOrderId: text("paypal_order_id").unique(),
+  paypalCaptureId: text("paypal_capture_id").unique(),
+  // Lowercased email of the PayPal account that paid, as PayPal reports it.
+  payerEmail: text("payer_email"),
+  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  completedAt: timestamp("completed_at", { withTimezone: true }),
+});
 
 export type User = typeof users.$inferSelect;
 export type Cause = typeof causes.$inferSelect;

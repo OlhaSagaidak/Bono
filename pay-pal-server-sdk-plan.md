@@ -216,3 +216,59 @@ No SDK retries added (POSTs must not be blindly retried; idempotency comes from 
 | First `createOrder`/`captureOrder` call | flat request object, defaulted `prefer`, `.asApiResult()` on the returned value | **MUST load `typescript-calling-endpoints`** |
 | Timeout / retry settings | what retries, what the timeout bounds | **MUST load `typescript-configuration-resilience`** |
 | Any verification script that fakes `fetch` | which seam to fake, wire-shape stubs | **MUST load `typescript-testing`** |
+
+---
+
+# Slice 2 — nonprofit verification fee (week 2)
+
+Same three operations and the same client as donations; the contract sheet above applies unchanged. Only the
+differences are listed here.
+
+## Scope
+
+A nonprofit enters its EIN; the server checks it (no PayPal involved) against the IRS EO BMF extract
+(Washington only, loaded by `npm run irs:load -- wa`) or the clearly labeled `demo_ein_registry`. Eligible IRS rows:
+`SUBSECTION = 03` (501(c)(3)), `DEDUCTIBILITY = 1` (contributions deductible), `STATUS = 01` (unconditional
+exemption) — codes per the IRS EO BMF info sheet (`irs.gov/pub/foia/ig/tege/eo-info.pdf`). The registry name must be
+consistent with the profile name. Then the nonprofit pays a one-time fee (default $25, `VERIFICATION_FEE_CENTS`) to
+the **platform** account. Decided by Olya (2026-10-12): the fee must be paid **from the same PayPal account the
+nonprofit entered for donations**; that is how we confirm the payee account is real and theirs.
+
+## Contract differences from donations
+
+| | Donations | Verification fee |
+| --- | --- | --- |
+| `purchaseUnits[0].payee.emailAddress` | nonprofit's `paypal_payee_email` | `PAYPAL_PLATFORM_MERCHANT_EMAIL` (env; fail fast if unset) |
+| `payPalRequestId` | `donation-create-<id>` / `donation-capture-<id>` | `verification-create-<feeId>` / `verification-capture-<feeId>` |
+| `customId` / `description` | donation id / "Donation to X via Bono" | fee id / "Bono nonprofit verification fee" |
+| Read after capture | capture id, status, amount | the same, **plus `Order.payer?.emailAddress`** |
+
+`Order.payer?: Payer` (`src/models/order.ts`); `Payer` (`src/models/payer.ts`): `emailAddress?: string` (wire
+`email_address`), `payerId?: string` (wire `payer_id`) — both optional, so a missing email means "can't confirm",
+never "match". Checked against the completed sandbox donation: with `prefer: "return=representation"` the order
+carries `payer.email_address` (and `payer_id`).
+
+Payer check: case-insensitive equality of `payer.emailAddress` and the profile's `paypal_payee_email`.
+- match → `verified_at = now()`.
+- mismatch or missing → the fee is recorded as paid (money moved; never charge twice) but verification waits; the
+  nonprofit is told which account paid and can switch its donation email to that account, which completes
+  verification without paying again.
+- Once verified, the PayPal donation email can't be changed in the profile form (it would bypass the check).
+
+Wrapper change: `createDonationOrder` / `captureDonationOrder` generalise to `createOrder({ requestId, payeeEmail,
+amountCents, description, customId })` and `captureOrder(orderId, requestId)` in `src/lib/paypal/orders.ts`; the
+capture details gain `payerEmail?: string`.
+
+## Data
+
+`irs_exempt_orgs` (ein pk, name, city, state, subsection, deductibility, status, loaded_at) — only eligible rows,
+not committed, loaded by script. `demo_ein_registry` (ein pk, name) — fictional demo EINs, seeded, labeled as demo
+in the UI and README. `nonprofit_profiles` gains `ein` (unique), `ein_source` (`irs` | `demo`), `ein_checked_at`.
+`verification_fees` mirrors `donations` (nonprofit, amount, status, order/capture ids, payer email).
+
+## Verification plan
+
+Automated: EIN checks (IRS hit, demo hit, unknown, ineligible, name mismatch, EIN already used), create-order with
+platform payee, capture error paths as before. By hand (headless PayPal login is rejected): Olya pays one fee from a
+nonprofit's sandbox Business account; then check `getOrder`: payee = platform, payer = that nonprofit's account,
+and the nonprofit is verified.

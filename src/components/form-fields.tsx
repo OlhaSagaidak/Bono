@@ -39,8 +39,9 @@ export function TextField({
   type = "text",
   autoComplete,
   required = true,
+  readOnly = false,
   ...p
-}: FieldProps & { type?: string; autoComplete?: string }) {
+}: FieldProps & { type?: string; autoComplete?: string; readOnly?: boolean }) {
   return (
     <div className="flex flex-col gap-1">
       <label htmlFor={p.name} className="text-sm font-medium">
@@ -53,10 +54,11 @@ export function TextField({
         type={type}
         autoComplete={autoComplete}
         required={required}
+        readOnly={readOnly}
         defaultValue={p.defaultValue}
         aria-invalid={p.errors ? true : undefined}
         aria-describedby={describedBy(p.name, p.hint, p.errors)}
-        className={inputClass}
+        className={`${inputClass} read-only:bg-zinc-100 read-only:text-zinc-600 dark:read-only:bg-zinc-800 dark:read-only:text-zinc-400`}
       />
       <FieldError name={p.name} errors={p.errors} />
     </div>

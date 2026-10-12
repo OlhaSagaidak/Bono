@@ -54,6 +54,7 @@ async function Onboarding() {
             paypalPayeeEmail: profile?.paypalPayeeEmail ?? "",
             causes: profile?.causes.map((c) => c.slug) ?? [],
             logoUrl: profile?.logoImageId ? imageUrl(profile.logoImageId) : undefined,
+            verified: Boolean(profile?.verifiedAt),
           }}
         />
       </>

@@ -6,11 +6,12 @@
 
 import { readFileSync } from "node:fs";
 import bcrypt from "bcryptjs";
-import { like } from "drizzle-orm";
+import { like, sql } from "drizzle-orm";
 import { z } from "zod";
 import { db } from "@/db";
 import {
   causes,
+  demoEinRegistry,
   nonprofitCauses,
   nonprofitProfiles,
   postCauses,
@@ -70,6 +71,12 @@ async function main() {
   const hoursAgo = (h: number) => new Date(now - h * 3_600_000);
 
   const counts = await db.transaction(async (tx) => {
+    // The labeled registry of fictional EINs the demo nonprofits verify against.
+    await tx
+      .insert(demoEinRegistry)
+      .values(nonprofits.map((n) => ({ ein: n.ein, name: n.name })))
+      .onConflictDoUpdate({ target: demoEinRegistry.ein, set: { name: sql`excluded.name` } });
+
     const removed = await tx
       .delete(users)
       .where(like(users.email, `%@${DEMO_DOMAIN}`))
@@ -91,8 +98,11 @@ async function main() {
         name: np.name,
         mission: np.mission,
         paypalPayeeEmail: config.nonprofits[np.slug].toLowerCase(),
-        // Demo nonprofits start verified so the feed has content. Their EINs
-        // are fictional and go in the labeled demo registry (week 2).
+        // Demo nonprofits start verified so the feed has content, with their
+        // fictional EINs from the demo registry. (No fee record: seeded, not paid.)
+        ein: np.ein,
+        einSource: "demo",
+        einCheckedAt: new Date(now),
         verifiedAt: new Date(now),
       });
       await tx.insert(nonprofitCauses).values(np.causes.map((causeSlug) => ({ nonprofitId: id, causeSlug })));
