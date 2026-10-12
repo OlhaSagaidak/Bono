@@ -2,7 +2,8 @@
 
 import { useActionState } from "react";
 import { FormError, SubmitButton, TextField } from "@/components/form-fields";
-import { signInAction, type FormState } from "@/lib/auth/actions";
+import { signInAction } from "@/lib/auth/actions";
+import { textValue, type FormState } from "@/lib/forms";
 
 export function LoginForm() {
   const [state, action, pending] = useActionState<FormState, FormData>(signInAction, {});
@@ -10,7 +11,7 @@ export function LoginForm() {
   return (
     <form action={action} className="flex flex-col gap-4" noValidate>
       <FormError message={state.error} />
-      <TextField name="email" label="Email" type="email" autoComplete="email" errors={state.fieldErrors?.email} />
+      <TextField name="email" label="Email" type="email" autoComplete="email" defaultValue={textValue(state, "email")} errors={state.fieldErrors?.email} />
       <TextField
         name="password"
         label="Password"

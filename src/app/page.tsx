@@ -1,7 +1,11 @@
 import Link from "next/link";
+import { redirect } from "next/navigation";
 import { Suspense } from "react";
 import { getSession } from "@/lib/auth/session";
 import { signOutAction } from "@/lib/auth/actions";
+
+const secondaryButton =
+  "rounded-lg border border-zinc-300 px-4 py-2 font-medium hover:bg-zinc-100 focus:outline-2 focus:outline-offset-2 focus:outline-emerald-600 dark:border-zinc-700 dark:hover:bg-zinc-800";
 
 const ROLE_LABELS = { user: "Supporter", nonprofit: "Nonprofit", sponsor: "Sponsor" } as const;
 
@@ -25,19 +29,32 @@ async function AuthStatus() {
   const session = await getSession();
 
   if (session) {
+    const { id, name, role, onboarded } = session.user;
+    // Profile setup isn't optional: the feed needs interests and donations need a payee.
+    if (!onboarded) redirect("/onboarding");
+    const profileLink =
+      role === "nonprofit" ? `/nonprofits/${id}` : role === "sponsor" ? `/sponsors/${id}` : null;
+
     return (
       <div className="flex flex-col items-center gap-3">
         <p>
-          Signed in as <strong>{session.user.name}</strong> ({ROLE_LABELS[session.user.role]})
+          Signed in as <strong>{name}</strong> ({ROLE_LABELS[role]})
         </p>
-        <form action={signOutAction}>
-          <button
-            type="submit"
-            className="rounded-lg border border-zinc-300 px-4 py-2 font-medium hover:bg-zinc-100 focus:outline-2 focus:outline-offset-2 focus:outline-emerald-600 dark:border-zinc-700 dark:hover:bg-zinc-800"
-          >
-            Log out
-          </button>
-        </form>
+        <div className="flex flex-wrap justify-center gap-3">
+          {profileLink && (
+            <Link href={profileLink} className={secondaryButton}>
+              View your profile
+            </Link>
+          )}
+          <Link href="/onboarding" className={secondaryButton}>
+            {role === "user" ? "Edit interests" : "Edit profile"}
+          </Link>
+          <form action={signOutAction}>
+            <button type="submit" className={secondaryButton}>
+              Log out
+            </button>
+          </form>
+        </div>
       </div>
     );
   }
@@ -50,10 +67,7 @@ async function AuthStatus() {
       >
         Sign up
       </Link>
-      <Link
-        href="/login"
-        className="rounded-lg border border-zinc-300 px-4 py-2 font-medium hover:bg-zinc-100 focus:outline-2 focus:outline-offset-2 focus:outline-emerald-600 dark:border-zinc-700 dark:hover:bg-zinc-800"
-      >
+      <Link href="/login" className={secondaryButton}>
         Log in
       </Link>
     </div>
