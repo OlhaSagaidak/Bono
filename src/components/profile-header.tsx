@@ -1,6 +1,6 @@
 import { imageUrl } from "@/lib/images";
 
-export function Logo({ name, imageId, size = "size-20" }: { name: string; imageId: string | null; size?: string }) {
+export function Logo({ name, imageId, size = "size-20 text-2xl" }: { name: string; imageId: string | null; size?: string }) {
   if (imageId) {
     return (
       // eslint-disable-next-line @next/next/no-img-element -- served from our own API, no optimization needed
@@ -11,7 +11,7 @@ export function Logo({ name, imageId, size = "size-20" }: { name: string; imageI
   return (
     <div
       aria-hidden
-      className={`${size} flex shrink-0 items-center justify-center rounded-full bg-emerald-100 text-2xl font-bold text-emerald-800 dark:bg-emerald-900 dark:text-emerald-100`}
+      className={`${size} flex shrink-0 items-center justify-center rounded-full bg-emerald-100 font-bold text-emerald-800 dark:bg-emerald-900 dark:text-emerald-100`}
     >
       {name.trim().charAt(0).toUpperCase()}
     </div>

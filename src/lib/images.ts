@@ -38,19 +38,27 @@ export async function checkUploadedImage(file: FormDataEntryValue | null): Promi
   return { kind: "ok", contentType, data };
 }
 
-/** Stores the new image and removes the one it replaces, inside the caller's transaction. */
-export async function replaceImage(
-  tx: Tx,
-  ownerId: string,
-  image: Extract<ImageCheck, { kind: "ok" }>,
-  previousImageId: string | null,
-): Promise<string> {
+type CheckedImage = Extract<ImageCheck, { kind: "ok" }>;
+
+/** Stores an image inside the caller's transaction and returns its id. */
+export async function storeImage(tx: Tx, ownerId: string, image: CheckedImage): Promise<string> {
   const [row] = await tx
     .insert(images)
     .values({ ownerId, contentType: image.contentType, data: image.data })
     .returning({ id: images.id });
-  if (previousImageId) await tx.delete(images).where(eq(images.id, previousImageId));
   return row.id;
+}
+
+/** Stores the new image and removes the one it replaces, inside the caller's transaction. */
+export async function replaceImage(
+  tx: Tx,
+  ownerId: string,
+  image: CheckedImage,
+  previousImageId: string | null,
+): Promise<string> {
+  const id = await storeImage(tx, ownerId, image);
+  if (previousImageId) await tx.delete(images).where(eq(images.id, previousImageId));
+  return id;
 }
 
 export const imageUrl = (id: string) => `/api/images/${id}`;

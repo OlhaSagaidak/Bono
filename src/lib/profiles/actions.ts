@@ -1,6 +1,7 @@
 "use server";
 
 import { eq, sql } from "drizzle-orm";
+import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { z } from "zod";
 import { auth } from "@/auth";
@@ -35,6 +36,11 @@ async function unknownCauses(slugs: string[]) {
 const markOnboarded = (userId: string) =>
   sql`UPDATE ${users} SET onboarded_at = coalesce(onboarded_at, now()) WHERE id = ${userId}`;
 
+// The header in the root layout shows different links once onboarding is done,
+// and names/logos appear on many pages. Layouts don't re-render on navigation,
+// so refresh everything after a profile save.
+const refreshAllPages = () => revalidatePath("/", "layout");
+
 export async function saveInterestsAction(_prev: FormState, formData: FormData): Promise<FormState> {
   const userId = await requireRole("user");
   if (!userId) return WRONG_ROLE;
@@ -52,7 +58,8 @@ export async function saveInterestsAction(_prev: FormState, formData: FormData):
     await tx.execute(markOnboarded(userId));
   });
 
-  redirect("/");
+  refreshAllPages();
+  redirect("/feed");
 }
 
 export async function saveNonprofitProfileAction(
@@ -100,6 +107,7 @@ export async function saveNonprofitProfileAction(
     await tx.execute(markOnboarded(userId));
   });
 
+  refreshAllPages();
   redirect(`/nonprofits/${userId}`);
 }
 
@@ -137,5 +145,6 @@ export async function saveSponsorProfileAction(
     await tx.execute(markOnboarded(userId));
   });
 
+  refreshAllPages();
   redirect(`/sponsors/${userId}`);
 }

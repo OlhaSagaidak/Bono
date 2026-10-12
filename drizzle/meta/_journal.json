@@ -29,6 +29,13 @@
       "when": 1791825888157,
       "tag": "0003_seed_causes",
       "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1791827233133,
+      "tag": "0004_posts",
+      "breakpoints": true
     }
   ]
 }
