@@ -1,0 +1,14 @@
+{
+  "demoPassword": "pick-a-password-for-all-demo-logins",
+  "nonprofits": {
+    "paws-haven": "paws-haven-sandbox@business.example.com",
+    "green-seattle": "green-seattle-sandbox@business.example.com",
+    "bright-futures": "bright-futures-sandbox@business.example.com",
+    "open-pantry": "open-pantry-sandbox@business.example.com",
+    "new-roots": "new-roots-sandbox@business.example.com"
+  },
+  "sponsors": {
+    "acme": "acme-sandbox@business.example.com",
+    "northwind": "northwind-sandbox@business.example.com"
+  }
+}
