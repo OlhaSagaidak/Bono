@@ -36,6 +36,13 @@
       "when": 1791827233133,
       "tag": "0004_posts",
       "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1791828488057,
+      "tag": "0005_nonprofit_verified",
+      "breakpoints": true
     }
   ]
 }

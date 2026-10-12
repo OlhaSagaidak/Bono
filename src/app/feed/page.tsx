@@ -33,6 +33,7 @@ async function Feed({ searchParams }: { searchParams: PageProps<"/feed">["search
     <PostList
       posts={posts}
       fetchedAt={fetchedAt}
+      viewerId={session.user.id}
       nextHref={nextBefore && `/feed?before=${nextBefore}`}
       empty={
         session.user.role === "nonprofit" ? (

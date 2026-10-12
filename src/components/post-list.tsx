@@ -5,11 +5,14 @@ import type { FeedPost } from "@/lib/posts/queries";
 export function PostList({
   posts,
   fetchedAt,
+  viewerId,
   nextHref,
   empty,
 }: {
   posts: FeedPost[];
   fetchedAt: number;
+  /** The signed-in account, if any: its own posts get a Delete button. */
+  viewerId: string | null;
   nextHref: string | null;
   empty: React.ReactNode;
 }) {
@@ -19,7 +22,7 @@ export function PostList({
   return (
     <div className="flex flex-col gap-4">
       {posts.map((post) => (
-        <PostCard key={post.id} post={post} now={fetchedAt} />
+        <PostCard key={post.id} post={post} now={fetchedAt} canDelete={post.nonprofit.id === viewerId} />
       ))}
       {nextHref && (
         <Link

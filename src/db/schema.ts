@@ -71,6 +71,10 @@ export const nonprofitProfiles = pgTable("nonprofit_profiles", {
   logoImageId: uuid("logo_image_id").references(() => images.id, { onDelete: "set null" }),
   // Donations go straight to this PayPal account (a sandbox Business account in the demo).
   paypalPayeeEmail: text("paypal_payee_email").notNull(),
+  // Set when the EIN check passes and the verification fee is captured (week 2).
+  // Until then the nonprofit can't post and is hidden from everyone but itself:
+  // supporters should never have to wonder whether an organization is legit.
+  verifiedAt: timestamp("verified_at", { withTimezone: true }),
   ...timestamps,
 });
 

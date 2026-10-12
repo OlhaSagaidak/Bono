@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { DeletePostButton } from "@/components/delete-post-button";
 import { Logo } from "@/components/profile-header";
 import { imageUrl } from "@/lib/images";
 import type { FeedPost } from "@/lib/posts/queries";
@@ -24,7 +25,7 @@ function timeAgo(date: Date, now: number) {
   return new Intl.DateTimeFormat("en", { dateStyle: "medium" }).format(date);
 }
 
-export function PostCard({ post, now }: { post: FeedPost; now: number }) {
+export function PostCard({ post, now, canDelete }: { post: FeedPost; now: number; canDelete: boolean }) {
   const profileHref = `/nonprofits/${post.nonprofit.id}`;
   return (
     <article className="flex flex-col gap-3 rounded-2xl border border-zinc-200 p-4 dark:border-zinc-800">
@@ -72,6 +73,12 @@ export function PostCard({ post, now }: { post: FeedPost; now: number }) {
             </li>
           ))}
         </ul>
+      )}
+
+      {canDelete && (
+        <div className="flex justify-end border-t border-zinc-200 pt-3 dark:border-zinc-800">
+          <DeletePostButton postId={post.id} />
+        </div>
       )}
     </article>
   );
