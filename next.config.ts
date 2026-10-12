@@ -9,6 +9,9 @@ const nextConfig: NextConfig = {
     serverActions: { bodySizeLimit: "2.1mb" },
   },
   turbopack: {
+    // Pin the workspace root: otherwise a stray lockfile in a parent folder
+    // (e.g. ~/package-lock.json) makes Next guess the wrong root.
+    root: __dirname,
     rules: {
       "*.css": {
         loaders: ["@tailwindcss/turbopack"],
