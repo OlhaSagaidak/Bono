@@ -13,11 +13,11 @@ Requirements: Node 24, Homebrew.
 brew install postgresql@17 pgvector
 brew services start postgresql@17
 /opt/homebrew/opt/postgresql@17/bin/createdb bono
-/opt/homebrew/opt/postgresql@17/bin/psql -d bono -c "CREATE EXTENSION IF NOT EXISTS vector;"
 
 # App
 cp .env.example .env   # then fill in your own sandbox values
 npm install
+npm run db:migrate     # creates tables and enables pgvector
 npm run dev            # http://localhost:3000
 ```
 
