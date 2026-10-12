@@ -4,6 +4,7 @@ import { Suspense } from "react";
 import { z } from "zod";
 import { PostList } from "@/components/post-list";
 import { getSession } from "@/lib/auth/session";
+import { payPalClientId } from "@/lib/paypal/public-config";
 import { getPosts } from "@/lib/posts/queries";
 
 export const metadata = { title: "Feed · Bono" };
@@ -34,6 +35,7 @@ async function Feed({ searchParams }: { searchParams: PageProps<"/feed">["search
       posts={posts}
       fetchedAt={fetchedAt}
       viewerId={session.user.id}
+      donateClientId={payPalClientId()}
       nextHref={nextBefore && `/feed?before=${nextBefore}`}
       empty={
         session.user.role === "nonprofit" ? (

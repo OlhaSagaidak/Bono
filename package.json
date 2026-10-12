@@ -17,9 +17,11 @@
     "drizzle-orm": "^0.45.4",
     "next": "16.4.0",
     "next-auth": "5.0.0-beta.32",
+    "pay-pal-server-sdk": "github:context-plugins/paypal-typescript-sdk#5d0df8a8817e5fdf2e2cd48e68f790ea4730aab2",
     "pg": "^8.23.1",
     "react": "19.3.0",
     "react-dom": "19.3.0",
+    "server-only": "^0.0.1",
     "zod": "^4.6.6"
   },
   "devDependencies": {

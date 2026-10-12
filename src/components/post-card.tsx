@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { DeletePostButton } from "@/components/delete-post-button";
+import { DonateButton } from "@/components/donate-button";
 import { Logo } from "@/components/profile-header";
 import { imageUrl } from "@/lib/images";
 import type { FeedPost } from "@/lib/posts/queries";
@@ -25,7 +26,18 @@ function timeAgo(date: Date, now: number) {
   return new Intl.DateTimeFormat("en", { dateStyle: "medium" }).format(date);
 }
 
-export function PostCard({ post, now, canDelete }: { post: FeedPost; now: number; canDelete: boolean }) {
+export function PostCard({
+  post,
+  now,
+  canDelete,
+  donateClientId,
+}: {
+  post: FeedPost;
+  now: number;
+  canDelete: boolean;
+  /** PayPal client ID when the viewer may donate to this post's nonprofit, else null. */
+  donateClientId: string | null;
+}) {
   const profileHref = `/nonprofits/${post.nonprofit.id}`;
   return (
     <article className="flex flex-col gap-3 rounded-2xl border border-zinc-200 p-4 dark:border-zinc-800">
@@ -75,9 +87,19 @@ export function PostCard({ post, now, canDelete }: { post: FeedPost; now: number
         </ul>
       )}
 
-      {canDelete && (
-        <div className="flex justify-end border-t border-zinc-200 pt-3 dark:border-zinc-800">
-          <DeletePostButton postId={post.id} />
+      {(canDelete || donateClientId) && (
+        <div className="flex items-center justify-between gap-2 border-t border-zinc-200 pt-3 dark:border-zinc-800">
+          {donateClientId ? (
+            <DonateButton
+              nonprofitId={post.nonprofit.id}
+              nonprofitName={post.nonprofit.name}
+              postId={post.id}
+              clientId={donateClientId}
+            />
+          ) : (
+            <span />
+          )}
+          {canDelete && <DeletePostButton postId={post.id} />}
         </div>
       )}
     </article>
