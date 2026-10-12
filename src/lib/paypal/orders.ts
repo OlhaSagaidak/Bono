@@ -52,20 +52,21 @@ export type CreateOrderOutcome =
   | { kind: "unknown" };
 
 /**
- * Creates a CAPTURE order whose payee is the nonprofit, so the money goes
- * straight to its PayPal account. `donationId` makes the call idempotent:
- * PayPal returns the same order if this exact request is replayed.
+ * Creates a CAPTURE order paying `payeeEmail`: the nonprofit for a donation
+ * (so money goes straight to it), the platform for a fee. `requestId` makes
+ * the call idempotent: PayPal returns the same order if it's replayed.
  */
-export async function createDonationOrder(input: {
-  donationId: string;
+export async function createOrder(input: {
+  requestId: string;
   amountCents: number;
   payeeEmail: string;
   description: string;
+  customId: string;
 }): Promise<CreateOrderOutcome> {
   try {
     const result = await getPayPalClient()
       .orders.createOrder({
-        payPalRequestId: `donation-create-${input.donationId}`,
+        payPalRequestId: input.requestId,
         prefer: "return=representation",
         body: {
           intent: CheckoutPaymentIntent.Capture,
@@ -74,7 +75,7 @@ export async function createDonationOrder(input: {
               amount: { currencyCode: CURRENCY, value: centsToValue(input.amountCents) },
               payee: { emailAddress: input.payeeEmail },
               description: input.description.slice(0, 127), // PayPal's limit
-              customId: input.donationId,
+              customId: input.customId,
             },
           ],
           paymentSource: {
@@ -107,7 +108,14 @@ export async function createDonationOrder(input: {
   }
 }
 
-export type CaptureDetails = { captureId: string; status: string; amountCents: number; currency: string };
+export type CaptureDetails = {
+  captureId: string;
+  status: string;
+  amountCents: number;
+  currency: string;
+  /** Lowercased email of the PayPal account that paid, when PayPal reports it. */
+  payerEmail?: string;
+};
 
 export type CaptureOutcome =
   | ({ kind: "captured" } & CaptureDetails)
@@ -125,16 +133,17 @@ function captureFrom(order: Order): CaptureDetails | null {
     status: capture.status,
     amountCents: Math.round(Number(capture.amount.value) * 100),
     currency: capture.amount.currencyCode,
+    ...(order.payer?.emailAddress && { payerEmail: order.payer.emailAddress.toLowerCase() }),
   };
 }
 
-/** Captures an approved order. `donationId` makes a double click or a retry replay safely. */
-export async function captureDonationOrder(orderId: string, donationId: string): Promise<CaptureOutcome> {
+/** Captures an approved order. `requestId` makes a double click or a retry replay safely. */
+export async function captureOrder(orderId: string, requestId: string): Promise<CaptureOutcome> {
   try {
     const result = await getPayPalClient()
       .orders.captureOrder({
         id: orderId,
-        payPalRequestId: `donation-capture-${donationId}`,
+        payPalRequestId: requestId,
         // The default "return=minimal" response leaves out the capture itself.
         prefer: "return=representation",
         // PayPal answers 415 when there's no JSON body at all, so send an empty one.

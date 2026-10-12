@@ -5,6 +5,9 @@
 export type DemoNonprofit = {
   slug: string;
   name: string;
+  // Fictional. The "00" prefix is never assigned by the IRS, so these can't
+  // collide with a real organization. They live in demo_ein_registry.
+  ein: string;
   mission: string;
   causes: string[];
   posts: DemoPost[];
@@ -20,6 +23,7 @@ export type DemoPost = {
 export const nonprofits: DemoNonprofit[] = [
   {
     slug: "paws-haven",
+    ein: "000000101",
     name: "Paws Haven",
     mission:
       "We rescue, rehabilitate and rehome dogs and cats across the Puget Sound, and help families keep the pets they love.",
@@ -53,6 +57,7 @@ export const nonprofits: DemoNonprofit[] = [
   },
   {
     slug: "green-seattle",
+    ein: "000000102",
     name: "Green Seattle",
     mission:
       "We plant trees, restore urban creeks and help Seattle neighborhoods cut their carbon footprint, one block at a time.",
@@ -90,6 +95,7 @@ export const nonprofits: DemoNonprofit[] = [
   },
   {
     slug: "bright-futures",
+    ein: "000000103",
     name: "Bright Futures",
     mission:
       "We pair young people aged 10 to 18 with trained adult mentors, and keep those friendships going for years, not weeks.",
@@ -129,6 +135,7 @@ export const nonprofits: DemoNonprofit[] = [
   },
   {
     slug: "open-pantry",
+    ein: "000000104",
     name: "Open Pantry",
     mission:
       "We run food banks, mobile pantries and a community kitchen so that no one in our city has to go to bed hungry.",
@@ -168,6 +175,7 @@ export const nonprofits: DemoNonprofit[] = [
   },
   {
     slug: "new-roots",
+    ein: "000000105",
     name: "New Roots Welcome Center",
     mission:
       "We help refugee and immigrant families build a new life: housing, English classes, legal help and a community that has their back.",

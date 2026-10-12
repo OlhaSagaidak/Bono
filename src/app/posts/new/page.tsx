@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { redirect } from "next/navigation";
 import { Suspense } from "react";
 import { getSession } from "@/lib/auth/session";
@@ -27,7 +28,10 @@ async function NewPost() {
     return (
       <p className="rounded-lg bg-amber-50 px-4 py-3 text-amber-900 dark:bg-amber-950 dark:text-amber-100">
         Posting opens once your nonprofit is verified. Bono only shows supporters organizations whose
-        EIN has been checked, so everyone can give without second-guessing.
+        EIN has been checked, so everyone can give without second-guessing.{" "}
+        <Link href="/verify" className="font-semibold underline">
+          Get verified
+        </Link>
       </p>
     );
   }

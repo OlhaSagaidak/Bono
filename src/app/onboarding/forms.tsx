@@ -44,7 +44,14 @@ export function NonprofitProfileForm({
   initial,
 }: {
   causes: Option[];
-  initial: { name: string; mission: string; paypalPayeeEmail: string; causes: string[]; logoUrl?: string };
+  initial: {
+    name: string;
+    mission: string;
+    paypalPayeeEmail: string;
+    causes: string[];
+    logoUrl?: string;
+    verified: boolean;
+  };
 }) {
   const [state, action, pending] = useActionState<FormState, FormData>(saveNonprofitProfileAction, {});
   const errors = state.fieldErrors ?? {};
@@ -85,7 +92,12 @@ export function NonprofitProfileForm({
       <TextField
         name="paypalPayeeEmail"
         label="PayPal email for donations"
-        hint="The email of your PayPal Business account (a sandbox account for this demo). Donations go straight to it; Bono never holds them."
+        hint={
+          initial.verified
+            ? "Locked after verification, because donations go straight to this account. Contact Bono to change it."
+            : "The email of your PayPal Business account (a sandbox account for this demo). Donations go straight to it; Bono never holds them. You'll pay the verification fee from this account."
+        }
+        readOnly={initial.verified}
         type="email"
         autoComplete="email"
         defaultValue={textValue(state, "paypalPayeeEmail") ?? initial.paypalPayeeEmail}

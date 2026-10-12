@@ -6,12 +6,7 @@ import { z } from "zod";
 import { auth } from "@/auth";
 import { db } from "@/db";
 import { donations, nonprofitProfiles, posts } from "@/db/schema";
-import {
-  captureDonationOrder,
-  createDonationOrder,
-  getOrderCapture,
-  type CaptureDetails,
-} from "@/lib/paypal/orders";
+import { captureOrder, createOrder, getOrderCapture, type CaptureDetails } from "@/lib/paypal/orders";
 import { amountSchema } from "./amounts";
 
 // The two halves of a donation, called by the PayPal button in the browser:
@@ -71,11 +66,12 @@ export async function createDonationOrderAction(input: {
     })
     .returning({ id: donations.id });
 
-  const outcome = await createDonationOrder({
-    donationId: donation.id,
+  const outcome = await createOrder({
+    requestId: `donation-create-${donation.id}`,
     amountCents,
     payeeEmail: nonprofit.paypalPayeeEmail,
     description: `Donation to ${nonprofit.name} via Bono`,
+    customId: donation.id,
   });
 
   if (outcome.kind !== "created") {
@@ -110,7 +106,7 @@ export async function captureDonationAction(orderId: string): Promise<CaptureDon
   }
   if (donation.status === "failed") return { error: TRY_AGAIN };
 
-  const outcome = await captureDonationOrder(orderId, donation.id);
+  const outcome = await captureOrder(orderId, `donation-capture-${donation.id}`);
 
   switch (outcome.kind) {
     case "captured":

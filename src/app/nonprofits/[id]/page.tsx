@@ -52,7 +52,10 @@ async function NonprofitProfile({
         <p className="rounded-lg bg-amber-50 px-4 py-3 text-sm text-amber-900 dark:bg-amber-950 dark:text-amber-100">
           <strong>Only you can see this page for now.</strong> Bono shows supporters verified
           nonprofits only. Once your EIN is checked and the verification fee is paid, your page goes
-          live and you can start posting.
+          live and you can start posting.{" "}
+          <Link href="/verify" className="font-semibold underline">
+            Get verified
+          </Link>
         </p>
       )}
       <ProfileHeader
