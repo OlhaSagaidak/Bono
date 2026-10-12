@@ -6,6 +6,7 @@ export function PostList({
   posts,
   fetchedAt,
   viewerId,
+  donateClientId,
   nextHref,
   empty,
 }: {
@@ -13,6 +14,8 @@ export function PostList({
   fetchedAt: number;
   /** The signed-in account, if any: its own posts get a Delete button. */
   viewerId: string | null;
+  /** PayPal client ID if the viewer is signed in (and so may donate), else null. */
+  donateClientId: string | null;
   nextHref: string | null;
   empty: React.ReactNode;
 }) {
@@ -22,7 +25,14 @@ export function PostList({
   return (
     <div className="flex flex-col gap-4">
       {posts.map((post) => (
-        <PostCard key={post.id} post={post} now={fetchedAt} canDelete={post.nonprofit.id === viewerId} />
+        <PostCard
+          key={post.id}
+          post={post}
+          now={fetchedAt}
+          canDelete={post.nonprofit.id === viewerId}
+          // Anyone signed in may donate, except to their own organization.
+          donateClientId={post.nonprofit.id === viewerId ? null : donateClientId}
+        />
       ))}
       {nextHref && (
         <Link

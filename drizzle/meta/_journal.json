@@ -43,6 +43,13 @@
       "when": 1791828488057,
       "tag": "0005_nonprofit_verified",
       "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1791844506609,
+      "tag": "0006_donations",
+      "breakpoints": true
     }
   ]
 }

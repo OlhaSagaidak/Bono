@@ -1,9 +1,12 @@
+import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Suspense } from "react";
 import { z } from "zod";
 import { PostList } from "@/components/post-list";
 import { ProfileHeader } from "@/components/profile-header";
+import { DonateButton } from "@/components/donate-button";
 import { getSession } from "@/lib/auth/session";
+import { payPalClientId } from "@/lib/paypal/public-config";
 import { getPosts } from "@/lib/posts/queries";
 import { getNonprofitProfile } from "@/lib/profiles/queries";
 
@@ -37,6 +40,10 @@ async function NonprofitProfile({
     before: cursor.success ? cursor.data : undefined,
   });
 
+  // Signed-in visitors may donate (never to their own organization); the
+  // page is only visible to others once the nonprofit is verified.
+  const donateClientId = viewerId && !isOwner ? payPalClientId() : null;
+
   // The PayPal payee email is deliberately not shown: it's only used server-side.
   return (
     <>
@@ -55,6 +62,18 @@ async function NonprofitProfile({
         verified={Boolean(profile.verifiedAt)}
       />
       <p className="text-lg">{profile.mission}</p>
+      {donateClientId && (
+        <div>
+          <DonateButton nonprofitId={id} nonprofitName={profile.name} clientId={donateClientId} size="large" />
+        </div>
+      )}
+      {!viewerId && (
+        <p>
+          <Link href="/login" className="font-medium text-emerald-700 underline dark:text-emerald-400">
+            Log in to donate
+          </Link>
+        </p>
+      )}
       <ul className="flex flex-wrap gap-2" aria-label="Causes">
         {profile.causes.map((c) => (
           <li
@@ -73,6 +92,7 @@ async function NonprofitProfile({
           posts={posts}
           fetchedAt={fetchedAt}
           viewerId={viewerId}
+          donateClientId={donateClientId}
           nextHref={nextBefore && `/nonprofits/${id}?before=${nextBefore}`}
           empty="No posts yet."
         />

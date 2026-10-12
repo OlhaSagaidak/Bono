@@ -129,5 +129,37 @@ export const postCauses = pgTable(
   (t) => [primaryKey({ columns: [t.postId, t.causeSlug] })],
 );
 
+// created: order exists at PayPal, buyer hasn't paid yet (or was declined and may retry).
+// pending: PayPal accepted the payment but hasn't settled it; the webhook finishes it.
+export const donationStatusEnum = pgEnum("donation_status", ["created", "pending", "completed", "failed"]);
+
+// Money goes straight from donor to nonprofit (the PayPal order's payee); Bono
+// only records what happened. Amounts are integer cents to avoid float rounding.
+export const donations = pgTable(
+  "donations",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    donorId: uuid("donor_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+    nonprofitId: uuid("nonprofit_id")
+      .notNull()
+      .references(() => nonprofitProfiles.userId, { onDelete: "cascade" }),
+    // The post the Donate button was on, if any; the AI feed counts it as engagement.
+    postId: uuid("post_id").references(() => posts.id, { onDelete: "set null" }),
+    amountCents: integer("amount_cents").notNull(),
+    currency: text("currency").notNull().default("USD"),
+    status: donationStatusEnum("status").notNull().default("created"),
+    // Snapshot of where the money was sent, in case the nonprofit changes it later.
+    payeeEmail: text("payee_email").notNull(),
+    paypalOrderId: text("paypal_order_id").unique(),
+    paypalCaptureId: text("paypal_capture_id").unique(),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+    completedAt: timestamp("completed_at", { withTimezone: true }),
+  },
+  (t) => [
+    index("donations_nonprofit_idx").on(t.nonprofitId, t.createdAt.desc()),
+    index("donations_donor_idx").on(t.donorId, t.createdAt.desc()),
+  ],
+);
+
 export type User = typeof users.$inferSelect;
 export type Cause = typeof causes.$inferSelect;
