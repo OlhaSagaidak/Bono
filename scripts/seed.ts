@@ -1,12 +1,18 @@
-// `npm run seed`: (re)creates the demo accounts and posts.
+// `npm run seed`: creates or updates the demo accounts, profiles and posts.
 //
-// Safe to run again: it first deletes every account on the demo email domain
-// (their profiles, posts and images go with them), then recreates them in one
-// transaction. Accounts on any other domain are never touched.
+// Safe to run again, and it keeps history: accounts are matched by email and
+// posts by a stable id, so donations and verification fees made in the
+// sandbox survive a re-run. A nonprofit seeded unverified keeps whatever
+// verification it has earned since.
+//
+// `npm run seed -- --reset` instead deletes every account on the demo email
+// domain (with all their posts, donations and fees) and starts clean, e.g.
+// before recording the demo. Accounts on any other domain are never touched.
 
+import { createHash } from "node:crypto";
 import { readFileSync } from "node:fs";
 import bcrypt from "bcryptjs";
-import { like, sql } from "drizzle-orm";
+import { and, count, eq, inArray, like, notInArray, sql } from "drizzle-orm";
 import { z } from "zod";
 import { db } from "@/db";
 import {
@@ -19,6 +25,8 @@ import {
   sponsorProfiles,
   userInterests,
   users,
+  verificationFees,
+  donations,
 } from "@/db/schema";
 import { nonprofits, sponsors, supporters } from "./seed-data";
 
@@ -55,7 +63,16 @@ const loginEmail = (name: string) =>
     .toLowerCase()
     .replace(/[^a-z0-9]+/g, ".")}@${DEMO_DOMAIN}`;
 
+// A fixed UUID per seeded post, so a re-run updates the post instead of adding
+// a copy (and anything pointing at it, like a donation, stays attached).
+function stableId(key: string): string {
+  const h = createHash("sha256").update(`bono-seed:${key}`).digest("hex");
+  const variant = ((parseInt(h[16], 16) & 0x3) | 0x8).toString(16);
+  return `${h.slice(0, 8)}-${h.slice(8, 12)}-4${h.slice(13, 16)}-${variant}${h.slice(17, 20)}-${h.slice(20, 32)}`;
+}
+
 async function main() {
+  const reset = process.argv.includes("--reset");
   const config = readLocalConfig();
 
   const known = new Set((await db.select({ slug: causes.slug }).from(causes)).map((c) => c.slug));
@@ -70,56 +87,84 @@ async function main() {
   const now = Date.now();
   const hoursAgo = (h: number) => new Date(now - h * 3_600_000);
 
-  const counts = await db.transaction(async (tx) => {
+  const result = await db.transaction(async (tx) => {
     // The labeled registry of fictional EINs the demo nonprofits verify against.
     await tx
       .insert(demoEinRegistry)
       .values(nonprofits.map((n) => ({ ein: n.ein, name: n.name })))
       .onConflictDoUpdate({ target: demoEinRegistry.ein, set: { name: sql`excluded.name` } });
 
-    const removed = await tx
-      .delete(users)
-      .where(like(users.email, `%@${DEMO_DOMAIN}`))
-      .returning({ id: users.id });
+    const removed = reset
+      ? (await tx.delete(users).where(like(users.email, `%@${DEMO_DOMAIN}`)).returning({ id: users.id })).length
+      : 0;
 
-    const createUser = async (email: string, name: string, role: "user" | "nonprofit" | "sponsor") => {
+    // Matched by email, so the account (and its history) is kept on re-runs.
+    const upsertUser = async (email: string, name: string, role: "user" | "nonprofit" | "sponsor") => {
       const [row] = await tx
         .insert(users)
         .values({ email, name, role, passwordHash, onboardedAt: new Date(now) })
+        .onConflictDoUpdate({ target: users.email, set: { name, role, passwordHash } })
         .returning({ id: users.id });
       return row.id;
     };
 
     let postCount = 0;
     for (const np of nonprofits) {
-      const id = await createUser(`${np.slug}@${DEMO_DOMAIN}`, np.name, "nonprofit");
-      await tx.insert(nonprofitProfiles).values({
-        userId: id,
+      const id = await upsertUser(`${np.slug}@${DEMO_DOMAIN}`, np.name, "nonprofit");
+      const profile = {
         name: np.name,
         mission: np.mission,
         paypalPayeeEmail: config.nonprofits[np.slug].toLowerCase(),
-        // Demo nonprofits start verified so the feed has content, with their
-        // fictional EINs from the demo registry. (No fee record: seeded, not paid.)
+      };
+      // Verified demo nonprofits come with their demo EIN. One seeded
+      // unverified starts with neither, and a re-run leaves whatever
+      // verification it has earned since untouched.
+      const verification = {
         ein: np.ein,
-        einSource: "demo",
+        einSource: "demo" as const,
         einCheckedAt: new Date(now),
         verifiedAt: new Date(now),
-      });
+      };
+      await tx
+        .insert(nonprofitProfiles)
+        .values({ userId: id, ...profile, ...(np.unverified ? {} : verification) })
+        .onConflictDoUpdate({
+          target: nonprofitProfiles.userId,
+          set: np.unverified
+            ? profile
+            : { ...profile, ...verification, verifiedAt: sql`coalesce(${nonprofitProfiles.verifiedAt}, now())` },
+        });
+      await tx.delete(nonprofitCauses).where(eq(nonprofitCauses.nonprofitId, id));
       await tx.insert(nonprofitCauses).values(np.causes.map((causeSlug) => ({ nonprofitId: id, causeSlug })));
 
-      for (const post of np.posts) {
-        const [row] = await tx
-          .insert(posts)
-          .values({
-            nonprofitId: id,
-            body: post.body,
-            language: post.language ?? "en",
-            createdAt: hoursAgo(post.hoursAgo),
-          })
-          .returning({ id: posts.id });
+      // Earlier seed versions gave posts random ids; drop those copies so the
+      // stable-id posts below don't duplicate them. Posts written by hand differ in text.
+      const seededIds = np.posts.map((_, i) => stableId(`post:${np.slug}:${i}`));
+      if (np.posts.length > 0) {
+        await tx
+          .delete(posts)
+          .where(
+            and(
+              eq(posts.nonprofitId, id),
+              inArray(posts.body, np.posts.map((p) => p.body)),
+              notInArray(posts.id, seededIds),
+            ),
+          );
+      }
+
+      for (const [i, post] of np.posts.entries()) {
+        const postId = seededIds[i];
+        const values = {
+          nonprofitId: id,
+          body: post.body,
+          language: post.language ?? "en",
+          createdAt: hoursAgo(post.hoursAgo),
+        };
+        await tx.insert(posts).values({ id: postId, ...values }).onConflictDoUpdate({ target: posts.id, set: values });
+        await tx.delete(postCauses).where(eq(postCauses.postId, postId));
         await tx
           .insert(postCauses)
-          .values((post.causes ?? np.causes).map((causeSlug) => ({ postId: row.id, causeSlug })));
+          .values((post.causes ?? np.causes).map((causeSlug) => ({ postId, causeSlug })));
         postCount++;
       }
     }
@@ -127,21 +172,42 @@ async function main() {
     // Sponsors pay as buyers, so their sandbox emails aren't stored yet; they
     // are needed to log in to the PayPal sandbox when funding campaigns (week 4).
     for (const sp of sponsors) {
-      const id = await createUser(`${sp.slug}@${DEMO_DOMAIN}`, sp.name, "sponsor");
-      await tx.insert(sponsorProfiles).values({ userId: id, name: sp.name, about: sp.about });
+      const id = await upsertUser(`${sp.slug}@${DEMO_DOMAIN}`, sp.name, "sponsor");
+      const profile = { name: sp.name, about: sp.about };
+      await tx
+        .insert(sponsorProfiles)
+        .values({ userId: id, ...profile })
+        .onConflictDoUpdate({ target: sponsorProfiles.userId, set: profile });
     }
 
     for (const s of supporters) {
-      const id = await createUser(loginEmail(s.name), s.name, "user");
+      const id = await upsertUser(loginEmail(s.name), s.name, "user");
+      await tx.delete(userInterests).where(eq(userInterests.userId, id));
       await tx.insert(userInterests).values(s.interests.map((causeSlug) => ({ userId: id, causeSlug })));
     }
 
-    return { removed: removed.length, posts: postCount };
+    // What history the demo accounts carry after this run.
+    const demoUsers = tx.select({ id: users.id }).from(users).where(like(users.email, `%@${DEMO_DOMAIN}`));
+    const [{ kept: keptDonations }] = await tx
+      .select({ kept: count() })
+      .from(donations)
+      .where(inArray(donations.donorId, demoUsers));
+    const [{ kept: keptFees }] = await tx
+      .select({ kept: count() })
+      .from(verificationFees)
+      .where(inArray(verificationFees.nonprofitId, demoUsers));
+
+    return { removed, posts: postCount, keptDonations, keptFees };
   });
 
   console.log(
-    `Seeded ${nonprofits.length} nonprofits, ${sponsors.length} sponsors, ${supporters.length} supporters ` +
-      `and ${counts.posts} posts (replaced ${counts.removed} earlier demo accounts).`,
+    `Seeded ${nonprofits.length} nonprofits (${nonprofits.filter((n) => n.unverified).length} unverified), ` +
+      `${sponsors.length} sponsors, ${supporters.length} supporters and ${result.posts} posts.`,
+  );
+  console.log(
+    reset
+      ? `Reset: removed ${result.removed} demo accounts and their history first.`
+      : `Kept history: ${result.keptDonations} donations and ${result.keptFees} verification fees.`,
   );
   console.log(
     `Log in as e.g. ${nonprofits[0].slug}@${DEMO_DOMAIN}, ${sponsors[0].slug}@${DEMO_DOMAIN} or ` +

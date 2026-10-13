@@ -272,3 +272,12 @@ Automated: EIN checks (IRS hit, demo hit, unknown, ineligible, name mismatch, EI
 platform payee, capture error paths as before. By hand (headless PayPal login is rejected): Olya pays one fee from a
 nonprofit's sandbox Business account; then check `getOrder`: payee = platform, payer = that nonprofit's account,
 and the nonprofit is verified.
+
+## Slice 2 results (2026-10-13)
+
+By hand in the popup (headless PayPal login is rejected): Open Pantry checked demo EIN 00-0000104, then paid the fee
+from its own sandbox Business account. `getOrder`: order and capture `COMPLETED`, $25.00 USD, payee = platform
+account, payer = Open Pantry's account; PayPal fee $1.36, net $23.64 to the platform. Bono: fee row `completed`
+with capture id and matching payer email, nonprofit verified. Automated: every EIN error path, an IRS match
+(Washington data), fee order payee = platform, paid-from-another-account recovery, payee email locked after
+verification (also server-side).

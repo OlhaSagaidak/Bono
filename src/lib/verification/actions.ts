@@ -70,6 +70,8 @@ export async function checkEinAction(_prev: FormState, formData: FormData): Prom
     .update(nonprofitProfiles)
     .set({ ein, einSource: record.source, einCheckedAt: new Date() })
     .where(eq(nonprofitProfiles.userId, profile.userId));
+  // A fee may already be paid (e.g. the EIN was re-checked): finish if it qualifies.
+  await completeVerificationIfReady(profile.userId);
   revalidatePath("/verify");
   return {};
 }
