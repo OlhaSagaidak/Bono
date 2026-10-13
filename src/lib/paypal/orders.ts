@@ -108,6 +108,26 @@ export async function createOrder(input: {
   }
 }
 
+export type PaymentStatus = "completed" | "pending" | "failed" | "refunded";
+
+/**
+ * Our status for a PayPal capture status. A partial refund still leaves money
+ * with the payee, so it stays completed.
+ */
+export function paymentStatusFrom(captureStatus: string): PaymentStatus {
+  switch (captureStatus) {
+    case "COMPLETED":
+    case "PARTIALLY_REFUNDED":
+      return "completed";
+    case "PENDING":
+      return "pending";
+    case "REFUNDED":
+      return "refunded";
+    default: // DECLINED, FAILED, or a status PayPal adds later
+      return "failed";
+  }
+}
+
 export type CaptureDetails = {
   captureId: string;
   status: string;
@@ -174,6 +194,9 @@ export async function captureOrder(orderId: string, requestId: string): Promise<
 export async function getOrderCapture(orderId: string): Promise<CaptureDetails | null | "unknown"> {
   try {
     const result = await getPayPalClient().orders.getOrder({ id: orderId }).asApiResult();
+    // 404: the order doesn't exist (PayPal drops orders nobody approved), so
+    // it certainly has no capture. Any other refusal leaves the answer unknown.
+    if (!result.ok && result.status === 404) return null;
     if (!result.ok) {
       logRefusal("getOrder", refusal(result.status, result.payload));
       return "unknown";
