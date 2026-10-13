@@ -32,6 +32,7 @@ export function PostList({
           post={post}
           now={fetchedAt}
           canDelete={post.nonprofit.id === viewerId}
+          canEngage={viewerId !== null && post.nonprofit.id !== viewerId}
           // Anyone signed in may donate, except to their own organization.
           donateClientId={post.nonprofit.id === viewerId ? null : donateClientId}
         />

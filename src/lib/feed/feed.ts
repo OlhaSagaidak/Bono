@@ -41,7 +41,7 @@ export async function getRankedFeed(viewer: { id: string; role: Role }, page: nu
   const start = (page - 1) * PAGE_SIZE;
   const pageOfRanked = ranked.slice(start, start + PAGE_SIZE);
   return {
-    posts: await getPostsByIds(pageOfRanked.map((r) => r.id)),
+    posts: await getPostsByIds(pageOfRanked.map((r) => r.id), viewer.id),
     // Kept for "Why am I seeing this?" (a later slice).
     factors: new Map<string, Factors>(pageOfRanked.map((r) => [r.id, r.factors])),
     nextPage: ranked.length > start + PAGE_SIZE ? page + 1 : null,

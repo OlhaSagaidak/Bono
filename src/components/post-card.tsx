@@ -1,6 +1,8 @@
 import Link from "next/link";
 import { DeletePostButton } from "@/components/delete-post-button";
 import { DonateButton } from "@/components/donate-button";
+import { FollowButton } from "@/components/follow-button";
+import { LikeButton } from "@/components/like-button";
 import { Logo } from "@/components/profile-header";
 import { imageUrl } from "@/lib/images";
 import type { FeedPost } from "@/lib/posts/queries";
@@ -30,11 +32,14 @@ export function PostCard({
   post,
   now,
   canDelete,
+  canEngage,
   donateClientId,
 }: {
   post: FeedPost;
   now: number;
   canDelete: boolean;
+  /** Signed in, and not this post's own nonprofit: may like and follow. */
+  canEngage: boolean;
   /** PayPal client ID when the viewer may donate to this post's nonprofit, else null. */
   donateClientId: string | null;
 }) {
@@ -57,6 +62,11 @@ export function PostCard({
             {timeAgo(post.createdAt, now)}
           </time>
         </div>
+        {canEngage && (
+          <div className="ml-auto">
+            <FollowButton nonprofitId={post.nonprofit.id} following={post.viewerFollows} />
+          </div>
+        )}
       </header>
 
       {/* lang lets screen readers pronounce Spanish and Ukrainian posts correctly. */}
@@ -87,18 +97,19 @@ export function PostCard({
         </ul>
       )}
 
-      {(canDelete || donateClientId) && (
+      {(canDelete || canEngage || post.likes > 0) && (
         <div className="flex items-center justify-between gap-2 border-t border-zinc-200 pt-3 dark:border-zinc-800">
-          {donateClientId ? (
-            <DonateButton
-              nonprofitId={post.nonprofit.id}
-              nonprofitName={post.nonprofit.name}
-              postId={post.id}
-              clientId={donateClientId}
-            />
-          ) : (
-            <span />
-          )}
+          <div className="flex items-center gap-2">
+            <LikeButton postId={post.id} liked={post.likedByViewer} likes={post.likes} disabled={!canEngage} />
+            {donateClientId && (
+              <DonateButton
+                nonprofitId={post.nonprofit.id}
+                nonprofitName={post.nonprofit.name}
+                postId={post.id}
+                clientId={donateClientId}
+              />
+            )}
+          </div>
           {canDelete && <DeletePostButton postId={post.id} />}
         </div>
       )}
