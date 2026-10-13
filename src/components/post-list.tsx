@@ -1,3 +1,4 @@
+import { Fragment } from "react";
 import Link from "next/link";
 import { PostCard } from "@/components/post-card";
 import type { FeedPost } from "@/lib/posts/queries";
@@ -9,6 +10,7 @@ export function PostList({
   donateClientId,
   nextHref,
   nextLabel = "More posts",
+  caughtUpAt = null,
   empty,
 }: {
   posts: FeedPost[];
@@ -19,6 +21,8 @@ export function PostList({
   donateClientId: string | null;
   nextHref: string | null;
   nextLabel?: string;
+  /** Index of the first already-seen post, to put "You're all caught up" before it. */
+  caughtUpAt?: number | null;
   empty: React.ReactNode;
 }) {
   if (posts.length === 0) {
@@ -26,16 +30,24 @@ export function PostList({
   }
   return (
     <div className="flex flex-col gap-4">
-      {posts.map((post) => (
-        <PostCard
-          key={post.id}
-          post={post}
-          now={fetchedAt}
-          canDelete={post.nonprofit.id === viewerId}
-          canEngage={viewerId !== null && post.nonprofit.id !== viewerId}
-          // Anyone signed in may donate, except to their own organization.
-          donateClientId={post.nonprofit.id === viewerId ? null : donateClientId}
-        />
+      {posts.map((post, i) => (
+        <Fragment key={post.id}>
+          {i === caughtUpAt && (
+            <p className="flex items-center gap-3 py-2 text-sm text-zinc-600 dark:text-zinc-400">
+              <span className="h-px flex-1 bg-zinc-200 dark:bg-zinc-800" />
+              You&apos;re all caught up. Posts you&apos;ve seen:
+              <span className="h-px flex-1 bg-zinc-200 dark:bg-zinc-800" />
+            </p>
+          )}
+          <PostCard
+            post={post}
+            now={fetchedAt}
+            canDelete={post.nonprofit.id === viewerId}
+            canEngage={viewerId !== null && post.nonprofit.id !== viewerId}
+            // Anyone signed in may donate, except to their own organization.
+            donateClientId={post.nonprofit.id === viewerId ? null : donateClientId}
+          />
+        </Fragment>
       ))}
       {nextHref && (
         <Link
