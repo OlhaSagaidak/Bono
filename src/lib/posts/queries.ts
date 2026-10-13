@@ -4,15 +4,43 @@ import { causes, nonprofitProfiles, postCauses, posts } from "@/db/schema";
 
 export const PAGE_SIZE = 20;
 
-export type FeedPost = Awaited<ReturnType<typeof getPosts>>["posts"][number];
+export type FeedPost = Awaited<ReturnType<typeof getPostsByIds>>[number];
+
+// What a post card needs, joined with its nonprofit.
+const postColumns = {
+  id: posts.id,
+  body: posts.body,
+  language: posts.language,
+  imageId: posts.imageId,
+  imageAlt: posts.imageAlt,
+  createdAt: posts.createdAt,
+  nonprofit: {
+    id: nonprofitProfiles.userId,
+    name: nonprofitProfiles.name,
+    logoImageId: nonprofitProfiles.logoImageId,
+  },
+};
+
+/** These posts, in the order given (e.g. the ranked feed's order), with their cause tags. */
+export async function getPostsByIds(ids: string[]) {
+  if (ids.length === 0) return [];
+  const rows = await db
+    .select(postColumns)
+    .from(posts)
+    .innerJoin(nonprofitProfiles, eq(nonprofitProfiles.userId, posts.nonprofitId))
+    .where(inArray(posts.id, ids));
+  const tags = await getCauseTags(ids);
+  const byId = new Map(rows.map((r) => [r.id, { ...r, causes: tags.get(r.id) ?? [] }]));
+  return ids.flatMap((id) => byId.get(id) ?? []);
+}
 
 /**
- * Newest posts first, PAGE_SIZE at a time. `before` is the id of the last post
+ * Newest posts first, PAGE_SIZE at a time (nonprofit pages; the feed itself
+ * is ranked, see lib/feed). `before` is the id of the last post
  * on the previous page: paging by (created_at, id) of a real row stays correct
  * even when posts share a timestamp, and avoids round-tripping Postgres'
  * microsecond timestamps through JS Dates (which keep only milliseconds).
- * Only verified nonprofits appear in the shared feed.
- * This is the week-1 chronological feed; the AI ranking replaces it in week 3.
+ * Without a nonprofitId, only verified nonprofits' posts are included.
  */
 export async function getPosts({ nonprofitId, before }: { nonprofitId?: string; before?: string }) {
   const filters: SQL[] = [];
@@ -28,19 +56,7 @@ export async function getPosts({ nonprofitId, before }: { nonprofitId?: string; 
 
   // One extra row tells us whether there is another page.
   const rows = await db
-    .select({
-      id: posts.id,
-      body: posts.body,
-      language: posts.language,
-      imageId: posts.imageId,
-      imageAlt: posts.imageAlt,
-      createdAt: posts.createdAt,
-      nonprofit: {
-        id: nonprofitProfiles.userId,
-        name: nonprofitProfiles.name,
-        logoImageId: nonprofitProfiles.logoImageId,
-      },
-    })
+    .select(postColumns)
     .from(posts)
     .innerJoin(nonprofitProfiles, eq(nonprofitProfiles.userId, posts.nonprofitId))
     .where(and(...filters))

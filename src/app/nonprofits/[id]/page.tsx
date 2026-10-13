@@ -97,6 +97,7 @@ async function NonprofitProfile({
           viewerId={viewerId}
           donateClientId={donateClientId}
           nextHref={nextBefore && `/nonprofits/${id}?before=${nextBefore}`}
+          nextLabel="Older posts"
           empty="No posts yet."
         />
       </section>

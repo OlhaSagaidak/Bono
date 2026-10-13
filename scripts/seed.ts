@@ -28,6 +28,7 @@ import {
   verificationFees,
   donations,
 } from "@/db/schema";
+import { embedCauses, embedPosts } from "@/lib/ai/embed-posts";
 import { nonprofits, sponsors, supporters } from "./seed-data";
 
 // Bono login emails for demo accounts. `.example` is reserved, so these can
@@ -109,6 +110,7 @@ async function main() {
     };
 
     let postCount = 0;
+    const seededPostIds: string[] = [];
     for (const np of nonprofits) {
       const id = await upsertUser(`${np.slug}@${DEMO_DOMAIN}`, np.name, "nonprofit");
       const profile = {
@@ -166,6 +168,7 @@ async function main() {
           .insert(postCauses)
           .values((post.causes ?? np.causes).map((causeSlug) => ({ postId, causeSlug })));
         postCount++;
+        seededPostIds.push(postId);
       }
     }
 
@@ -197,8 +200,13 @@ async function main() {
       .from(verificationFees)
       .where(inArray(verificationFees.nonprofitId, demoUsers));
 
-    return { removed, posts: postCount, keptDonations, keptFees };
+    return { removed, posts: postCount, keptDonations, keptFees, seededPostIds };
   });
+
+  // Vectors for the AI feed. Seeded posts are re-embedded every run, since
+  // their text may have changed in seed-data.ts.
+  await embedCauses();
+  await embedPosts({ postIds: result.seededPostIds, onlyMissing: false });
 
   console.log(
     `Seeded ${nonprofits.length} nonprofits (${nonprofits.filter((n) => n.unverified).length} unverified), ` +
