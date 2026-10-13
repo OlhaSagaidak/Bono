@@ -5,7 +5,8 @@
     "green-seattle": "green-seattle-sandbox@business.example.com",
     "bright-futures": "bright-futures-sandbox@business.example.com",
     "open-pantry": "open-pantry-sandbox@business.example.com",
-    "new-roots": "new-roots-sandbox@business.example.com"
+    "new-roots": "new-roots-sandbox@business.example.com",
+    "canvas-commons": "canvas-commons-sandbox@business.example.com"
   },
   "sponsors": {
     "acme": "acme-sandbox@business.example.com",

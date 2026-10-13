@@ -11,6 +11,8 @@ export type DemoNonprofit = {
   mission: string;
   causes: string[];
   posts: DemoPost[];
+  // Seeded unverified, so the verification flow can be shown live. Defaults to verified.
+  unverified?: true;
 };
 
 export type DemoPost = {
@@ -209,6 +211,18 @@ export const nonprofits: DemoNonprofit[] = [
         body: "Our Thursday potluck has become the best dinner in town. Last week: Ukrainian varenyky, Afghan bolani, Guatemalan tamales and a very ambitious lasagna from one of our volunteers.",
       },
     ],
+  },
+  {
+    slug: "canvas-commons",
+    name: "Canvas Commons",
+    ein: "000000106",
+    mission:
+      "We run free art studios and classes for kids and seniors, because making art shouldn't depend on what you can afford.",
+    causes: ["arts", "youth"],
+    // Unverified nonprofits can't post, so it starts with none. After it's
+    // verified on camera, a first post can be written live.
+    posts: [],
+    unverified: true,
   },
 ];
 
