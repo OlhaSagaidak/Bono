@@ -25,6 +25,10 @@ import {
   sponsorProfiles,
   userInterests,
   users,
+  userVectors,
+  follows,
+  postLikes,
+  postViews,
   verificationFees,
   donations,
 } from "@/db/schema";
@@ -183,10 +187,40 @@ async function main() {
         .onConflictDoUpdate({ target: sponsorProfiles.userId, set: profile });
     }
 
+    // Seeded posts by cause, and the nonprofit behind each, for engagement history below.
+    const seededPosts = nonprofits.flatMap((np) =>
+      np.posts.map((post, i) => ({ id: stableId(`post:${np.slug}:${i}`), nonprofitSlug: np.slug, causes: post.causes ?? np.causes })),
+    );
+    const nonprofitIds = new Map<string, string>();
+    for (const np of nonprofits) {
+      const [row] = await tx.select({ id: users.id }).from(users).where(eq(users.email, `${np.slug}@${DEMO_DOMAIN}`));
+      nonprofitIds.set(np.slug, row.id);
+    }
+
     for (const s of supporters) {
       const id = await upsertUser(loginEmail(s.name), s.name, "user");
       await tx.delete(userInterests).where(eq(userInterests.userId, id));
       await tx.insert(userInterests).values(s.interests.map((causeSlug) => ({ userId: id, causeSlug })));
+
+      // Some history, so the AI feed has something to learn from in the demo:
+      // likes and long looks mostly within their causes, the odd one outside,
+      // and a follow. Chosen deterministically (same picks every run) and
+      // added only if missing, so real activity is never overwritten.
+      const pick = (key: string) => parseInt(createHash("sha256").update(`${s.name}:${key}`).digest("hex").slice(0, 8), 16) / 2 ** 32;
+      const mine = seededPosts.filter((p) => p.causes.some((c) => s.interests.includes(c)));
+      const others = seededPosts.filter((p) => !mine.includes(p));
+      const liked = [...mine.filter((p) => pick(`like:${p.id}`) < 0.35), ...others.filter((p) => pick(`like:${p.id}`) < 0.05)];
+      const looked = mine.filter((p) => !liked.includes(p) && pick(`look:${p.id}`) < 0.4);
+      if (liked.length) await tx.insert(postLikes).values(liked.map((p) => ({ userId: id, postId: p.id }))).onConflictDoNothing();
+      if (looked.length) {
+        await tx
+          .insert(postViews)
+          .values(looked.map((p) => ({ userId: id, postId: p.id, dwellMs: 8_000 + Math.round(pick(`ms:${p.id}`) * 20_000), lastSeenAt: hoursAgo(24 + pick(`at:${p.id}`) * 200) })))
+          .onConflictDoNothing();
+      }
+      const favourite = mine.length ? mine[Math.floor(pick("follow") * mine.length)].nonprofitSlug : null;
+      if (favourite) await tx.insert(follows).values({ followerId: id, nonprofitId: nonprofitIds.get(favourite)! }).onConflictDoNothing();
+      await tx.delete(userVectors).where(eq(userVectors.userId, id)); // recompute from the (new) history
     }
 
     // What history the demo accounts carry after this run.
