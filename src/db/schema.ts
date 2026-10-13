@@ -165,6 +165,29 @@ export const postCauses = pgTable(
   (t) => [primaryKey({ columns: [t.postId, t.causeSlug] })],
 );
 
+// Signals for the AI feed: what someone liked and which nonprofits they follow.
+export const postLikes = pgTable(
+  "post_likes",
+  {
+    userId: uuid("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+    postId: uuid("post_id").notNull().references(() => posts.id, { onDelete: "cascade" }),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [primaryKey({ columns: [t.userId, t.postId] }), index("post_likes_post_idx").on(t.postId)],
+);
+
+export const follows = pgTable(
+  "follows",
+  {
+    followerId: uuid("follower_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+    nonprofitId: uuid("nonprofit_id")
+      .notNull()
+      .references(() => nonprofitProfiles.userId, { onDelete: "cascade" }),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [primaryKey({ columns: [t.followerId, t.nonprofitId] }), index("follows_nonprofit_idx").on(t.nonprofitId)],
+);
+
 // Status of a payment (donations and verification fees).
 // created: order exists at PayPal, buyer hasn't paid yet (or was declined and may retry).
 // pending: PayPal accepted the payment but hasn't settled it; the webhook finishes it.

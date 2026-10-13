@@ -5,6 +5,8 @@ import { z } from "zod";
 import { PostList } from "@/components/post-list";
 import { ProfileHeader } from "@/components/profile-header";
 import { DonateButton } from "@/components/donate-button";
+import { FollowButton } from "@/components/follow-button";
+import { isFollowing } from "@/lib/engagement/queries";
 import { getSession } from "@/lib/auth/session";
 import { payPalClientId } from "@/lib/paypal/public-config";
 import { getPosts } from "@/lib/posts/queries";
@@ -38,6 +40,7 @@ async function NonprofitProfile({
   const { posts, nextBefore, fetchedAt } = await getPosts({
     nonprofitId: id,
     before: cursor.success ? cursor.data : undefined,
+    viewerId,
   });
 
   // Signed-in visitors may donate (never to their own organization); the
@@ -65,9 +68,10 @@ async function NonprofitProfile({
         verified={Boolean(profile.verifiedAt)}
       />
       <p className="text-lg">{profile.mission}</p>
-      {donateClientId && (
-        <div>
+      {donateClientId && viewerId && (
+        <div className="flex flex-wrap gap-3">
           <DonateButton nonprofitId={id} nonprofitName={profile.name} clientId={donateClientId} size="large" />
+          <FollowButton nonprofitId={id} following={await isFollowing(viewerId, id)} size="large" />
         </div>
       )}
       {!viewerId && (

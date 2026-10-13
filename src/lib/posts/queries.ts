@@ -1,6 +1,6 @@
-import { and, asc, desc, eq, inArray, isNotNull, sql, type SQL } from "drizzle-orm";
+import { and, asc, count, desc, eq, inArray, isNotNull, sql, type SQL } from "drizzle-orm";
 import { db } from "@/db";
-import { causes, nonprofitProfiles, postCauses, posts } from "@/db/schema";
+import { causes, follows, nonprofitProfiles, postCauses, postLikes, posts } from "@/db/schema";
 
 export const PAGE_SIZE = 20;
 
@@ -21,17 +21,62 @@ const postColumns = {
   },
 };
 
-/** These posts, in the order given (e.g. the ranked feed's order), with their cause tags. */
-export async function getPostsByIds(ids: string[]) {
+/**
+ * These posts, in the order given (e.g. the ranked feed's order), with their
+ * cause tags, like counts and, for a signed-in viewer, whether they liked
+ * each post and follow its nonprofit.
+ */
+export async function getPostsByIds(ids: string[], viewerId: string | null = null) {
   if (ids.length === 0) return [];
   const rows = await db
     .select(postColumns)
     .from(posts)
     .innerJoin(nonprofitProfiles, eq(nonprofitProfiles.userId, posts.nonprofitId))
     .where(inArray(posts.id, ids));
-  const tags = await getCauseTags(ids);
-  const byId = new Map(rows.map((r) => [r.id, { ...r, causes: tags.get(r.id) ?? [] }]));
+  const [tags, engagement] = await Promise.all([
+    getCauseTags(ids),
+    getEngagement(ids, [...new Set(rows.map((r) => r.nonprofit.id))], viewerId),
+  ]);
+  const byId = new Map(
+    rows.map((r) => [
+      r.id,
+      {
+        ...r,
+        causes: tags.get(r.id) ?? [],
+        likes: engagement.likes.get(r.id) ?? 0,
+        likedByViewer: engagement.liked.has(r.id),
+        viewerFollows: engagement.followed.has(r.nonprofit.id),
+      },
+    ]),
+  );
   return ids.flatMap((id) => byId.get(id) ?? []);
+}
+
+async function getEngagement(postIds: string[], nonprofitIds: string[], viewerId: string | null) {
+  const [likeCounts, liked, followed] = await Promise.all([
+    db
+      .select({ postId: postLikes.postId, n: count() })
+      .from(postLikes)
+      .where(inArray(postLikes.postId, postIds))
+      .groupBy(postLikes.postId),
+    viewerId
+      ? db
+          .select({ postId: postLikes.postId })
+          .from(postLikes)
+          .where(and(eq(postLikes.userId, viewerId), inArray(postLikes.postId, postIds)))
+      : [],
+    viewerId && nonprofitIds.length
+      ? db
+          .select({ nonprofitId: follows.nonprofitId })
+          .from(follows)
+          .where(and(eq(follows.followerId, viewerId), inArray(follows.nonprofitId, nonprofitIds)))
+      : [],
+  ]);
+  return {
+    likes: new Map(likeCounts.map((r) => [r.postId, r.n])),
+    liked: new Set(liked.map((r) => r.postId)),
+    followed: new Set(followed.map((r) => r.nonprofitId)),
+  };
 }
 
 /**
@@ -42,7 +87,15 @@ export async function getPostsByIds(ids: string[]) {
  * microsecond timestamps through JS Dates (which keep only milliseconds).
  * Without a nonprofitId, only verified nonprofits' posts are included.
  */
-export async function getPosts({ nonprofitId, before }: { nonprofitId?: string; before?: string }) {
+export async function getPosts({
+  nonprofitId,
+  before,
+  viewerId = null,
+}: {
+  nonprofitId?: string;
+  before?: string;
+  viewerId?: string | null;
+}) {
   const filters: SQL[] = [];
   // The shared feed only ever shows verified nonprofits. A single nonprofit's
   // page decides for itself who may see it (see app/nonprofits/[id]).
@@ -56,7 +109,7 @@ export async function getPosts({ nonprofitId, before }: { nonprofitId?: string; 
 
   // One extra row tells us whether there is another page.
   const rows = await db
-    .select(postColumns)
+    .select({ id: posts.id })
     .from(posts)
     .innerJoin(nonprofitProfiles, eq(nonprofitProfiles.userId, posts.nonprofitId))
     .where(and(...filters))
@@ -64,9 +117,8 @@ export async function getPosts({ nonprofitId, before }: { nonprofitId?: string; 
     .limit(PAGE_SIZE + 1);
 
   const page = rows.slice(0, PAGE_SIZE);
-  const tags = await getCauseTags(page.map((p) => p.id));
   return {
-    posts: page.map((p) => ({ ...p, causes: tags.get(p.id) ?? [] })),
+    posts: await getPostsByIds(page.map((p) => p.id), viewerId),
     nextBefore: rows.length > PAGE_SIZE ? page.at(-1)!.id : null,
     // Reference point for "5 minutes ago", taken here because render must stay pure.
     fetchedAt: Date.now(),
