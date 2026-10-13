@@ -211,6 +211,19 @@ export const userVectors = pgTable("user_vectors", {
   computedAt: timestamp("computed_at", { withTimezone: true }).notNull().defaultNow(),
 });
 
+// Every Claude (Haiku) result, keyed by a hash of its exact input, so the same
+// input is never sent twice (lib/ai/claude.ts). Translations and "why am I
+// seeing this" lines both live here.
+export const aiTexts = pgTable("ai_texts", {
+  inputHash: text("input_hash").primaryKey(), // sha256 of kind + model + prompt + input
+  kind: text("kind").notNull(), // "translation" | "why"
+  model: text("model").notNull(),
+  output: text("output").notNull(),
+  inputTokens: integer("input_tokens").notNull(),
+  outputTokens: integer("output_tokens").notNull(),
+  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+});
+
 // Status of a payment (donations and verification fees).
 // created: order exists at PayPal, buyer hasn't paid yet (or was declined and may retry).
 // pending: PayPal accepted the payment but hasn't settled it; the webhook finishes it.

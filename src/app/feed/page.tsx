@@ -5,6 +5,7 @@ import { z } from "zod";
 import { DwellTracker } from "@/components/dwell-tracker";
 import { PostList } from "@/components/post-list";
 import { getSession } from "@/lib/auth/session";
+import { viewerLanguage } from "@/lib/ai/viewer-language";
 import { payPalClientId } from "@/lib/paypal/public-config";
 import { getRankedFeed } from "@/lib/feed/feed";
 
@@ -40,8 +41,10 @@ async function Feed({ searchParams }: { searchParams: PageProps<"/feed">["search
         fetchedAt={fetchedAt}
         viewerId={session.user.id}
         donateClientId={payPalClientId()}
+        viewerLanguage={await viewerLanguage()}
         nextHref={nextPage ? `/feed?page=${nextPage}` : null}
         caughtUpAt={caughtUpAt}
+        showWhy
         empty={
           session.user.role === "nonprofit" ? (
             <>

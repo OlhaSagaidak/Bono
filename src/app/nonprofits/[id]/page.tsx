@@ -8,6 +8,7 @@ import { DonateButton } from "@/components/donate-button";
 import { FollowButton } from "@/components/follow-button";
 import { isFollowing } from "@/lib/engagement/queries";
 import { getSession } from "@/lib/auth/session";
+import { viewerLanguage } from "@/lib/ai/viewer-language";
 import { payPalClientId } from "@/lib/paypal/public-config";
 import { getPosts } from "@/lib/posts/queries";
 import { getNonprofitProfile } from "@/lib/profiles/queries";
@@ -100,6 +101,7 @@ async function NonprofitProfile({
           fetchedAt={fetchedAt}
           viewerId={viewerId}
           donateClientId={donateClientId}
+          viewerLanguage={await viewerLanguage()}
           nextHref={nextBefore && `/nonprofits/${id}?before=${nextBefore}`}
           nextLabel="Older posts"
           empty="No posts yet."

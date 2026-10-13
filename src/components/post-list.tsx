@@ -8,9 +8,11 @@ export function PostList({
   fetchedAt,
   viewerId,
   donateClientId,
+  viewerLanguage,
   nextHref,
   nextLabel = "More posts",
   caughtUpAt = null,
+  showWhy = false,
   empty,
 }: {
   posts: FeedPost[];
@@ -19,10 +21,13 @@ export function PostList({
   viewerId: string | null;
   /** PayPal client ID if the viewer is signed in (and so may donate), else null. */
   donateClientId: string | null;
+  viewerLanguage: string;
   nextHref: string | null;
   nextLabel?: string;
   /** Index of the first already-seen post, to put "You're all caught up" before it. */
   caughtUpAt?: number | null;
+  /** Ranked feed only: "Why am I seeing this?" on each post. */
+  showWhy?: boolean;
   empty: React.ReactNode;
 }) {
   if (posts.length === 0) {
@@ -46,6 +51,9 @@ export function PostList({
             canEngage={viewerId !== null && post.nonprofit.id !== viewerId}
             // Anyone signed in may donate, except to their own organization.
             donateClientId={post.nonprofit.id === viewerId ? null : donateClientId}
+            viewerLanguage={viewerLanguage}
+            canTranslate={viewerId !== null}
+            showWhy={showWhy}
           />
         </Fragment>
       ))}

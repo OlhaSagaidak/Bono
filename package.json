@@ -16,6 +16,7 @@
     "models:fetch": "tsx --conditions=react-server scripts/fetch-model.ts"
   },
   "dependencies": {
+    "@anthropic-ai/sdk": "^0.129.0",
     "@huggingface/transformers": "^4.3.0",
     "bcryptjs": "^3.0.3",
     "drizzle-orm": "^0.45.4",
