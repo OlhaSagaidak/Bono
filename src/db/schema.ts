@@ -8,9 +8,13 @@ import {
   text,
   timestamp,
   uuid,
+  vector,
 } from "drizzle-orm/pg-core";
 
 // "platform" is not here on purpose: Bono itself is a PayPal account, not a login.
+// Size of the vectors from the embedding model (all-MiniLM-L6-v2), see lib/ai/embeddings.ts.
+export const EMBEDDING_DIMENSIONS = 384;
+
 export const roleEnum = pgEnum("role", ["user", "nonprofit", "sponsor"]);
 export type Role = (typeof roleEnum.enumValues)[number];
 
@@ -43,6 +47,9 @@ export const causes = pgTable("causes", {
   slug: text("slug").primaryKey(),
   label: text("label").notNull(),
   sortOrder: integer("sort_order").notNull(),
+  // Where a cause sits in "meaning space"; a new supporter's starting point is
+  // the average of the causes they picked. Filled by `npm run embed`.
+  embedding: vector("embedding", { dimensions: EMBEDDING_DIMENSIONS }),
 });
 
 export const userInterests = pgTable(
@@ -136,6 +143,9 @@ export const posts = pgTable(
     language: text("language").notNull().default("en"),
     imageId: uuid("image_id").references(() => images.id, { onDelete: "set null" }),
     imageAlt: text("image_alt"),
+    // The post's text plus its cause tags, embedded once when it's created.
+    // Null until then (or if the model failed); `npm run embed` fills gaps.
+    embedding: vector("embedding", { dimensions: EMBEDDING_DIMENSIONS }),
     createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
   },
   (t) => [

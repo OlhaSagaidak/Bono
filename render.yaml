@@ -9,7 +9,8 @@ services:
     runtime: node
     plan: free
     region: oregon
-    buildCommand: npm ci && npm run build
+    # The embedding model (~23 MB) is downloaded at build time, so the server never fetches it.
+    buildCommand: npm ci && npm run build && npm run models:fetch
     # Migrations run on every start, just before the app. They only apply what's
     # new, and this works on the free plan (no pre-deploy step needed).
     startCommand: npm run db:migrate && npm start

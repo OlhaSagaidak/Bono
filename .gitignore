@@ -26,3 +26,6 @@ seed.local.json
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# downloaded embedding model (fetched at build time)
+/.cache/

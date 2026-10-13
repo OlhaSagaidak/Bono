@@ -8,6 +8,7 @@ import { auth } from "@/auth";
 import { db } from "@/db";
 import { images, nonprofitCauses, nonprofitProfiles, postCauses, posts } from "@/db/schema";
 import { formText, type FormState } from "@/lib/forms";
+import { embedPosts } from "@/lib/ai/embed-posts";
 import { checkUploadedImage, storeImage } from "@/lib/images";
 import { postSchema } from "./validation";
 
@@ -55,14 +56,23 @@ export async function createPostAction(_prev: FormState, formData: FormData): Pr
   }
 
   const { body, language, causes, imageAlt } = parsed.data;
-  await db.transaction(async (tx) => {
+  const postId = await db.transaction(async (tx) => {
     const imageId = image.kind === "ok" ? await storeImage(tx, nonprofitId, image) : null;
     const [post] = await tx
       .insert(posts)
       .values({ nonprofitId, body, language, imageId, imageAlt: imageId ? imageAlt : null })
       .returning({ id: posts.id });
     await tx.insert(postCauses).values(causes.map((causeSlug) => ({ postId: post.id, causeSlug })));
+    return post.id;
   });
+
+  // Embed it for the AI feed. A failure here mustn't lose the post: it still
+  // shows (ranked by freshness alone) and `npm run embed` fills the gap.
+  try {
+    await embedPosts({ postIds: [postId] });
+  } catch (error) {
+    console.error(`Embedding post ${postId} failed:`, error);
+  }
 
   // Drop any copy of these pages the browser kept from an earlier visit.
   revalidatePath("/feed");

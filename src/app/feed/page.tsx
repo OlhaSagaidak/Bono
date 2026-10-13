@@ -5,7 +5,7 @@ import { z } from "zod";
 import { PostList } from "@/components/post-list";
 import { getSession } from "@/lib/auth/session";
 import { payPalClientId } from "@/lib/paypal/public-config";
-import { getPosts } from "@/lib/posts/queries";
+import { getRankedFeed } from "@/lib/feed/feed";
 
 export const metadata = { title: "Feed · Bono" };
 
@@ -25,10 +25,11 @@ async function Feed({ searchParams }: { searchParams: PageProps<"/feed">["search
   if (!session) redirect("/login");
   if (!session.user.onboarded) redirect("/onboarding");
 
-  const { before } = await searchParams;
-  // A malformed cursor just means "start from the newest".
-  const cursor = z.uuid().safeParse(before);
-  const { posts, nextBefore, fetchedAt } = await getPosts({ before: cursor.success ? cursor.data : undefined });
+  const { page: pageParam } = await searchParams;
+  // A missing or malformed page number just means the first page.
+  const parsedPage = z.coerce.number().int().min(1).max(100).safeParse(pageParam);
+  const page = parsedPage.success ? parsedPage.data : 1;
+  const { posts, nextPage, fetchedAt } = await getRankedFeed(session.user, page);
 
   return (
     <PostList
@@ -36,7 +37,7 @@ async function Feed({ searchParams }: { searchParams: PageProps<"/feed">["search
       fetchedAt={fetchedAt}
       viewerId={session.user.id}
       donateClientId={payPalClientId()}
-      nextHref={nextBefore && `/feed?before=${nextBefore}`}
+      nextHref={nextPage ? `/feed?page=${nextPage}` : null}
       empty={
         session.user.role === "nonprofit" ? (
           <>
