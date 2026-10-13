@@ -155,9 +155,11 @@ export const postCauses = pgTable(
   (t) => [primaryKey({ columns: [t.postId, t.causeSlug] })],
 );
 
+// Status of a payment (donations and verification fees).
 // created: order exists at PayPal, buyer hasn't paid yet (or was declined and may retry).
 // pending: PayPal accepted the payment but hasn't settled it; the webhook finishes it.
-export const donationStatusEnum = pgEnum("donation_status", ["created", "pending", "completed", "failed"]);
+// refunded: the payee refunded it in PayPal (Bono itself never refunds).
+export const donationStatusEnum = pgEnum("donation_status", ["created", "pending", "completed", "failed", "refunded"]);
 
 // Money goes straight from donor to nonprofit (the PayPal order's payee); Bono
 // only records what happened. Amounts are integer cents to avoid float rounding.
@@ -204,6 +206,17 @@ export const verificationFees = pgTable("verification_fees", {
   payerEmail: text("payer_email"),
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
   completedAt: timestamp("completed_at", { withTimezone: true }),
+});
+
+// PayPal webhook events we've processed, by PayPal's event id: an audit trail,
+// and a cheap way to skip an event PayPal delivers twice.
+export const paypalWebhookEvents = pgTable("paypal_webhook_events", {
+  id: text("id").primaryKey(),
+  eventType: text("event_type").notNull(),
+  resourceId: text("resource_id"),
+  // What we did with it, e.g. "donation completed" or "ignored: unknown order".
+  outcome: text("outcome").notNull(),
+  receivedAt: timestamp("received_at", { withTimezone: true }).notNull().defaultNow(),
 });
 
 export type User = typeof users.$inferSelect;

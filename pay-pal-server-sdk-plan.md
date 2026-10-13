@@ -281,3 +281,35 @@ account, payer = Open Pantry's account; PayPal fee $1.36, net $23.64 to the plat
 with capture id and matching payer email, nonprofit verified. Automated: every EIN error path, an IRS match
 (Washington data), fee order payee = platform, paid-from-another-account recovery, payee email locked after
 verification (also server-side).
+
+---
+
+# Slice 3 — webhooks (week 2)
+
+**The SDK has no webhook surface** (confirmed by the plugin's client-initialization skill: "no webhook tree, no event
+parser, no signature verifier … verifying an inbound webhook is entirely yours"). So signature verification follows
+PayPal's webhook docs (developer.paypal.com/api/rest/webhooks/rest/), self-verification method, not memory:
+
+- Headers `paypal-transmission-id`, `paypal-transmission-time`, `paypal-transmission-sig` (base64), `paypal-cert-url`.
+- Signed message: `${transmissionId}|${transmissionTime}|${PAYPAL_WEBHOOK_ID}|${crc32(rawBody) as decimal}`.
+- Verify with SHA256 + the certificate downloaded from `paypal-cert-url` (cached). The body must be the **raw** bytes.
+- Our addition: only accept a cert URL that is `https` on a `paypal.com` host, so a forged event can't bring its own cert.
+
+Events subscribed (dashboard, by Olya): `PAYMENT.CAPTURE.COMPLETED`, `.PENDING`, `.DENIED`, `.REFUNDED` (the docs also
+name `PAYMENT.CAPTURE.DECLINED` for Payments v2 — handled the same as DENIED).
+
+Parsing uses the SDK's schemas (decode only, after the signature check):
+- Capture events → `capturedPaymentSchema` (`src/models/captured-payment.ts`): `customId?` (our donation/fee id),
+  `id?` (capture id), `supplementaryData?.relatedIds?.orderId?` (`src/models/related-identifiers.ts`, wire
+  `supplementary_data.related_ids.order_id`).
+- Refund events → `refundSchema` (`src/models/refund.ts`): `customId?`, `links?` (`rel: "up"` → the capture URL).
+
+The event is only used to find our row. Its outcome is then re-read from PayPal with `getOrder` and settled by the
+same code as the capture actions, so a webhook can't set a state PayPal doesn't report. Capture status mapping:
+COMPLETED → completed, PENDING → pending, REFUNDED → refunded (new status), PARTIALLY_REFUNDED → completed (logged),
+DECLINED/FAILED → failed. Idempotent: settling twice gives the same row; processed event ids are stored.
+A handler error answers 500 so PayPal retries; an invalid signature answers 400.
+
+Finding (2026-10-13): PayPal drops orders nobody approved; `getOrder` on one answers 404 (`error2`,
+`INVALID_RESOURCE_ID`). `getOrderCapture` treats 404 as "no capture" (definite), so a webhook for such an order is
+answered 200 instead of being retried for days. Other refusals stay "unknown" (→ 500, PayPal retries).

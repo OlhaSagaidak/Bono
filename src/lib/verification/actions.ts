@@ -11,6 +11,7 @@ import { captureOrder, createOrder, getOrderCapture, type CaptureDetails } from 
 import { platformPayeeEmail, verificationFeeCents } from "./config";
 import { findEin, formatEin, namesMatch, normalizeEin } from "./ein";
 import { completeVerificationIfReady, getPaidFee } from "./queries";
+import { settleFee } from "./settle";
 
 // Nonprofit verification, in two steps:
 // 1. checkEinAction: the EIN must be a 501(c)(3) on the IRS list (Washington
@@ -143,22 +144,9 @@ export async function captureVerificationFeeAction(orderId: string): Promise<Cap
     };
   }
 
-  const status = capture.status === "COMPLETED" ? "completed" : capture.status === "PENDING" ? "pending" : "failed";
-  await db
-    .update(verificationFees)
-    .set({
-      status,
-      paypalCaptureId: capture.captureId,
-      amountCents: capture.amountCents,
-      currency: capture.currency,
-      payerEmail: capture.payerEmail ?? null,
-      completedAt: status === "completed" ? new Date() : null,
-    })
-    .where(eq(verificationFees.id, fee.id));
-
-  revalidatePath("/verify");
-  revalidatePath(`/nonprofits/${profile.userId}`);
-  if (status === "failed") return { error: "PayPal couldn't complete this payment. Please try another way to pay." };
-  if (status === "pending") return { error: "PayPal is still processing your payment. Reload this page in a few minutes." };
-  return { verified: await completeVerificationIfReady(profile.userId) };
+  const settled = await settleFee(fee.id, capture);
+  if (!settled) return { error: TRY_AGAIN };
+  if (settled.status === "pending") return { error: "PayPal is still processing your payment. Reload this page in a few minutes." };
+  if (settled.status !== "completed") return { error: "PayPal couldn't complete this payment. Please try another way to pay." };
+  return { verified: settled.verified };
 }

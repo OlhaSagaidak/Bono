@@ -1,13 +1,13 @@
 "use server";
 
 import { and, eq } from "drizzle-orm";
-import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import { auth } from "@/auth";
 import { db } from "@/db";
 import { donations, nonprofitProfiles, posts } from "@/db/schema";
 import { captureOrder, createOrder, getOrderCapture, type CaptureDetails } from "@/lib/paypal/orders";
 import { amountSchema } from "./amounts";
+import { settleDonation } from "./settle";
 
 // The two halves of a donation, called by the PayPal button in the browser:
 // create an order (before the PayPal window opens) and capture it (after the
@@ -110,7 +110,7 @@ export async function captureDonationAction(orderId: string): Promise<CaptureDon
 
   switch (outcome.kind) {
     case "captured":
-      return settle(donation.id, donation.nonprofitId, outcome);
+      return finish(donation.id, outcome);
 
     case "declined":
       // The order stays open, so the donor can choose another way to pay.
@@ -120,7 +120,7 @@ export async function captureDonationAction(orderId: string): Promise<CaptureDon
     case "unknown": {
       // We don't know (or don't remember) what happened: ask PayPal.
       const capture = await getOrderCapture(orderId);
-      if (capture && capture !== "unknown") return settle(donation.id, donation.nonprofitId, capture);
+      if (capture && capture !== "unknown") return finish(donation.id, capture);
       return {
         error:
           "We couldn't confirm your payment with PayPal yet. Please don't pay again; check your PayPal account or refresh in a minute.",
@@ -133,29 +133,11 @@ export async function captureDonationAction(orderId: string): Promise<CaptureDon
   }
 }
 
-async function settle(
-  donationId: string,
-  nonprofitId: string,
-  capture: CaptureDetails,
-): Promise<CaptureDonationResult> {
-  const status =
-    capture.status === "COMPLETED" ? "completed" : capture.status === "PENDING" ? "pending" : "failed";
-
-  // PayPal's captured amount is the truth. It can't differ from ours (the
-  // order was built here), but if it ever did, record what actually moved.
-  const [row] = await db
-    .update(donations)
-    .set({
-      status,
-      paypalCaptureId: capture.captureId,
-      amountCents: capture.amountCents,
-      currency: capture.currency,
-      completedAt: status === "completed" ? new Date() : null,
-    })
-    .where(eq(donations.id, donationId))
-    .returning({ amountCents: donations.amountCents });
-
-  revalidatePath(`/nonprofits/${nonprofitId}`);
-  if (status === "failed") return { error: "PayPal couldn't complete this payment. Please try another way to pay." };
-  return { status, amountCents: row.amountCents };
+async function finish(donationId: string, capture: CaptureDetails): Promise<CaptureDonationResult> {
+  const settled = await settleDonation(donationId, capture);
+  if (!settled) return { error: TRY_AGAIN };
+  if (settled.status === "completed" || settled.status === "pending") {
+    return { status: settled.status, amountCents: settled.amountCents };
+  }
+  return { error: "PayPal couldn't complete this payment. Please try another way to pay." };
 }
