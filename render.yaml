@@ -1,0 +1,44 @@
+# Render Blueprint: the Bono web app and its Postgres database.
+# Create both from the Render Dashboard: New > Blueprint > this repo.
+# Both start on Render's free plans (decided 2026-10-13). A free database
+# expires 30 days after it's created; decide on upgrading before then.
+
+services:
+  - type: web
+    name: bono
+    runtime: node
+    plan: free
+    region: oregon
+    buildCommand: npm ci && npm run build
+    # Migrations run on every start, just before the app. They only apply what's
+    # new, and this works on the free plan (no pre-deploy step needed).
+    startCommand: npm run db:migrate && npm start
+    healthCheckPath: /
+    envVars:
+      - key: NODE_VERSION
+        value: "24"
+      - key: DATABASE_URL
+        fromDatabase:
+          name: bono-db
+          property: connectionString
+      - key: AUTH_SECRET
+        generateValue: true
+      # Secrets: Render asks for these once, when the Blueprint is created.
+      - key: PAYPAL_CLIENT_ID
+        sync: false
+      - key: PAYPAL_CLIENT_SECRET
+        sync: false
+      - key: PAYPAL_PLATFORM_MERCHANT_EMAIL
+        sync: false
+      - key: ANTHROPIC_API_KEY
+        sync: false
+      - key: VERIFICATION_FEE_CENTS
+        value: "2500"
+
+databases:
+  - name: bono-db
+    plan: free
+    region: oregon
+    postgresMajorVersion: "17"
+    databaseName: bono
+    user: bono
