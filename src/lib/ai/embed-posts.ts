@@ -3,6 +3,7 @@ import { and, eq, inArray, isNull, type SQL } from "drizzle-orm";
 import { db } from "@/db";
 import { causes, postCauses, posts } from "@/db/schema";
 import { causeEmbeddingText } from "@/lib/feed/causes";
+import { AiUnavailableError, translate } from "./claude";
 import { embedTexts, postEmbeddingText } from "./embeddings";
 
 /**
@@ -14,7 +15,10 @@ export async function embedPosts(options: { postIds?: string[]; onlyMissing?: bo
   if (options.postIds) filters.push(inArray(posts.id, options.postIds));
   if (options.onlyMissing ?? true) filters.push(isNull(posts.embedding));
 
-  const rows = await db.select({ id: posts.id, body: posts.body }).from(posts).where(and(...filters));
+  const rows = await db
+    .select({ id: posts.id, body: posts.body, language: posts.language })
+    .from(posts)
+    .where(and(...filters));
   if (rows.length === 0) return 0;
 
   const tags = await db
@@ -28,10 +32,27 @@ export async function embedPosts(options: { postIds?: string[]; onlyMissing?: bo
   // Small batches keep memory flat on the 512 MB server.
   for (let i = 0; i < rows.length; i += 16) {
     const batch = rows.slice(i, i + 16);
-    const vectors = await embedTexts(batch.map((r) => postEmbeddingText(r.body, labelsByPost.get(r.id) ?? [])));
+    const texts = await Promise.all(batch.map((r) => englishText(r.body, r.language)));
+    const vectors = await embedTexts(batch.map((r, j) => postEmbeddingText(texts[j], labelsByPost.get(r.id) ?? [])));
     await Promise.all(batch.map((r, j) => db.update(posts).set({ embedding: vectors[j] }).where(eq(posts.id, r.id))));
   }
   return rows.length;
+}
+
+/**
+ * The embedding model only reads English, so other posts are embedded through
+ * their English translation (the same cached translation the Translate button
+ * shows). If Claude is unavailable, the original text still carries its English
+ * cause tags.
+ */
+async function englishText(body: string, language: string): Promise<string> {
+  if (language === "en") return body;
+  try {
+    return await translate(body, "en");
+  } catch (error) {
+    if (!(error instanceof AiUnavailableError)) throw error;
+    return body;
+  }
 }
 
 /** (Re)embeds every cause from its description. Cheap: there are seven. */

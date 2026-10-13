@@ -92,6 +92,13 @@
       "when": 1791934764437,
       "tag": "0012_user_vectors",
       "breakpoints": true
+    },
+    {
+      "idx": 13,
+      "version": "7",
+      "when": 1791935130180,
+      "tag": "0013_ai_texts",
+      "breakpoints": true
     }
   ]
 }

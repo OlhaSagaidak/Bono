@@ -3,6 +3,8 @@ import { DeletePostButton } from "@/components/delete-post-button";
 import { DonateButton } from "@/components/donate-button";
 import { FollowButton } from "@/components/follow-button";
 import { LikeButton } from "@/components/like-button";
+import { PostBody } from "@/components/post-body";
+import { WhyButton } from "@/components/why-button";
 import { Logo } from "@/components/profile-header";
 import { imageUrl } from "@/lib/images";
 import type { FeedPost } from "@/lib/posts/queries";
@@ -34,6 +36,9 @@ export function PostCard({
   canDelete,
   canEngage,
   donateClientId,
+  viewerLanguage,
+  canTranslate,
+  showWhy,
 }: {
   post: FeedPost;
   now: number;
@@ -42,6 +47,11 @@ export function PostCard({
   canEngage: boolean;
   /** PayPal client ID when the viewer may donate to this post's nonprofit, else null. */
   donateClientId: string | null;
+  viewerLanguage: string;
+  /** Signed in: translation calls Claude, so visitors don't get it. */
+  canTranslate: boolean;
+  /** In the ranked feed, offer "Why am I seeing this?". */
+  showWhy: boolean;
 }) {
   const profileHref = `/nonprofits/${post.nonprofit.id}`;
   return (
@@ -69,10 +79,13 @@ export function PostCard({
         )}
       </header>
 
-      {/* lang lets screen readers pronounce Spanish and Ukrainian posts correctly. */}
-      <p lang={post.language} className="whitespace-pre-line break-words">
-        {post.body}
-      </p>
+      <PostBody
+        postId={post.id}
+        body={post.body}
+        language={post.language}
+        viewerLanguage={viewerLanguage}
+        canTranslate={canTranslate}
+      />
 
       {post.imageId && (
         // eslint-disable-next-line @next/next/no-img-element -- served from our own API, no optimization needed
@@ -96,6 +109,8 @@ export function PostCard({
           ))}
         </ul>
       )}
+
+      {showWhy && canEngage && <WhyButton postId={post.id} />}
 
       {(canDelete || canEngage || post.likes > 0) && (
         <div className="flex items-center justify-between gap-2 border-t border-zinc-200 pt-3 dark:border-zinc-800">

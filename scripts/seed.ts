@@ -202,7 +202,8 @@ async function main() {
       await tx.delete(userInterests).where(eq(userInterests.userId, id));
       await tx.insert(userInterests).values(s.interests.map((causeSlug) => ({ userId: id, causeSlug })));
 
-      // Some history, so the AI feed has something to learn from in the demo:
+      // Some history, so the AI feed has something to learn from in the demo
+      // (long looks are dated 4+ days ago, so they don't count as "recently seen"):
       // likes and long looks mostly within their causes, the odd one outside,
       // and a follow. Chosen deterministically (same picks every run) and
       // added only if missing, so real activity is never overwritten.
@@ -215,7 +216,7 @@ async function main() {
       if (looked.length) {
         await tx
           .insert(postViews)
-          .values(looked.map((p) => ({ userId: id, postId: p.id, dwellMs: 8_000 + Math.round(pick(`ms:${p.id}`) * 20_000), lastSeenAt: hoursAgo(24 + pick(`at:${p.id}`) * 200) })))
+          .values(looked.map((p) => ({ userId: id, postId: p.id, dwellMs: 8_000 + Math.round(pick(`ms:${p.id}`) * 20_000), lastSeenAt: hoursAgo(96 + pick(`at:${p.id}`) * 200) })))
           .onConflictDoNothing();
       }
       const favourite = mine.length ? mine[Math.floor(pick("follow") * mine.length)].nonprofitSlug : null;
