@@ -313,3 +313,13 @@ A handler error answers 500 so PayPal retries; an invalid signature answers 400.
 Finding (2026-10-13): PayPal drops orders nobody approved; `getOrder` on one answers 404 (`error2`,
 `INVALID_RESOURCE_ID`). `getOrderCapture` treats 404 as "no capture" (definite), so a webhook for such an order is
 answered 200 instead of being retried for days. Other refusals stay "unknown" (→ 500, PayPal retries).
+
+## Slice 3 results (2026-10-13)
+
+Live on Render (https://bono-h8b8.onrender.com), two donations approved by hand ($50 → Paws Haven, $25 → Green
+Seattle): both captured `completed` by the capture action, then PayPal delivered `PAYMENT.CAPTURE.COMPLETED` for each
+within ~20–50 s; signatures verified, events stored, both reconciled via `getOrder` as "donation completed".
+Locally: signature checks (genuine, tampered body, wrong webhook id, foreign/http/look-alike cert host, missing
+headers, non-ASCII body) and event handling (fee by custom_id and by order id, expired order → no capture, refund of an
+unknown capture, refund event while PayPal still reports COMPLETED → stays completed, unknown event type, unreadable
+resource, non-Bono order).
