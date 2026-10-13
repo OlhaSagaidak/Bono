@@ -201,6 +201,16 @@ export const postViews = pgTable(
   (t) => [primaryKey({ columns: [t.userId, t.postId] })],
 );
 
+// Each person's learned interest vector (lib/feed/learn.ts). A cache: it's
+// recomputed from their causes and engagement whenever something new happened.
+export const userVectors = pgTable("user_vectors", {
+  userId: uuid("user_id").primaryKey().references(() => users.id, { onDelete: "cascade" }),
+  embedding: vector("embedding", { dimensions: EMBEDDING_DIMENSIONS }).notNull(),
+  // How many engagement signals went into it (0 = causes only, "cold start").
+  signalCount: integer("signal_count").notNull(),
+  computedAt: timestamp("computed_at", { withTimezone: true }).notNull().defaultNow(),
+});
+
 // Status of a payment (donations and verification fees).
 // created: order exists at PayPal, buyer hasn't paid yet (or was declined and may retry).
 // pending: PayPal accepted the payment but hasn't settled it; the webhook finishes it.

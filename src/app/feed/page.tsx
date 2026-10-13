@@ -30,7 +30,7 @@ async function Feed({ searchParams }: { searchParams: PageProps<"/feed">["search
   // A missing or malformed page number just means the first page.
   const parsedPage = z.coerce.number().int().min(1).max(100).safeParse(pageParam);
   const page = parsedPage.success ? parsedPage.data : 1;
-  const { posts, nextPage, fetchedAt } = await getRankedFeed(session.user, page);
+  const { posts, nextPage, fetchedAt, caughtUpAt } = await getRankedFeed(session.user, page);
 
   return (
     // Keyed by page so moving to the next page starts a fresh tracker.
@@ -41,6 +41,7 @@ async function Feed({ searchParams }: { searchParams: PageProps<"/feed">["search
         viewerId={session.user.id}
         donateClientId={payPalClientId()}
         nextHref={nextPage ? `/feed?page=${nextPage}` : null}
+        caughtUpAt={caughtUpAt}
         empty={
           session.user.role === "nonprofit" ? (
             <>

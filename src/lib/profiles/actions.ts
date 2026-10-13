@@ -16,6 +16,7 @@ import {
 } from "@/db/schema";
 import { formText, type FormState } from "@/lib/forms";
 import { checkUploadedImage, replaceImage } from "@/lib/images";
+import { resetUserVector } from "@/lib/feed/learn";
 import { completeVerificationIfReady } from "@/lib/verification/queries";
 import { getCauses } from "./queries";
 import { interestsSchema, nonprofitProfileSchema, sponsorProfileSchema } from "./validation";
@@ -58,6 +59,8 @@ export async function saveInterestsAction(_prev: FormState, formData: FormData):
       .values(parsed.data.causes.map((causeSlug) => ({ userId, causeSlug })));
     await tx.execute(markOnboarded(userId));
   });
+  // New causes, new starting point for the feed.
+  await resetUserVector(userId);
 
   refreshAllPages();
   redirect("/feed");
@@ -124,6 +127,8 @@ export async function saveNonprofitProfileAction(
     await tx.execute(markOnboarded(userId));
   });
 
+  // Its causes seed its own feed too.
+  await resetUserVector(userId);
   // A nonprofit whose fee came from another PayPal account finishes here by
   // switching its donation email to that account.
   await completeVerificationIfReady(userId);
