@@ -188,6 +188,19 @@ export const follows = pgTable(
   (t) => [primaryKey({ columns: [t.followerId, t.nonprofitId] }), index("follows_nonprofit_idx").on(t.nonprofitId)],
 );
 
+// How long each person has looked at each post (summed over visits), and when
+// they last saw it. Written in batches from the browser (IntersectionObserver).
+export const postViews = pgTable(
+  "post_views",
+  {
+    userId: uuid("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+    postId: uuid("post_id").notNull().references(() => posts.id, { onDelete: "cascade" }),
+    dwellMs: integer("dwell_ms").notNull().default(0),
+    lastSeenAt: timestamp("last_seen_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [primaryKey({ columns: [t.userId, t.postId] })],
+);
+
 // Status of a payment (donations and verification fees).
 // created: order exists at PayPal, buyer hasn't paid yet (or was declined and may retry).
 // pending: PayPal accepted the payment but hasn't settled it; the webhook finishes it.
