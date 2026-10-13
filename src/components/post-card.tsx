@@ -45,7 +45,7 @@ export function PostCard({
 }) {
   const profileHref = `/nonprofits/${post.nonprofit.id}`;
   return (
-    <article className="flex flex-col gap-3 rounded-2xl border border-zinc-200 p-4 dark:border-zinc-800">
+    <article data-post-id={post.id} className="flex flex-col gap-3 rounded-2xl border border-zinc-200 p-4 dark:border-zinc-800">
       <header className="flex items-center gap-3">
         <Link href={profileHref} tabIndex={-1} aria-hidden>
           <Logo name={post.nonprofit.name} imageId={post.nonprofit.logoImageId} size="size-10 text-base" />

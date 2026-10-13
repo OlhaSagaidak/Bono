@@ -2,6 +2,7 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { Suspense } from "react";
 import { z } from "zod";
+import { DwellTracker } from "@/components/dwell-tracker";
 import { PostList } from "@/components/post-list";
 import { getSession } from "@/lib/auth/session";
 import { payPalClientId } from "@/lib/paypal/public-config";
@@ -32,25 +33,28 @@ async function Feed({ searchParams }: { searchParams: PageProps<"/feed">["search
   const { posts, nextPage, fetchedAt } = await getRankedFeed(session.user, page);
 
   return (
-    <PostList
-      posts={posts}
-      fetchedAt={fetchedAt}
-      viewerId={session.user.id}
-      donateClientId={payPalClientId()}
-      nextHref={nextPage ? `/feed?page=${nextPage}` : null}
-      empty={
-        session.user.role === "nonprofit" ? (
-          <>
-            No posts yet.{" "}
-            <Link href="/posts/new" className="font-medium text-emerald-700 underline dark:text-emerald-400">
-              Write the first one
-            </Link>
-            .
-          </>
-        ) : (
-          "No posts yet. Check back soon."
-        )
-      }
-    />
+    // Keyed by page so moving to the next page starts a fresh tracker.
+    <DwellTracker key={page}>
+      <PostList
+        posts={posts}
+        fetchedAt={fetchedAt}
+        viewerId={session.user.id}
+        donateClientId={payPalClientId()}
+        nextHref={nextPage ? `/feed?page=${nextPage}` : null}
+        empty={
+          session.user.role === "nonprofit" ? (
+            <>
+              No posts yet.{" "}
+              <Link href="/posts/new" className="font-medium text-emerald-700 underline dark:text-emerald-400">
+                Write the first one
+              </Link>
+              .
+            </>
+          ) : (
+            "No posts yet. Check back soon."
+          )
+        }
+      />
+    </DwellTracker>
   );
 }
