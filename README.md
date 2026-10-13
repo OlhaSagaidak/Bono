@@ -46,3 +46,31 @@ domain are never touched.
 from the IRS Exempt Organizations Business Master File (public data from irs.gov),
 so real nonprofits can pass the EIN check too. Other states: pass their two-letter
 codes. The data is downloaded at load time and never committed.
+
+## How the AI feed works
+
+Everything except two short text jobs runs inside the app, with no paid AI service.
+
+1. **Embeddings.** Each post (its text plus its cause tags) becomes a 384-number
+   vector that captures its meaning, using the open-source `all-MiniLM-L6-v2`
+   model running in the app ([transformers.js](https://huggingface.co/docs/transformers.js)).
+   Vectors live in Postgres with pgvector. Non-English posts are embedded through
+   their English translation, because the model reads English.
+2. **Interests.** A new supporter starts at the average of the causes they picked.
+   After that, their vector is recomputed from what they do:
+   `normalize(1.0 × chosen causes + Σ weight × recency × engaged posts)`, with
+   donate 1.0 > follow 0.6 > like 0.4 > long look (8 s+ on screen, measured in the
+   browser) 0.2, and recency halving every 30 days
+   ([`src/lib/feed/learn.ts`](src/lib/feed/learn.ts)).
+3. **Ranking.** Every recent post gets
+   `1.00 × relevance + 0.35 × freshness + 0.20 × followed + 0.15 × popularity + 0.08 × exploration`,
+   where relevance is the cosine similarity between the person's vector and the
+   post's; posts seen in the last 3 days move below "You're all caught up"
+   ([`src/lib/feed/rank.ts`](src/lib/feed/rank.ts)).
+4. **Claude Haiku** translates posts on request and turns the real ranking reasons
+   into a one-line "Why am I seeing this?". Every result is cached, so the same
+   input never reaches the API twice ([`src/lib/ai/claude.ts`](src/lib/ai/claude.ts)).
+
+## License
+
+MIT
