@@ -1,7 +1,10 @@
 import { notFound } from "next/navigation";
 import { Suspense } from "react";
 import { z } from "zod";
+import { PoolMeter } from "@/components/pool-meter";
 import { ProfileHeader } from "@/components/profile-header";
+import { formatCents } from "@/lib/donations/amounts";
+import { getSponsorCampaigns } from "@/lib/matching/queries";
 import { getSponsorProfile } from "@/lib/profiles/queries";
 
 export default function SponsorPage({ params }: PageProps<"/sponsors/[id]">) {
@@ -25,7 +28,31 @@ async function SponsorProfile({ params }: { params: Promise<{ id: string }> }) {
       <title>{`${profile.name} · Bono`}</title>
       <ProfileHeader name={profile.name} imageId={profile.logoImageId} kicker="Sponsor" />
       {profile.about && <p className="text-lg">{profile.about}</p>}
-      {/* Active matching campaigns are listed here once campaigns exist (week 4). */}
+      <ActiveCampaigns sponsorId={id} />
     </>
+  );
+}
+
+async function ActiveCampaigns({ sponsorId }: { sponsorId: string }) {
+  const active = (await getSponsorCampaigns(sponsorId)).filter((c) => c.state === "active");
+  if (active.length === 0) return null;
+  return (
+    <section aria-labelledby="campaigns-heading" className="flex flex-col gap-3">
+      <h2 id="campaigns-heading" className="text-xl font-semibold">
+        Matching right now
+      </h2>
+      <ul className="flex flex-col gap-3">
+        {active.map((c) => (
+          <li key={c.id} className="flex flex-col gap-2 rounded-2xl border border-zinc-200 p-4 dark:border-zinc-800">
+            <span className="font-semibold">{c.name}</span>
+            <span className="text-sm text-zinc-600 dark:text-zinc-400">
+              {c.ratioPercent / 100}:1 on donations to {c.causeLabel ? `${c.causeLabel.toLowerCase()} nonprofits` : `${c.nonprofitCount} nonprofits`},
+              up to {formatCents(c.capCents)} each
+            </span>
+            <PoolMeter usedCents={c.reservedCents} poolCents={c.poolCents} />
+          </li>
+        ))}
+      </ul>
+    </section>
   );
 }

@@ -1,8 +1,10 @@
 import "server-only";
 import { eq, sql } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
+import { after } from "next/server";
 import { db } from "@/db";
 import { donations } from "@/db/schema";
+import { matchDonation, runPayoutQueue, type MatchInfo } from "@/lib/matching/matching";
 import { paymentStatusFrom, type CaptureDetails, type PaymentStatus } from "@/lib/paypal/orders";
 
 /**
@@ -12,7 +14,7 @@ import { paymentStatusFrom, type CaptureDetails, type PaymentStatus } from "@/li
 export async function settleDonation(
   donationId: string,
   capture: CaptureDetails,
-): Promise<{ status: PaymentStatus; amountCents: number } | null> {
+): Promise<{ status: PaymentStatus; amountCents: number; match: MatchInfo | null } | null> {
   const status = paymentStatusFrom(capture.status);
   // PayPal's captured amount is the truth. It can't differ from ours (the
   // order was built here), but if it ever did, record what actually moved.
@@ -32,5 +34,11 @@ export async function settleDonation(
   if (!row) return null;
 
   revalidatePath(`/nonprofits/${row.nonprofitId}`);
-  return { status, amountCents: row.amountCents };
+
+  // A completed donation may trigger a sponsor's matching gift. Recording the
+  // match is quick (database only); the PayPal payout itself runs after the
+  // response is sent, never inside the donor's request.
+  const match = status === "completed" ? await matchDonation(donationId) : null;
+  if (match) after(() => runPayoutQueue().catch((error) => console.error("Payout queue failed:", error)));
+  return { status, amountCents: row.amountCents, match };
 }

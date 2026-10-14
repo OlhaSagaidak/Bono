@@ -53,6 +53,11 @@ async function Nav() {
               New post
             </Link>
           )}
+          {role === "sponsor" && (
+            <Link href="/campaigns" className={navLink}>
+              Campaigns
+            </Link>
+          )}
           {profileHref && (
             <Link href={profileHref} className={navLink}>
               Profile

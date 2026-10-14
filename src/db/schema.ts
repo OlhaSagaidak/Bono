@@ -288,5 +288,74 @@ export const paypalWebhookEvents = pgTable("paypal_webhook_events", {
   receivedAt: timestamp("received_at", { withTimezone: true }).notNull().defaultNow(),
 });
 
+// Sponsor matching campaigns. A sponsor funds a pool (paid to the platform);
+// donations that fit the campaign are matched from it via PayPal Payouts.
+// "unfunded" until the pool payment completes; active = funded and within its dates.
+export const campaignStatusEnum = pgEnum("campaign_status", ["unfunded", "funded"]);
+
+export const campaigns = pgTable("campaigns", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  sponsorId: uuid("sponsor_id")
+    .notNull()
+    .references(() => sponsorProfiles.userId, { onDelete: "cascade" }),
+  name: text("name").notNull(),
+  // Either a cause (any verified nonprofit with it) or specific nonprofits (campaign_nonprofits).
+  causeSlug: text("cause_slug").references(() => causes.slug),
+  // 100 = 1:1, 50 = 0.5:1, 200 = 2:1.
+  ratioPercent: integer("ratio_percent").notNull(),
+  capCents: integer("cap_cents").notNull(), // most it matches for one donation
+  poolCents: integer("pool_cents").notNull(),
+  // Matched so far (including payouts still in flight). Never above poolCents.
+  reservedCents: integer("reserved_cents").notNull().default(0),
+  startsAt: timestamp("starts_at", { withTimezone: true }).notNull(),
+  endsAt: timestamp("ends_at", { withTimezone: true }).notNull(),
+  status: campaignStatusEnum("status").notNull().default("unfunded"),
+  paypalOrderId: text("paypal_order_id").unique(),
+  paypalCaptureId: text("paypal_capture_id").unique(),
+  fundedAt: timestamp("funded_at", { withTimezone: true }),
+  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+});
+
+export const campaignNonprofits = pgTable(
+  "campaign_nonprofits",
+  {
+    campaignId: uuid("campaign_id").notNull().references(() => campaigns.id, { onDelete: "cascade" }),
+    nonprofitId: uuid("nonprofit_id")
+      .notNull()
+      .references(() => nonprofitProfiles.userId, { onDelete: "cascade" }),
+  },
+  (t) => [primaryKey({ columns: [t.campaignId, t.nonprofitId] })],
+);
+
+// queued -> processing (payout being created) -> sent (PayPal accepted it) -> paid,
+// or failed (amount returned to the pool).
+export const matchStatusEnum = pgEnum("match_status", ["queued", "processing", "sent", "paid", "failed"]);
+
+export const matches = pgTable(
+  "matches",
+  {
+    id: uuid("id").primaryKey().defaultRandom(), // also the Payouts sender_batch_id: one payout per match, ever
+    campaignId: uuid("campaign_id").notNull().references(() => campaigns.id, { onDelete: "cascade" }),
+    // Unique: a donation is matched at most once, whatever retries or webhooks happen.
+    donationId: uuid("donation_id").notNull().unique().references(() => donations.id, { onDelete: "cascade" }),
+    nonprofitId: uuid("nonprofit_id")
+      .notNull()
+      .references(() => nonprofitProfiles.userId, { onDelete: "cascade" }),
+    amountCents: integer("amount_cents").notNull(),
+    receiverEmail: text("receiver_email").notNull(), // snapshot of where the payout goes
+    status: matchStatusEnum("status").notNull().default("queued"),
+    payoutBatchId: text("payout_batch_id"),
+    payoutItemId: text("payout_item_id"),
+    payoutStatus: text("payout_status"), // PayPal's own item status, e.g. SUCCESS, UNCLAIMED
+    error: text("error"),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+    updatedAt: timestamp("updated_at", { withTimezone: true })
+      .notNull()
+      .defaultNow()
+      .$onUpdate(() => new Date()),
+  },
+  (t) => [index("matches_campaign_idx").on(t.campaignId), index("matches_status_idx").on(t.status)],
+);
+
 export type User = typeof users.$inferSelect;
 export type Cause = typeof causes.$inferSelect;

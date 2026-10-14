@@ -110,6 +110,13 @@ export function PostCard({
         </ul>
       )}
 
+      {post.matchedBy && (
+        <p className="rounded-lg bg-emerald-50 px-3 py-2 text-sm text-emerald-900 dark:bg-emerald-950 dark:text-emerald-100">
+          <strong>{post.matchedBy.sponsorName}</strong> matches donations to {post.nonprofit.name}{" "}
+          {post.matchedBy.ratioPercent / 100}:1 right now.
+        </p>
+      )}
+
       {showWhy && canEngage && <WhyButton postId={post.id} />}
 
       {(canDelete || canEngage || post.likes > 0) && (
