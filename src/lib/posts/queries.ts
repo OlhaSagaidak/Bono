@@ -1,5 +1,6 @@
 import { and, asc, count, desc, eq, inArray, isNotNull, sql, type SQL } from "drizzle-orm";
 import { db } from "@/db";
+import { matchingSponsorsFor } from "@/lib/matching/matching";
 import { causes, follows, nonprofitProfiles, postCauses, postLikes, posts } from "@/db/schema";
 
 export const PAGE_SIZE = 20;
@@ -33,9 +34,11 @@ export async function getPostsByIds(ids: string[], viewerId: string | null = nul
     .from(posts)
     .innerJoin(nonprofitProfiles, eq(nonprofitProfiles.userId, posts.nonprofitId))
     .where(inArray(posts.id, ids));
-  const [tags, engagement] = await Promise.all([
+  const nonprofitIds = [...new Set(rows.map((r) => r.nonprofit.id))];
+  const [tags, engagement, matching] = await Promise.all([
     getCauseTags(ids),
-    getEngagement(ids, [...new Set(rows.map((r) => r.nonprofit.id))], viewerId),
+    getEngagement(ids, nonprofitIds, viewerId),
+    matchingSponsorsFor(nonprofitIds),
   ]);
   const byId = new Map(
     rows.map((r) => [
@@ -46,6 +49,8 @@ export async function getPostsByIds(ids: string[], viewerId: string | null = nul
         likes: engagement.likes.get(r.id) ?? 0,
         likedByViewer: engagement.liked.has(r.id),
         viewerFollows: engagement.followed.has(r.nonprofit.id),
+        // An active sponsor campaign that would match a donation here, if any.
+        matchedBy: matching.get(r.nonprofit.id) ?? null,
       },
     ]),
   );

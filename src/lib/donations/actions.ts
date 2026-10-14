@@ -8,6 +8,7 @@ import { donations, nonprofitProfiles, posts } from "@/db/schema";
 import { captureOrder, createOrder, getOrderCapture, type CaptureDetails } from "@/lib/paypal/orders";
 import { amountSchema } from "./amounts";
 import { settleDonation } from "./settle";
+import { matchDonation, type MatchInfo } from "@/lib/matching/matching";
 
 // The two halves of a donation, called by the PayPal button in the browser:
 // create an order (before the PayPal window opens) and capture it (after the
@@ -83,7 +84,7 @@ export async function createDonationOrderAction(input: {
 }
 
 export type CaptureDonationResult =
-  | { status: "completed" | "pending"; amountCents: number }
+  | { status: "completed" | "pending"; amountCents: number; match: MatchInfo | null }
   | { declined: true }
   | { error: string };
 
@@ -102,7 +103,7 @@ export async function captureDonationAction(orderId: string): Promise<CaptureDon
 
   // Already settled (a double click, or a retry after a lost response).
   if (donation.status === "completed" || donation.status === "pending") {
-    return { status: donation.status, amountCents: donation.amountCents };
+    return { status: donation.status, amountCents: donation.amountCents, match: await matchDonation(donation.id) };
   }
   if (donation.status === "failed") return { error: TRY_AGAIN };
 
@@ -137,7 +138,7 @@ async function finish(donationId: string, capture: CaptureDetails): Promise<Capt
   const settled = await settleDonation(donationId, capture);
   if (!settled) return { error: TRY_AGAIN };
   if (settled.status === "completed" || settled.status === "pending") {
-    return { status: settled.status, amountCents: settled.amountCents };
+    return { status: settled.status, amountCents: settled.amountCents, match: settled.match };
   }
   return { error: "PayPal couldn't complete this payment. Please try another way to pay." };
 }

@@ -323,3 +323,37 @@ Locally: signature checks (genuine, tampered body, wrong webhook id, foreign/htt
 headers, non-ASCII body) and event handling (fee by custom_id and by order id, expired order → no capture, refund of an
 unknown capture, refund event while PayPal still reports COMPLETED → stays completed, unknown event type, unreadable
 resource, non-Bono order).
+
+---
+
+# Slice 4 — sponsor matching campaigns and Payouts (week 4)
+
+**Funding a campaign pool**: same `createOrder`/`captureOrder` wrappers as the verification fee (payee =
+`PAYPAL_PLATFORM_MERCHANT_EMAIL`, `PayPal-Request-Id` = `campaign-create-<id>` / `campaign-capture-<id>`).
+
+**Payouts are not in the SDK** (sdk-map.md lists Orders, Payments, Vault, TransactionSearch, Subscriptions only).
+Facts below come from PayPal's published OpenAPI spec for Payouts v1
+(developer.paypal.com/api/payments.payouts-batch/v1/schema.json), read 2026-10-13:
+
+- `POST /v1/payments/payouts`, body `{ sender_batch_header, items }` (both required). Header `PayPal-Request-Id`
+  optional (keys stored 30 days).
+- `sender_batch_header.sender_batch_id`: "PayPal does not process duplicate payouts. If you specify a sender_batch_id
+  that was used in the last 30 days, the API rejects the request … If you receive an HTTP 5nn status code, you can
+  safely retry the request with the same sender_batch_id." → **sender_batch_id = our match id**; one item per batch.
+- item (required `amount`, `receiver`): `recipient_type: "EMAIL"`, `receiver` = nonprofit's payee email,
+  `amount: { value, currency }` (note: `currency`, not `currency_code`), `sender_item_id` = match id, `note`,
+  `purpose: "DONATIONS"`.
+- 201 response: `batch_header.payout_batch_id`, `batch_header.batch_status` ∈ DENIED, PENDING, PROCESSING, SUCCESS,
+  CANCELED.
+- `GET /v1/payments/payouts/{id}`: `items[]` with `payout_item_id`, `transaction_id`, `transaction_status` ∈ SUCCESS,
+  FAILED, PENDING, UNCLAIMED, RETURNED, ONHOLD, BLOCKED, REFUNDED, REVERSED, `errors`.
+- Auth: Bearer token from `POST /v1/oauth2/token` (client credentials, Basic auth), cached until shortly before
+  `expires_in`. Probe (read-only): token scope includes payouts; `GET /v1/payments/payouts/NOSUCHBATCH123` → 404
+  `INVALID_RESOURCE_ID` (so Payouts is enabled for the sandbox app; a disabled app would answer 403).
+
+Matching rules: a match is created when a donation is captured `COMPLETED` (capture action or webhook) and an
+active, funded campaign covers the nonprofit (by cause or by name) within its dates. Amount =
+min(donation × ratio, per-donation cap, pool remaining), reserved with a single conditional UPDATE so the pool can't
+go negative. `matches.donation_id` is unique: one match per donation, ever. Payouts run after the response
+(`after()`), never inside the donate request; statuses are refreshed from PayPal; FAILED / RETURNED / BLOCKED /
+REFUNDED / REVERSED give the amount back to the pool.
