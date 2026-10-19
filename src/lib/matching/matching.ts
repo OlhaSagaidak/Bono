@@ -207,21 +207,35 @@ export async function runPayoutQueue(): Promise<{ sent: number; paid: number; fa
     .limit(25);
   for (const m of sent) {
     if (!m.batchId) continue;
-    const item = await getPayoutItem(m.batchId).catch(() => null);
-    if (!item) continue;
-    if (item.status === "SUCCESS") {
-      await db.update(matches).set({ status: "paid", payoutItemId: item.itemId, payoutStatus: item.status }).where(eq(matches.id, m.id));
-      counts.paid++;
-    } else if (FAILED_STATUSES.has(item.status)) {
-      await db.update(matches).set({ payoutItemId: item.itemId, payoutStatus: item.status }).where(eq(matches.id, m.id));
-      await failMatch(m.id, item.error ?? item.status);
-      counts.failed++;
-    } else {
-      // PENDING, UNCLAIMED, ONHOLD: still on its way; check again next run.
-      await db.update(matches).set({ payoutItemId: item.itemId, payoutStatus: item.status }).where(eq(matches.id, m.id));
-    }
+    const result = await refreshMatchPayout(m.id, m.batchId);
+    if (result === "paid") counts.paid++;
+    if (result === "failed") counts.failed++;
   }
   return counts;
+}
+
+/**
+ * Asks PayPal how a match's payout is doing and records it: SUCCESS -> paid;
+ * FAILED and similar -> failed (amount returned to the pool); anything else
+ * (PENDING, UNCLAIMED, ONHOLD) -> still on its way. Used by the queue and by
+ * the payout webhooks; PayPal's answer, not the event, decides.
+ */
+export async function refreshMatchPayout(matchId: string, batchId: string): Promise<"paid" | "failed" | "pending" | "unknown"> {
+  const item = await getPayoutItem(batchId).catch(() => null);
+  if (!item) return "unknown";
+  if (item.status === "SUCCESS") {
+    await db
+      .update(matches)
+      .set({ status: "paid", payoutItemId: item.itemId, payoutStatus: item.status })
+      .where(and(eq(matches.id, matchId), sql`${matches.status} <> 'failed'`));
+    return "paid";
+  }
+  await db.update(matches).set({ payoutItemId: item.itemId, payoutStatus: item.status }).where(eq(matches.id, matchId));
+  if (FAILED_STATUSES.has(item.status)) {
+    await failMatch(matchId, item.error ?? item.status);
+    return "failed";
+  }
+  return "pending";
 }
 
 /** Sponsors of active campaigns that cover each of these nonprofits (for "Matched by" labels). */
