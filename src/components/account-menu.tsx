@@ -1,5 +1,6 @@
 "use client";
 
+import { UserRound } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useId, useRef, useState } from "react";
@@ -53,9 +54,11 @@ export function AccountMenu({ name, links }: { name: string; links: { href: stri
           setOpen(!isOpen);
           setOpenedAt(pathname);
         }}
-        className="flex items-center gap-1 rounded-lg px-3 py-2 text-sm font-medium hover:bg-zinc-100 focus:outline-2 focus:outline-offset-2 focus:outline-emerald-600 dark:hover:bg-zinc-800"
+        aria-label="Account"
+        className="flex items-center gap-1 rounded-lg px-2 py-2 text-sm font-medium hover:bg-zinc-100 focus:outline-2 focus:outline-offset-2 focus:outline-emerald-600 dark:hover:bg-zinc-800 lg:px-3"
       >
-        Account
+        <UserRound aria-hidden className="size-5 lg:hidden" />
+        <span className="hidden lg:inline">Account</span>
         <svg aria-hidden viewBox="0 0 20 20" className={`size-4 transition-transform ${isOpen ? "rotate-180" : ""}`} fill="currentColor">
           <path fillRule="evenodd" d="M5.2 7.2a.75.75 0 0 1 1.06 0L10 10.94l3.74-3.74a.75.75 0 1 1 1.06 1.06l-4.27 4.27a.75.75 0 0 1-1.06 0L5.2 8.26a.75.75 0 0 1 0-1.06Z" clipRule="evenodd" />
         </svg>
