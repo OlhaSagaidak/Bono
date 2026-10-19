@@ -1,4 +1,8 @@
+"use client";
+
 // Shared form pieces so every input has a visible label and announces its errors.
+
+import { useState } from "react";
 
 const inputClass =
   "rounded-lg border border-zinc-300 bg-white px-3 py-2 text-zinc-900 focus:outline-2 focus:outline-offset-2 focus:outline-emerald-600 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-100";
@@ -40,8 +44,15 @@ export function TextField({
   autoComplete,
   required = true,
   readOnly = false,
+  inputMode,
   ...p
-}: FieldProps & { type?: string; autoComplete?: string; readOnly?: boolean }) {
+}: FieldProps & {
+  type?: string;
+  autoComplete?: string;
+  readOnly?: boolean;
+  /** e.g. "decimal" so phones show a number keyboard for amounts. */
+  inputMode?: React.HTMLAttributes<HTMLInputElement>["inputMode"];
+}) {
   return (
     <div className="flex flex-col gap-1">
       <label htmlFor={p.name} className="text-sm font-medium">
@@ -55,6 +66,7 @@ export function TextField({
         autoComplete={autoComplete}
         required={required}
         readOnly={readOnly}
+        inputMode={inputMode}
         defaultValue={p.defaultValue}
         aria-invalid={p.errors ? true : undefined}
         aria-describedby={describedBy(p.name, p.hint, p.errors)}
@@ -161,6 +173,9 @@ export function ChipGroup({
   );
 }
 
+// Must match MAX_IMAGE_BYTES in lib/images.ts (the server checks again).
+const MAX_IMAGE_BYTES = 2 * 1024 * 1024;
+
 export function ImageField({
   name,
   label,
@@ -176,6 +191,24 @@ export function ImageField({
   currentUrl?: string;
   errors?: string[];
 }) {
+  // Checked as soon as a file is picked: a file over the upload limit would
+  // otherwise be rejected before the server's own friendly check could run.
+  const [localError, setLocalError] = useState<string>();
+  const shown = localError ? [localError] : errors;
+
+  function check(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    setLocalError(undefined);
+    if (!file) return;
+    if (file.size > MAX_IMAGE_BYTES) {
+      setLocalError("That image is over 2 MB. Choose a smaller one.");
+      e.target.value = "";
+    } else if (!accept.split(",").includes(file.type)) {
+      setLocalError("Use a PNG, JPEG or WebP image.");
+      e.target.value = "";
+    }
+  }
+
   return (
     <div className="flex flex-col gap-1">
       <label htmlFor={name} className="text-sm font-medium">
@@ -192,12 +225,13 @@ export function ImageField({
           name={name}
           type="file"
           accept={accept}
-          aria-invalid={errors ? true : undefined}
-          aria-describedby={describedBy(name, hint, errors)}
+          onChange={check}
+          aria-invalid={shown ? true : undefined}
+          aria-describedby={describedBy(name, hint, shown)}
           className="text-sm file:mr-3 file:rounded-lg file:border-0 file:bg-zinc-100 file:px-3 file:py-2 file:font-medium dark:file:bg-zinc-800 dark:file:text-zinc-100"
         />
       </div>
-      <FieldError name={name} errors={errors} />
+      <FieldError name={name} errors={shown} />
     </div>
   );
 }
