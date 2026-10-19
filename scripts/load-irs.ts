@@ -23,9 +23,9 @@ async function loadState(state: string) {
   if (!res.ok) throw new Error(`Download failed for ${state.toUpperCase()}: ${res.status} ${url}`);
   const lines = (await res.text()).split(/\r?\n/).filter(Boolean);
 
-  // The file is plain comma-separated with no quoting (checked: every row has
-  // the header's column count), so a split is enough. Columns come from the header.
-  const header = lines[0].split(",");
+  // Columns come from the header. Fields are comma-separated; a name that
+  // contains a comma is wrapped in double quotes ("QUEENS ... SOCIETY,INC").
+  const header = splitCsvLine(lines[0]);
   const col = (name: string) => {
     const i = header.indexOf(name);
     if (i < 0) throw new Error(`Column ${name} missing from ${url}; the IRS format may have changed.`);
@@ -38,7 +38,7 @@ async function loadState(state: string) {
   const rows: (typeof irsExemptOrgs.$inferInsert)[] = [];
   let malformed = 0;
   for (const line of lines.slice(1)) {
-    const f = line.split(",");
+    const f = splitCsvLine(line);
     if (f.length !== header.length) {
       malformed++;
       continue;
@@ -64,8 +64,34 @@ async function loadState(state: string) {
   );
 }
 
+/** One CSV line into fields: commas separate, "double quotes" group, "" is a literal quote. */
+function splitCsvLine(line: string): string[] {
+  const fields: string[] = [];
+  let field = "";
+  let quoted = false;
+  for (let i = 0; i < line.length; i++) {
+    const ch = line[i];
+    if (quoted) {
+      if (ch === '"' && line[i + 1] === '"') {
+        field += '"';
+        i++;
+      } else if (ch === '"') quoted = false;
+      else field += ch;
+    } else if (ch === '"') quoted = true;
+    else if (ch === ",") {
+      fields.push(field);
+      field = "";
+    } else field += ch;
+  }
+  fields.push(field);
+  return fields;
+}
+
 async function main() {
   for (const state of states) await loadState(state);
+  // Reloading replaces rows, which leaves dead ones behind; VACUUM lets
+  // Postgres reuse that space so repeated loads don't keep growing the table.
+  await db.$client.query("vacuum analyze irs_exempt_orgs");
 }
 
 main()
