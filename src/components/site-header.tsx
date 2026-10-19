@@ -3,6 +3,7 @@ import { Suspense } from "react";
 import { getSession } from "@/lib/auth/session";
 import { eq } from "drizzle-orm";
 import { AccountMenu } from "@/components/account-menu";
+import { TopNav } from "@/components/top-nav";
 import { db } from "@/db";
 import { nonprofitProfiles } from "@/db/schema";
 
@@ -12,7 +13,7 @@ const navLink =
 export function SiteHeader() {
   return (
     <header className="border-b border-zinc-200 dark:border-zinc-800">
-      <div className="mx-auto flex w-full max-w-3xl flex-wrap items-center justify-between gap-2 px-4 py-2">
+      <div className="mx-auto flex w-full max-w-7xl items-center justify-between gap-2 px-4 py-1.5">
         <Link href="/" className="rounded-lg px-1 text-xl font-bold tracking-tight focus:outline-2 focus:outline-emerald-600">
           Bono
         </Link>
@@ -50,19 +51,14 @@ async function Nav() {
     );
   }
 
-  // An unverified nonprofit can't post yet, so its main action is getting verified.
+  // The role's own actions live in the account menu; an unverified nonprofit's
+  // first one is getting verified, since it can't post yet.
   const verified =
     role === "nonprofit" &&
     Boolean((await db.query.nonprofitProfiles.findFirst({ where: eq(nonprofitProfiles.userId, id), columns: { verifiedAt: true } }))?.verifiedAt);
-  const mainAction =
-    role === "nonprofit"
-      ? verified
-        ? { href: "/posts/new", label: "New post" }
-        : { href: "/verify", label: "Get verified" }
-      : role === "sponsor"
-        ? { href: "/campaigns", label: "Campaigns" }
-        : null;
   const accountLinks = [
+    ...(role === "nonprofit" ? [verified ? { href: "/posts/new", label: "New post" } : { href: "/verify", label: "Get verified" }] : []),
+    ...(role === "sponsor" ? [{ href: "/campaigns", label: "Campaigns & boosts" }] : []),
     ...(role === "nonprofit" ? [{ href: `/nonprofits/${id}`, label: "Your page" }] : []),
     ...(role === "sponsor" ? [{ href: `/sponsors/${id}`, label: "Your page" }] : []),
     { href: "/onboarding", label: role === "user" ? "Your interests" : "Edit profile" },
@@ -70,14 +66,7 @@ async function Nav() {
 
   return (
     <nav aria-label="Main" className="flex items-center gap-1">
-      <Link href="/feed" className={navLink}>
-        Feed
-      </Link>
-      {mainAction && (
-        <Link href={mainAction.href} className={navLink}>
-          {mainAction.label}
-        </Link>
-      )}
+      <TopNav />
       <AccountMenu name={name ?? ""} links={accountLinks} />
     </nav>
   );

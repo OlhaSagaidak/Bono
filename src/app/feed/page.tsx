@@ -4,6 +4,7 @@ import { Suspense } from "react";
 import { z } from "zod";
 import { DwellTracker } from "@/components/dwell-tracker";
 import { PostList } from "@/components/post-list";
+import { SidebarEmpty, SidebarSection } from "@/components/sidebar-section";
 import { getSession } from "@/lib/auth/session";
 import { viewerLanguage } from "@/lib/ai/viewer-language";
 import { payPalClientId } from "@/lib/paypal/public-config";
@@ -14,12 +15,29 @@ export const metadata = { title: "Feed · Bono" };
 
 export default function FeedPage({ searchParams }: PageProps<"/feed">) {
   return (
-    <main className="mx-auto flex w-full max-w-xl flex-1 flex-col gap-6 px-4 py-8">
-      <h1 className="text-2xl font-bold">Your feed</h1>
-      <Suspense fallback={<p className="text-zinc-600 dark:text-zinc-400">Loading posts…</p>}>
-        <Feed searchParams={searchParams} />
-      </Suspense>
-    </main>
+    // Three columns on wide screens; below lg only the feed shows (the
+    // sidebars' content is reachable from the top bar).
+    <div className="mx-auto grid w-full max-w-7xl flex-1 gap-6 px-4 py-6 lg:grid-cols-[16rem_minmax(0,36rem)_17rem] lg:justify-center">
+      <aside aria-label="Chats and following" className="hidden flex-col gap-4 lg:flex">
+        <SidebarSection title="Recent chats" href="/messages" linkLabel="Messages">
+          <SidebarEmpty>Your conversations will show here.</SidebarEmpty>
+        </SidebarSection>
+        <SidebarSection title="Following" href="/following">
+          <SidebarEmpty>Organizations you follow will show here.</SidebarEmpty>
+        </SidebarSection>
+      </aside>
+      <main className="flex min-w-0 flex-col gap-6">
+        <h1 className="text-2xl font-bold">Your feed</h1>
+        <Suspense fallback={<p className="text-zinc-600 dark:text-zinc-400">Loading posts…</p>}>
+          <Feed searchParams={searchParams} />
+        </Suspense>
+      </main>
+      <aside aria-label="Your upcoming events" className="hidden flex-col gap-4 lg:flex">
+        <SidebarSection title="Your upcoming events" href="/events" linkLabel="Events">
+          <SidebarEmpty>Events you&apos;re interested in or going to will show here.</SidebarEmpty>
+        </SidebarSection>
+      </aside>
+    </div>
   );
 }
 
