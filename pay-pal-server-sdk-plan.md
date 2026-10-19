@@ -357,3 +357,13 @@ min(donation × ratio, per-donation cap, pool remaining), reserved with a single
 go negative. `matches.donation_id` is unique: one match per donation, ever. Payouts run after the response
 (`after()`), never inside the donate request; statuses are refreshed from PayPal; FAILED / RETURNED / BLOCKED /
 REFUNDED / REVERSED give the amount back to the pool.
+
+## Slice 4 results (2026-10-18, live on Render)
+
+By hand: Acme created "Animal's Rescue Match" (animals, 1:1, $100 pool) and funded it from its sandbox Business account
+→ campaign `funded` with capture id. A supporter donated $25 to Paws Haven → donation `completed` → $25 match
+(pool reserved $25/$100) → payout batch created after the response. PayPal `GET /v1/payments/payouts/{id}`:
+batch `SUCCESS`, item `SUCCESS`, receiver = Paws Haven's sandbox account, 25.00 USD. Bono showed "Sent, confirming"
+until the sponsor opened the campaign page, which ran the queue after the response and marked the match `paid`.
+Scripted (local, real sandbox payouts): one match per donation, concurrent donations never exceed the pool, repeated
+queue runs pay each match once.
