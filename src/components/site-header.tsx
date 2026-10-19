@@ -1,7 +1,10 @@
 import Link from "next/link";
 import { Suspense } from "react";
 import { getSession } from "@/lib/auth/session";
-import { signOutAction } from "@/lib/auth/actions";
+import { eq } from "drizzle-orm";
+import { AccountMenu } from "@/components/account-menu";
+import { db } from "@/db";
+import { nonprofitProfiles } from "@/db/schema";
 
 const navLink =
   "rounded-lg px-3 py-2 text-sm font-medium hover:bg-zinc-100 focus:outline-2 focus:outline-offset-2 focus:outline-emerald-600 dark:hover:bg-zinc-800";
@@ -37,42 +40,45 @@ async function Nav() {
     );
   }
 
-  const { id, role, onboarded } = session.user;
-  const profileHref = role === "nonprofit" ? `/nonprofits/${id}` : role === "sponsor" ? `/sponsors/${id}` : null;
+  const { id, role, name, onboarded } = session.user;
+  // Until onboarding is done the only way forward is the onboarding form.
+  if (!onboarded) {
+    return (
+      <nav aria-label="Main" className="flex items-center gap-1">
+        <AccountMenu name={name ?? ""} links={[]} />
+      </nav>
+    );
+  }
+
+  // An unverified nonprofit can't post yet, so its main action is getting verified.
+  const verified =
+    role === "nonprofit" &&
+    Boolean((await db.query.nonprofitProfiles.findFirst({ where: eq(nonprofitProfiles.userId, id), columns: { verifiedAt: true } }))?.verifiedAt);
+  const mainAction =
+    role === "nonprofit"
+      ? verified
+        ? { href: "/posts/new", label: "New post" }
+        : { href: "/verify", label: "Get verified" }
+      : role === "sponsor"
+        ? { href: "/campaigns", label: "Campaigns" }
+        : null;
+  const accountLinks = [
+    ...(role === "nonprofit" ? [{ href: `/nonprofits/${id}`, label: "Your page" }] : []),
+    ...(role === "sponsor" ? [{ href: `/sponsors/${id}`, label: "Your page" }] : []),
+    { href: "/onboarding", label: role === "user" ? "Your interests" : "Edit profile" },
+  ];
 
   return (
-    <nav aria-label="Main" className="flex flex-wrap items-center gap-1">
-      {/* Until onboarding is done the only way forward is the onboarding form. */}
-      {onboarded && (
-        <>
-          <Link href="/feed" className={navLink}>
-            Feed
-          </Link>
-          {role === "nonprofit" && (
-            <Link href="/posts/new" className={navLink}>
-              New post
-            </Link>
-          )}
-          {role === "sponsor" && (
-            <Link href="/campaigns" className={navLink}>
-              Campaigns
-            </Link>
-          )}
-          {profileHref && (
-            <Link href={profileHref} className={navLink}>
-              Profile
-            </Link>
-          )}
-          <Link href="/onboarding" className={navLink}>
-            {role === "user" ? "Interests" : "Edit profile"}
-          </Link>
-        </>
+    <nav aria-label="Main" className="flex items-center gap-1">
+      <Link href="/feed" className={navLink}>
+        Feed
+      </Link>
+      {mainAction && (
+        <Link href={mainAction.href} className={navLink}>
+          {mainAction.label}
+        </Link>
       )}
-      <form action={signOutAction}>
-        <button type="submit" className={navLink}>
-          Log out
-        </button>
-      </form>
+      <AccountMenu name={name ?? ""} links={accountLinks} />
     </nav>
   );
 }

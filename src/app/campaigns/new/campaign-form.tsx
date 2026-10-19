@@ -37,8 +37,8 @@ export function CampaignForm({ causes, nonprofits, today, inAMonth }: { causes: 
       )}
 
       <SelectField name="ratioPercent" label="Match ratio" options={RATIOS} defaultValue={textValue(state, "ratioPercent") ?? "100"} errors={errors.ratioPercent} />
-      <TextField name="cap" label="Most you'll match for one donation ($)" type="text" defaultValue={textValue(state, "cap") ?? "100"} errors={errors.cap} />
-      <TextField name="pool" label="Matching pool ($)" hint="You pay this once, through PayPal, to fund the campaign. $10 minimum." type="text" defaultValue={textValue(state, "pool") ?? "500"} errors={errors.pool} />
+      <TextField name="cap" label="Most you'll match for one donation ($)" type="text" inputMode="decimal" defaultValue={textValue(state, "cap") ?? "100"} errors={errors.cap} />
+      <TextField name="pool" label="Matching pool ($)" hint="You pay this once, through PayPal, to fund the campaign. $10 minimum." type="text" inputMode="decimal" defaultValue={textValue(state, "pool") ?? "500"} errors={errors.pool} />
       <div className="grid gap-5 sm:grid-cols-2">
         <TextField name="startsAt" label="Starts" type="date" defaultValue={textValue(state, "startsAt") ?? today} errors={errors.startsAt} />
         <TextField name="endsAt" label="Ends" type="date" defaultValue={textValue(state, "endsAt") ?? inAMonth} errors={errors.endsAt} />
