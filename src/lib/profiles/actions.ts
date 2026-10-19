@@ -15,11 +15,11 @@ import {
   type Role,
 } from "@/db/schema";
 import { formText, type FormState } from "@/lib/forms";
-import { checkUploadedImage, replaceImage } from "@/lib/images";
+import { applyPhotoChange, photoChange } from "@/lib/images";
 import { resetUserVector } from "@/lib/feed/learn";
 import { completeVerificationIfReady } from "@/lib/verification/queries";
 import { getCauses } from "./queries";
-import { interestsSchema, nonprofitProfileSchema, sponsorProfileSchema } from "./validation";
+import { interestsSchema, nonprofitProfileSchema, sponsorProfileSchema, supporterProfileSchema } from "./validation";
 
 // Server Actions are public endpoints, so each one re-checks who is calling.
 async function requireRole(role: Role) {
@@ -78,9 +78,10 @@ export async function saveNonprofitProfileAction(
     mission: formText(formData, "mission"),
     paypalPayeeEmail: formText(formData, "paypalPayeeEmail"),
     causes: formData.getAll("causes").map(String),
+    bio: formText(formData, "bio"),
   };
   const parsed = nonprofitProfileSchema.safeParse(values);
-  const logo = await checkUploadedImage(formData.get("logo"));
+  const logo = await photoChange(formData, "logo", "removeLogo");
   if (!parsed.success || logo.kind === "error") {
     const fieldErrors = parsed.success ? {} : z.flattenError(parsed.error).fieldErrors;
     return {
@@ -90,7 +91,7 @@ export async function saveNonprofitProfileAction(
   }
   if (await unknownCauses(parsed.data.causes)) return { error: "Unknown cause selected.", values };
 
-  const { causes, ...profile } = parsed.data;
+  const { causes, bio, ...profile } = parsed.data;
 
   // Verification proved this PayPal account belongs to the nonprofit, so a
   // verified nonprofit can't silently redirect donations elsewhere.
@@ -112,9 +113,8 @@ export async function saveNonprofitProfileAction(
       where: eq(nonprofitProfiles.userId, userId),
       columns: { logoImageId: true },
     });
-    const previousLogo = existing?.logoImageId ?? null;
-    const logoImageId =
-      logo.kind === "ok" ? await replaceImage(tx, userId, logo, previousLogo) : previousLogo;
+    const logoImageId = await applyPhotoChange(tx, userId, logo, existing?.logoImageId ?? null);
+    await tx.update(users).set({ bio }).where(eq(users.id, userId));
 
     await tx
       .insert(nonprofitProfiles)
@@ -143,9 +143,9 @@ export async function saveSponsorProfileAction(
   const userId = await requireRole("sponsor");
   if (!userId) return WRONG_ROLE;
 
-  const values = { name: formText(formData, "name"), about: formText(formData, "about") };
+  const values = { name: formText(formData, "name"), bio: formText(formData, "bio") };
   const parsed = sponsorProfileSchema.safeParse(values);
-  const logo = await checkUploadedImage(formData.get("logo"));
+  const logo = await photoChange(formData, "logo", "removeLogo");
   if (!parsed.success || logo.kind === "error") {
     const fieldErrors = parsed.success ? {} : z.flattenError(parsed.error).fieldErrors;
     return {
@@ -159,17 +159,40 @@ export async function saveSponsorProfileAction(
       where: eq(sponsorProfiles.userId, userId),
       columns: { logoImageId: true },
     });
-    const previousLogo = existing?.logoImageId ?? null;
-    const logoImageId =
-      logo.kind === "ok" ? await replaceImage(tx, userId, logo, previousLogo) : previousLogo;
+    const logoImageId = await applyPhotoChange(tx, userId, logo, existing?.logoImageId ?? null);
+    const { name, bio } = parsed.data;
+    await tx.update(users).set({ bio }).where(eq(users.id, userId));
 
     await tx
       .insert(sponsorProfiles)
-      .values({ userId, ...parsed.data, logoImageId })
-      .onConflictDoUpdate({ target: sponsorProfiles.userId, set: { ...parsed.data, logoImageId } });
+      .values({ userId, name, logoImageId })
+      .onConflictDoUpdate({ target: sponsorProfiles.userId, set: { name, logoImageId } });
     await tx.execute(markOnboarded(userId));
   });
 
   refreshAllPages();
   redirect(`/sponsors/${userId}`);
+}
+
+/** A supporter's own profile: name, bio and photo. Only ever the signed-in supporter's. */
+export async function saveSupporterProfileAction(_prev: FormState, formData: FormData): Promise<FormState> {
+  const userId = await requireRole("user");
+  if (!userId) return WRONG_ROLE;
+
+  const values = { name: formText(formData, "name"), bio: formText(formData, "bio") };
+  const parsed = supporterProfileSchema.safeParse(values);
+  const photo = await photoChange(formData, "photo", "removePhoto");
+  if (!parsed.success || photo.kind === "error") {
+    const fieldErrors = parsed.success ? {} : z.flattenError(parsed.error).fieldErrors;
+    return { fieldErrors: { ...fieldErrors, ...(photo.kind === "error" && { photo: [photo.message] }) }, values };
+  }
+
+  await db.transaction(async (tx) => {
+    const [current] = await tx.select({ avatarImageId: users.avatarImageId }).from(users).where(eq(users.id, userId));
+    const avatarImageId = await applyPhotoChange(tx, userId, photo, current?.avatarImageId ?? null);
+    await tx.update(users).set({ ...parsed.data, avatarImageId }).where(eq(users.id, userId));
+  });
+
+  refreshAllPages();
+  redirect(`/users/${userId}`);
 }

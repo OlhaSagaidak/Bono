@@ -1,4 +1,5 @@
 import { eq } from "drizzle-orm";
+import sharp from "sharp";
 import type { db as Db } from "@/db";
 import { images } from "@/db/schema";
 
@@ -39,6 +40,47 @@ export async function checkUploadedImage(file: FormDataEntryValue | null): Promi
 }
 
 type CheckedImage = Extract<ImageCheck, { kind: "ok" }>;
+
+// Uploads are re-encoded on the server with sharp: it applies the photo's
+// rotation, drops metadata (such as GPS location), and keeps Postgres small.
+
+/** A profile photo or logo: a 512 x 512 square, cropped from the center. */
+export async function squarePhoto(image: CheckedImage): Promise<CheckedImage> {
+  const data = await sharp(image.data).rotate().resize(512, 512, { fit: "cover" }).webp({ quality: 82 }).toBuffer();
+  return { kind: "ok", contentType: "image/webp", data };
+}
+
+/** A post or cover image: at most 1600 px wide, never enlarged. */
+export async function fitImage(image: CheckedImage, maxWidth = 1600): Promise<CheckedImage> {
+  const data = await sharp(image.data).rotate().resize({ width: maxWidth, withoutEnlargement: true }).webp({ quality: 80 }).toBuffer();
+  return { kind: "ok", contentType: "image/webp", data };
+}
+
+export type PhotoChange = { kind: "keep" } | { kind: "remove" } | { kind: "replace"; image: CheckedImage } | { kind: "error"; message: string };
+
+/** What a photo field asks for: keep the current one, remove it, or replace it (squared). */
+export async function photoChange(formData: FormData, field: string, removeField: string): Promise<PhotoChange> {
+  const upload = await checkUploadedImage(formData.get(field));
+  if (upload.kind === "error") return upload;
+  if (upload.kind === "ok") {
+    try {
+      return { kind: "replace", image: await squarePhoto(upload) };
+    } catch {
+      return { kind: "error", message: "That image couldn't be read. Try another one." };
+    }
+  }
+  return formData.get(removeField) === "on" ? { kind: "remove" } : { kind: "keep" };
+}
+
+/** Applies a PhotoChange inside the caller's transaction; returns the new image id (or null). */
+export async function applyPhotoChange(tx: Tx, ownerId: string, change: PhotoChange, currentId: string | null): Promise<string | null> {
+  if (change.kind === "replace") return replaceImage(tx, ownerId, change.image, currentId);
+  if (change.kind === "remove") {
+    if (currentId) await tx.delete(images).where(eq(images.id, currentId));
+    return null;
+  }
+  return currentId;
+}
 
 /** Stores an image inside the caller's transaction and returns its id. */
 export async function storeImage(tx: Tx, ownerId: string, image: CheckedImage): Promise<string> {

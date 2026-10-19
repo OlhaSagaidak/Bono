@@ -11,7 +11,7 @@ import { getSession } from "@/lib/auth/session";
 import { viewerLanguage } from "@/lib/ai/viewer-language";
 import { payPalClientId } from "@/lib/paypal/public-config";
 import { getPosts } from "@/lib/posts/queries";
-import { getNonprofitProfile } from "@/lib/profiles/queries";
+import { countFollowers, getNonprofitProfile } from "@/lib/profiles/queries";
 
 export default function NonprofitPage({ params, searchParams }: PageProps<"/nonprofits/[id]">) {
   return (
@@ -29,7 +29,7 @@ async function NonprofitProfile({
 }: Pick<PageProps<"/nonprofits/[id]">, "params" | "searchParams">) {
   const { id } = await params;
   if (!z.uuid().safeParse(id).success) notFound();
-  const [profile, session] = await Promise.all([getNonprofitProfile(id), getSession()]);
+  const [profile, session, followers] = await Promise.all([getNonprofitProfile(id), getSession(), countFollowers(id)]);
   if (!profile) notFound();
   const viewerId = session?.user.id ?? null;
   const isOwner = viewerId === id;
@@ -68,7 +68,11 @@ async function NonprofitProfile({
         kicker="Nonprofit"
         verified={Boolean(profile.verifiedAt)}
       />
-      <p className="text-lg">{profile.mission}</p>
+      {profile.bio && <p className="text-lg">{profile.bio}</p>}
+      <p className={profile.bio ? "text-zinc-700 dark:text-zinc-300" : "text-lg"}>{profile.mission}</p>
+      <p className="text-sm text-zinc-600 dark:text-zinc-400">
+        <strong className="text-zinc-900 dark:text-zinc-100">{followers}</strong> {followers === 1 ? "follower" : "followers"}
+      </p>
       {donateClientId && viewerId && (
         <div className="flex flex-wrap gap-3">
           <DonateButton nonprofitId={id} nonprofitName={profile.name} clientId={donateClientId} size="large" />
