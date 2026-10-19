@@ -29,3 +29,6 @@ next-env.d.ts
 
 # downloaded embedding model (fetched at build time)
 /.cache/
+
+# demo photos and videos Olya provides for the seed (her own files; not in the public repo)
+/seed-media/
