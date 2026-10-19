@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { BoostButton } from "@/components/boost-button";
 import { DeletePostButton } from "@/components/delete-post-button";
 import { DonateButton } from "@/components/donate-button";
 import { FollowButton } from "@/components/follow-button";
@@ -39,6 +40,7 @@ export function PostCard({
   viewerLanguage,
   canTranslate,
   showWhy,
+  boost,
 }: {
   post: FeedPost;
   now: number;
@@ -52,6 +54,8 @@ export function PostCard({
   canTranslate: boolean;
   /** In the ranked feed, offer "Why am I seeing this?". */
   showWhy: boolean;
+  /** For sponsors: what a boost costs, and the PayPal client ID to pay with. */
+  boost: { feeCents: number; days: number; clientId: string } | null;
 }) {
   const profileHref = `/nonprofits/${post.nonprofit.id}`;
   return (
@@ -78,6 +82,13 @@ export function PostCard({
           </div>
         )}
       </header>
+
+      {post.boostedBy.length > 0 && (
+        // Paid placement is always labeled, at the top of the post.
+        <p className="-mt-1 text-xs font-medium uppercase tracking-wide text-zinc-600 dark:text-zinc-400">
+          Boosted by {post.boostedBy.join(" and ")}
+        </p>
+      )}
 
       <PostBody
         postId={post.id}
@@ -119,7 +130,7 @@ export function PostCard({
 
       {showWhy && canEngage && <WhyButton postId={post.id} />}
 
-      {(canDelete || canEngage || post.likes > 0) && (
+      {(canDelete || canEngage || boost || post.likes > 0) && (
         <div className="flex items-center justify-between gap-2 border-t border-zinc-200 pt-3 dark:border-zinc-800">
           <div className="flex items-center gap-2">
             <LikeButton postId={post.id} liked={post.likedByViewer} likes={post.likes} disabled={!canEngage} />
@@ -132,6 +143,9 @@ export function PostCard({
               />
             )}
           </div>
+          {boost && (
+            <BoostButton postId={post.id} nonprofitName={post.nonprofit.name} feeCents={boost.feeCents} days={boost.days} clientId={boost.clientId} />
+          )}
           {canDelete && <DeletePostButton postId={post.id} />}
         </div>
       )}
