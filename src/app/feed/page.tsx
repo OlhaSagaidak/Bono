@@ -3,6 +3,7 @@ import { redirect } from "next/navigation";
 import { Suspense } from "react";
 import { z } from "zod";
 import { DwellTracker } from "@/components/dwell-tracker";
+import { FollowingSidebar } from "@/components/following-sidebar";
 import { PostList } from "@/components/post-list";
 import { SidebarEmpty, SidebarSection } from "@/components/sidebar-section";
 import { getSession } from "@/lib/auth/session";
@@ -22,9 +23,9 @@ export default function FeedPage({ searchParams }: PageProps<"/feed">) {
         <SidebarSection title="Recent chats" href="/messages" linkLabel="Messages">
           <SidebarEmpty>Your conversations will show here.</SidebarEmpty>
         </SidebarSection>
-        <SidebarSection title="Following" href="/following">
-          <SidebarEmpty>Organizations you follow will show here.</SidebarEmpty>
-        </SidebarSection>
+        <Suspense fallback={<SidebarSection title="Following"><SidebarEmpty>Loading…</SidebarEmpty></SidebarSection>}>
+          <FollowingSidebarForViewer />
+        </Suspense>
       </aside>
       <main className="flex min-w-0 flex-col gap-6">
         <h1 className="text-2xl font-bold">Your feed</h1>
@@ -81,4 +82,9 @@ async function Feed({ searchParams }: { searchParams: PageProps<"/feed">["search
       />
     </DwellTracker>
   );
+}
+
+async function FollowingSidebarForViewer() {
+  const session = await getSession();
+  return session ? <FollowingSidebar userId={session.user.id} /> : null;
 }
