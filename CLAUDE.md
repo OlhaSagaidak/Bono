@@ -83,8 +83,6 @@ There is **no volunteer role**. Do not build volunteer features.
 - Use AG Studio's agent framework for natural-language questions ("show donations from the Acme match this month"), plus custom theming that matches Bono and at least one custom widget (e.g. a matching-pool progress meter).
 - **Build this in week 4.** Olya starts the 45-day trial around **Nov 1** so the license covers judging. Don't install the trial before she says so.
 
----
-
 ### 9. Social layer (added Oct 19)
 All of it respects the safe-space rule: unverified nonprofits stay invisible, so they can't post stories, reels or events or be messaged.
 - **Layout (signed in, desktop):** top bar (logo; Home, Reels, Messages with unread count, Following, Events, Notifications bell with dropdown; account menu on the right); center column = stories row + the existing ranked feed (unchanged); left sidebar = recent chats + followed organizations; right sidebar = your upcoming events. Below `lg`, sidebars hide and the top bar becomes a compact icon bar.
@@ -98,6 +96,8 @@ All of it respects the safe-space rule: unverified nonprofits stay invisible, so
 - **Notifications:** `notifications` table + one helper; new message, new follower, RSVP, new event/story from followed orgs, event starting within 24 h, event cancelled/changed, grouped likes. Bell dropdown (latest ~10, mark all read) and `/notifications`; polling for unread counts; never notify people about their own actions.
 - **Media storage:** images and videos stay in Postgres (free) with strict caps: MP4 only for video, duration read from the file header (no ffmpeg on the server), uploads through a size-capped route, playback with byte-range support. Demo photos and videos come from Olya (gitignored `seed-media/`), never real organizations' branding.
 - **Without a background worker** (free Render): expired stories are filtered out of every query and deleted after responses; event reminders are created lazily when notifications or events load, deduplicated.
+
+---
 
 ## Tech stack
 
