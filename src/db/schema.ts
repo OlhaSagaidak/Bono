@@ -1,4 +1,5 @@
 import {
+  type AnyPgColumn,
   customType,
   index,
   integer,
@@ -35,6 +36,10 @@ export const users = pgTable("users", {
   passwordHash: text("password_hash").notNull(),
   name: text("name").notNull(),
   role: roleEnum("role").notNull(),
+  // Shown on profiles; at most 300 characters (lib/profiles/validation.ts).
+  bio: text("bio").notNull().default(""),
+  // Supporters' photo. Nonprofits and sponsors use their logo instead.
+  avatarImageId: uuid("avatar_image_id").references((): AnyPgColumn => images.id, { onDelete: "set null" }),
   // Null until the role-specific onboarding form is saved; the app sends
   // signed-in users back to /onboarding until then.
   onboardedAt: timestamp("onboarded_at", { withTimezone: true }),
@@ -125,7 +130,6 @@ export const nonprofitCauses = pgTable(
 export const sponsorProfiles = pgTable("sponsor_profiles", {
   userId: uuid("user_id").primaryKey().references(() => users.id, { onDelete: "cascade" }),
   name: text("name").notNull(),
-  about: text("about").notNull().default(""),
   logoImageId: uuid("logo_image_id").references(() => images.id, { onDelete: "set null" }),
   ...timestamps,
 });

@@ -9,7 +9,7 @@ import { db } from "@/db";
 import { images, nonprofitCauses, nonprofitProfiles, postCauses, posts } from "@/db/schema";
 import { formText, type FormState } from "@/lib/forms";
 import { embedPosts } from "@/lib/ai/embed-posts";
-import { checkUploadedImage, storeImage } from "@/lib/images";
+import { checkUploadedImage, fitImage, storeImage } from "@/lib/images";
 import { postSchema } from "./validation";
 
 export async function createPostAction(_prev: FormState, formData: FormData): Promise<FormState> {
@@ -56,8 +56,11 @@ export async function createPostAction(_prev: FormState, formData: FormData): Pr
   }
 
   const { body, language, causes, imageAlt } = parsed.data;
+  // Re-encoded and capped at 1600 px wide, which also strips metadata.
+  const stored = image.kind === "ok" ? await fitImage(image).catch(() => null) : null;
+  if (image.kind === "ok" && !stored) return { fieldErrors: { image: ["That image couldn't be read. Try another one."] }, values };
   const postId = await db.transaction(async (tx) => {
-    const imageId = image.kind === "ok" ? await storeImage(tx, nonprofitId, image) : null;
+    const imageId = stored ? await storeImage(tx, nonprofitId, stored) : null;
     const [post] = await tx
       .insert(posts)
       .values({ nonprofitId, body, language, imageId, imageAlt: imageId ? imageAlt : null })

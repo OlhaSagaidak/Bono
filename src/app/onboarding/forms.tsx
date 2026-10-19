@@ -3,6 +3,7 @@
 import { useActionState } from "react";
 import {
   ChipGroup,
+  CountedTextArea,
   FormError,
   ImageField,
   SubmitButton,
@@ -14,8 +15,9 @@ import {
   saveInterestsAction,
   saveNonprofitProfileAction,
   saveSponsorProfileAction,
+  saveSupporterProfileAction,
 } from "@/lib/profiles/actions";
-import { ABOUT_MAX, MISSION_MAX } from "@/lib/profiles/validation";
+import { BIO_MAX, MISSION_MAX } from "@/lib/profiles/validation";
 
 type Option = { value: string; label: string };
 const IMAGE_ACCEPT = "image/png,image/jpeg,image/webp";
@@ -47,6 +49,7 @@ export function NonprofitProfileForm({
   initial: {
     name: string;
     mission: string;
+    bio: string;
     paypalPayeeEmail: string;
     causes: string[];
     logoUrl?: string;
@@ -73,6 +76,14 @@ export function NonprofitProfileForm({
         defaultValue={textValue(state, "mission") ?? initial.mission}
         errors={errors.mission}
       />
+      <CountedTextArea
+        name="bio"
+        label="Bio (optional)"
+        hint="A short, friendly line for your page: who you are and where you work."
+        maxLength={BIO_MAX}
+        defaultValue={textValue(state, "bio") ?? initial.bio}
+        errors={errors.bio}
+      />
       <ChipGroup
         name="causes"
         legend="Causes"
@@ -88,6 +99,7 @@ export function NonprofitProfileForm({
         accept={IMAGE_ACCEPT}
         currentUrl={initial.logoUrl}
         errors={errors.logo}
+        removeName="removeLogo"
       />
       <TextField
         name="paypalPayeeEmail"
@@ -111,7 +123,7 @@ export function NonprofitProfileForm({
 export function SponsorProfileForm({
   initial,
 }: {
-  initial: { name: string; about: string; logoUrl?: string };
+  initial: { name: string; bio: string; logoUrl?: string };
 }) {
   const [state, action, pending] = useActionState<FormState, FormData>(saveSponsorProfileAction, {});
   const errors = state.fieldErrors ?? {};
@@ -125,14 +137,12 @@ export function SponsorProfileForm({
         defaultValue={textValue(state, "name") ?? initial.name}
         errors={errors.name}
       />
-      <TextArea
-        name="about"
-        label="About (optional)"
-        hint={`Up to ${ABOUT_MAX} characters.`}
-        maxLength={ABOUT_MAX}
-        required={false}
-        defaultValue={textValue(state, "about") ?? initial.about}
-        errors={errors.about}
+      <CountedTextArea
+        name="bio"
+        label="Bio (optional)"
+        maxLength={BIO_MAX}
+        defaultValue={textValue(state, "bio") ?? initial.bio}
+        errors={errors.bio}
       />
       <ImageField
         name="logo"
@@ -141,6 +151,36 @@ export function SponsorProfileForm({
         accept={IMAGE_ACCEPT}
         currentUrl={initial.logoUrl}
         errors={errors.logo}
+        removeName="removeLogo"
+      />
+      <SubmitButton pending={pending}>Save profile</SubmitButton>
+    </form>
+  );
+}
+
+export function SupporterProfileForm({ initial }: { initial: { name: string; bio: string; photoUrl?: string } }) {
+  const [state, action, pending] = useActionState<FormState, FormData>(saveSupporterProfileAction, {});
+  const errors = state.fieldErrors ?? {};
+  return (
+    <form action={action} className={formClass} noValidate>
+      <FormError message={state.error} />
+      <TextField name="name" label="Name" autoComplete="name" defaultValue={textValue(state, "name") ?? initial.name} errors={errors.name} />
+      <CountedTextArea
+        name="bio"
+        label="Bio (optional)"
+        hint="A line or two about you and the causes you care about."
+        maxLength={BIO_MAX}
+        defaultValue={textValue(state, "bio") ?? initial.bio}
+        errors={errors.bio}
+      />
+      <ImageField
+        name="photo"
+        label="Profile photo (optional)"
+        hint="PNG, JPEG or WebP, up to 2 MB. We crop it to a square."
+        accept={IMAGE_ACCEPT}
+        currentUrl={initial.photoUrl}
+        errors={errors.photo}
+        removeName="removePhoto"
       />
       <SubmitButton pending={pending}>Save profile</SubmitButton>
     </form>

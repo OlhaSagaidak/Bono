@@ -27,7 +27,7 @@ async function SponsorProfile({ params }: { params: Promise<{ id: string }> }) {
     <>
       <title>{`${profile.name} · Bono`}</title>
       <ProfileHeader name={profile.name} imageId={profile.logoImageId} kicker="Sponsor" />
-      {profile.about && <p className="text-lg">{profile.about}</p>}
+      {profile.bio && <p className="text-lg">{profile.bio}</p>}
       <ActiveCampaigns sponsorId={id} />
     </>
   );

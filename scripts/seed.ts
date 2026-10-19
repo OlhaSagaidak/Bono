@@ -10,7 +10,7 @@
 // before recording the demo. Accounts on any other domain are never touched.
 
 import { createHash } from "node:crypto";
-import { readFileSync } from "node:fs";
+import { existsSync, readFileSync } from "node:fs";
 import bcrypt from "bcryptjs";
 import { and, count, eq, inArray, like, notInArray, sql } from "drizzle-orm";
 import { z } from "zod";
@@ -33,6 +33,7 @@ import {
   donations,
 } from "@/db/schema";
 import { embedCauses, embedPosts } from "@/lib/ai/embed-posts";
+import { replaceImage, squarePhoto } from "@/lib/images";
 import { nonprofits, sponsors, supporters } from "./seed-data";
 
 // Bono login emails for demo accounts. `.example` is reserved, so these can
@@ -104,23 +105,35 @@ async function main() {
       : 0;
 
     // Matched by email, so the account (and its history) is kept on re-runs.
-    const upsertUser = async (email: string, name: string, role: "user" | "nonprofit" | "sponsor") => {
+    const upsertUser = async (email: string, name: string, role: "user" | "nonprofit" | "sponsor", bio = "") => {
       const [row] = await tx
         .insert(users)
-        .values({ email, name, role, passwordHash, onboardedAt: new Date(now) })
-        .onConflictDoUpdate({ target: users.email, set: { name, role, passwordHash } })
+        .values({ email, name, role, passwordHash, bio, onboardedAt: new Date(now) })
+        .onConflictDoUpdate({ target: users.email, set: { name, role, passwordHash, bio } })
         .returning({ id: users.id });
       return row.id;
+    };
+
+    // Optional photos Olya provides in seed-media/profiles/<login name>.(jpg|png|webp)
+    // (gitignored). Squared and resized like any upload; replaces the previous one.
+    const photoFor = async (loginName: string, ownerId: string, currentId: string | null): Promise<string | null> => {
+      const file = ["jpg", "jpeg", "png", "webp"].map((ext) => `seed-media/profiles/${loginName}.${ext}`).find((f) => existsSync(f));
+      if (!file) return currentId;
+      const photo = await squarePhoto({ kind: "ok", contentType: "image/jpeg", data: readFileSync(file) });
+      return replaceImage(tx, ownerId, photo, currentId);
     };
 
     let postCount = 0;
     const seededPostIds: string[] = [];
     for (const np of nonprofits) {
-      const id = await upsertUser(`${np.slug}@${DEMO_DOMAIN}`, np.name, "nonprofit");
+      const id = await upsertUser(`${np.slug}@${DEMO_DOMAIN}`, np.name, "nonprofit", np.bio);
+      const currentLogo =
+        (await tx.select({ logo: nonprofitProfiles.logoImageId }).from(nonprofitProfiles).where(eq(nonprofitProfiles.userId, id)))[0]?.logo ?? null;
       const profile = {
         name: np.name,
         mission: np.mission,
         paypalPayeeEmail: config.nonprofits[np.slug].toLowerCase(),
+        logoImageId: await photoFor(np.slug, id, currentLogo),
       };
       // Verified demo nonprofits come with their demo EIN. One seeded
       // unverified starts with neither, and a re-run leaves whatever
@@ -179,8 +192,9 @@ async function main() {
     // Sponsors pay as buyers, so their sandbox emails aren't stored yet; they
     // are needed to log in to the PayPal sandbox when funding campaigns (week 4).
     for (const sp of sponsors) {
-      const id = await upsertUser(`${sp.slug}@${DEMO_DOMAIN}`, sp.name, "sponsor");
-      const profile = { name: sp.name, about: sp.about };
+      const id = await upsertUser(`${sp.slug}@${DEMO_DOMAIN}`, sp.name, "sponsor", sp.bio);
+      const currentLogo = (await tx.select({ logo: sponsorProfiles.logoImageId }).from(sponsorProfiles).where(eq(sponsorProfiles.userId, id)))[0]?.logo ?? null;
+      const profile = { name: sp.name, logoImageId: await photoFor(sp.slug, id, currentLogo) };
       await tx
         .insert(sponsorProfiles)
         .values({ userId: id, ...profile })
@@ -198,7 +212,9 @@ async function main() {
     }
 
     for (const s of supporters) {
-      const id = await upsertUser(loginEmail(s.name), s.name, "user");
+      const id = await upsertUser(loginEmail(s.name), s.name, "user", s.bio);
+      const [me] = await tx.select({ avatar: users.avatarImageId }).from(users).where(eq(users.id, id));
+      await tx.update(users).set({ avatarImageId: await photoFor(loginEmail(s.name).split("@")[0], id, me.avatar) }).where(eq(users.id, id));
       await tx.delete(userInterests).where(eq(userInterests.userId, id));
       await tx.insert(userInterests).values(s.interests.map((causeSlug) => ({ userId: id, causeSlug })));
 

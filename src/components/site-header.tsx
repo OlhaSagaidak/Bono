@@ -59,9 +59,8 @@ async function Nav() {
   const accountLinks = [
     ...(role === "nonprofit" ? [verified ? { href: "/posts/new", label: "New post" } : { href: "/verify", label: "Get verified" }] : []),
     ...(role === "sponsor" ? [{ href: "/campaigns", label: "Campaigns & boosts" }] : []),
-    ...(role === "nonprofit" ? [{ href: `/nonprofits/${id}`, label: "Your page" }] : []),
-    ...(role === "sponsor" ? [{ href: `/sponsors/${id}`, label: "Your page" }] : []),
-    { href: "/onboarding", label: role === "user" ? "Your interests" : "Edit profile" },
+    { href: role === "nonprofit" ? `/nonprofits/${id}` : role === "sponsor" ? `/sponsors/${id}` : `/users/${id}`, label: "Your profile" },
+    { href: "/profile/edit", label: "Edit profile" },
   ];
 
   return (

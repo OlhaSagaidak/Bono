@@ -13,6 +13,7 @@ export type DemoNonprofit = {
   posts: DemoPost[];
   // Seeded unverified, so the verification flow can be shown live. Defaults to verified.
   unverified?: true;
+  bio: string;
 };
 
 export type DemoPost = {
@@ -25,6 +26,7 @@ export type DemoPost = {
 export const nonprofits: DemoNonprofit[] = [
   {
     slug: "paws-haven",
+    bio: "Rescue, rehab and rehoming since 2009. Volunteers, fosters and a lot of very good dogs.",
     ein: "000000101",
     name: "Paws Haven",
     mission:
@@ -59,6 +61,7 @@ export const nonprofits: DemoNonprofit[] = [
   },
   {
     slug: "green-seattle",
+    bio: "Neighbors planting trees and restoring creeks, one block at a time. Gloves provided.",
     ein: "000000102",
     name: "Green Seattle",
     mission:
@@ -97,6 +100,7 @@ export const nonprofits: DemoNonprofit[] = [
   },
   {
     slug: "bright-futures",
+    bio: "Mentors and young people, meeting every week. Friendships that last years, not weeks.",
     ein: "000000103",
     name: "Bright Futures",
     mission:
@@ -137,6 +141,7 @@ export const nonprofits: DemoNonprofit[] = [
   },
   {
     slug: "open-pantry",
+    bio: "Food banks, a mobile pantry and Friday community dinners. No forms, no questions.",
     ein: "000000104",
     name: "Open Pantry",
     mission:
@@ -177,6 +182,7 @@ export const nonprofits: DemoNonprofit[] = [
   },
   {
     slug: "new-roots",
+    bio: "Helping newcomers find a home, a job, English classes and friends. Ласкаво просимо. Bienvenidos.",
     ein: "000000105",
     name: "New Roots Welcome Center",
     mission:
@@ -214,6 +220,7 @@ export const nonprofits: DemoNonprofit[] = [
   },
   {
     slug: "canvas-commons",
+    bio: "Free studios and art classes for kids and seniors. Bring your curiosity; we have the paint.",
     name: "Canvas Commons",
     ein: "000000106",
     mission:
@@ -230,35 +237,35 @@ export const sponsors = [
   {
     slug: "acme",
     name: "Acme",
-    about: "Acme makes everyday tools for builders and makers. We match our customers' giving to local causes.",
+    bio: "Acme makes everyday tools for builders and makers. We match our customers' giving to local causes.",
   },
   {
     slug: "northwind",
     name: "Northwind",
-    about: "Northwind delivers fresh groceries across the Pacific Northwest, and funds food and climate work where we operate.",
+    bio: "Northwind delivers fresh groceries across the Pacific Northwest, and funds food and climate work where we operate.",
   },
 ];
 
 // Varied on purpose so different demo logins see visibly different feeds.
-export const supporters: { name: string; interests: string[] }[] = [
-  { name: "Maya Chen", interests: ["animals", "climate"] },
-  { name: "Daniel Ortiz", interests: ["food-security", "refugees"] },
-  { name: "Priya Raman", interests: ["youth", "arts"] },
-  { name: "Olek Kovalenko", interests: ["refugees"] },
-  { name: "Grace Liu", interests: ["climate", "health"] },
-  { name: "Sam Okafor", interests: ["youth", "food-security"] },
-  { name: "Lucía Herrera", interests: ["refugees", "food-security", "health"] },
-  { name: "Ben Fischer", interests: ["animals"] },
-  { name: "Hana Sato", interests: ["arts", "climate"] },
-  { name: "Marcus Bell", interests: ["youth"] },
-  { name: "Elena Petrova", interests: ["animals", "refugees"] },
-  { name: "Theo Nguyen", interests: ["climate"] },
-  { name: "Aisha Rahman", interests: ["health", "food-security"] },
-  { name: "Jonah Weiss", interests: ["arts"] },
-  { name: "Sofia Rossi", interests: ["animals", "youth", "arts"] },
-  { name: "Kwame Mensah", interests: ["food-security"] },
-  { name: "Ingrid Larsen", interests: ["climate", "animals"] },
-  { name: "Diego Morales", interests: ["refugees", "youth"] },
-  { name: "Nadia Haddad", interests: ["health"] },
-  { name: "Ruth Abrams", interests: ["food-security", "climate", "refugees"] },
+export const supporters: { name: string; interests: string[]; bio?: string }[] = [
+  { name: "Maya Chen", interests: ["animals", "climate"], bio: "Dog foster mom and weekend tree planter. Seattle born." },
+  { name: "Daniel Ortiz", interests: ["food-security", "refugees"], bio: "Volunteer driver for the mobile pantry. Ask me about the best tamales in town." },
+  { name: "Priya Raman", interests: ["youth", "arts"], bio: "Art teacher. I believe every kid deserves a paintbrush and a mentor." },
+  { name: "Olek Kovalenko", interests: ["refugees"], bio: "Came to Seattle in 2022. Now I help other families settle in." },
+  { name: "Grace Liu", interests: ["climate", "health"], bio: "Nurse by day, creek cleaner on Saturdays." },
+  { name: "Sam Okafor", interests: ["youth", "food-security"], bio: "Youth soccer coach and food bank regular. Small acts add up." },
+  { name: "Lucía Herrera", interests: ["refugees", "food-security", "health"], bio: "Immigration paralegal. Volunteer at the Saturday legal clinic." },
+  { name: "Ben Fischer", interests: ["animals"], bio: "Two rescue cats, one very old beagle. Animals first." },
+  { name: "Hana Sato", interests: ["arts", "climate"], bio: "Muralist. Painting walls and planting trees." },
+  { name: "Marcus Bell", interests: ["youth"], bio: "Mentor for six years. Still learning from my mentee." },
+  { name: "Elena Petrova", interests: ["animals", "refugees"], bio: "Shelter volunteer and Ukrainian-English translator." },
+  { name: "Theo Nguyen", interests: ["climate"], bio: "Climate nerd. Composting, cycling, counting salmon." },
+  { name: "Aisha Rahman", interests: ["health", "food-security"], bio: "Dietitian. Food is medicine, and everyone deserves good food." },
+  { name: "Jonah Weiss", interests: ["arts"], bio: "Poetry nights and community theater." },
+  { name: "Sofia Rossi", interests: ["animals", "youth", "arts"], bio: "Grad student. I give where I can and volunteer where I can't." },
+  { name: "Kwame Mensah", interests: ["food-security"], bio: "Chef. I cook at the Friday community kitchen." },
+  { name: "Ingrid Larsen", interests: ["climate", "animals"], bio: "Hiker, birder, cat person." },
+  { name: "Diego Morales", interests: ["refugees", "youth"], bio: "Former refugee, current mentor." },
+  { name: "Nadia Haddad", interests: ["health"], bio: "Public health researcher. Fan of good data and good neighbors." },
+  { name: "Ruth Abrams", interests: ["food-security", "climate", "refugees"], bio: "Retired teacher. Now I have time for every cause I care about." },
 ];

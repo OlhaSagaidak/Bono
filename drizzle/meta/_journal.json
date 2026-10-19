@@ -113,6 +113,13 @@
       "when": 1792372022338,
       "tag": "0015_boosts",
       "breakpoints": true
+    },
+    {
+      "idx": 16,
+      "version": "7",
+      "when": 1792448532037,
+      "tag": "0016_profiles_bio_avatar",
+      "breakpoints": true
     }
   ]
 }

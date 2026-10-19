@@ -1,7 +1,9 @@
 import { z } from "zod";
 
 export const MISSION_MAX = 500;
-export const ABOUT_MAX = 300;
+export const BIO_MAX = 300;
+
+const bio = z.string().trim().max(BIO_MAX, `Keep your bio under ${BIO_MAX} characters.`);
 
 // Cause slugs are checked against the causes table in the action; here we only
 // shape them. getAll() is used because checkbox groups repeat the same name.
@@ -21,9 +23,15 @@ export const nonprofitProfileSchema = z.object({
     .max(MISSION_MAX, `Keep the mission under ${MISSION_MAX} characters.`),
   causes: causeSlugs(1, 3, "Pick at least one cause.", "Pick up to 3 causes."),
   paypalPayeeEmail: z.email("Enter the email of your PayPal Business account.").trim().toLowerCase(),
+  bio,
 });
 
 export const sponsorProfileSchema = z.object({
   name: z.string().trim().min(1, "Enter your company's name.").max(100, "Name is too long."),
-  about: z.string().trim().max(ABOUT_MAX, `Keep this under ${ABOUT_MAX} characters.`),
+  bio,
+});
+
+export const supporterProfileSchema = z.object({
+  name: z.string().trim().min(1, "Enter your name.").max(100, "Name is too long."),
+  bio,
 });

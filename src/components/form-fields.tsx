@@ -131,6 +131,39 @@ export function SelectField({ options, ...p }: FieldProps & { options: readonly 
   );
 }
 
+/** A textarea with a live "120 / 300" counter, for bios and other short texts. */
+export function CountedTextArea({ maxLength, ...p }: FieldProps & { maxLength: number }) {
+  const [length, setLength] = useState((p.defaultValue ?? "").length);
+  const counterId = `${p.name}-counter`;
+  const describedByIds = [describedBy(p.name, p.hint, p.errors), counterId].filter(Boolean).join(" ");
+  return (
+    <div className="flex flex-col gap-1">
+      <label htmlFor={p.name} className="text-sm font-medium">
+        {p.label}
+      </label>
+      <Hint name={p.name} hint={p.hint} />
+      <textarea
+        id={p.name}
+        name={p.name}
+        rows={3}
+        maxLength={maxLength}
+        defaultValue={p.defaultValue}
+        onChange={(e) => setLength(e.target.value.length)}
+        aria-invalid={p.errors ? true : undefined}
+        aria-describedby={describedByIds}
+        className={inputClass}
+      />
+      <div className="flex justify-between gap-2">
+        <FieldError name={p.name} errors={p.errors} />
+        {/* Polite, so screen readers hear the count without being interrupted on every key. */}
+        <p id={counterId} aria-live="polite" className={`ml-auto text-xs ${length >= maxLength ? "text-red-700 dark:text-red-400" : "text-zinc-600 dark:text-zinc-400"}`}>
+          {length} / {maxLength}
+        </p>
+      </div>
+    </div>
+  );
+}
+
 /** Checkboxes styled as chips. Submits every checked value under the same name. */
 export function ChipGroup({
   name,
@@ -183,6 +216,8 @@ export function ImageField({
   accept,
   currentUrl,
   errors,
+  removeName,
+  round = true,
 }: {
   name: string;
   label: string;
@@ -190,6 +225,9 @@ export function ImageField({
   accept: string;
   currentUrl?: string;
   errors?: string[];
+  /** When set and there's a current image, offers a "Remove" checkbox under this field name. */
+  removeName?: string;
+  round?: boolean;
 }) {
   // Checked as soon as a file is picked: a file over the upload limit would
   // otherwise be rejected before the server's own friendly check could run.
@@ -218,7 +256,7 @@ export function ImageField({
       <div className="flex items-center gap-3">
         {currentUrl && (
           // eslint-disable-next-line @next/next/no-img-element -- served from our own API, no optimization needed
-          <img src={currentUrl} alt="Current logo" className="size-14 rounded-full object-cover" />
+          <img src={currentUrl} alt="Current image" className={`size-14 object-cover ${round ? "rounded-full" : "rounded-lg"}`} />
         )}
         <input
           id={name}
@@ -231,6 +269,12 @@ export function ImageField({
           className="text-sm file:mr-3 file:rounded-lg file:border-0 file:bg-zinc-100 file:px-3 file:py-2 file:font-medium dark:file:bg-zinc-800 dark:file:text-zinc-100"
         />
       </div>
+      {currentUrl && removeName && (
+        <label className="flex items-center gap-2 text-sm">
+          <input type="checkbox" name={removeName} className="accent-emerald-700" />
+          Remove the current image
+        </label>
+      )}
       <FieldError name={name} errors={shown} />
     </div>
   );
