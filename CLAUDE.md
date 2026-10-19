@@ -85,6 +85,20 @@ There is **no volunteer role**. Do not build volunteer features.
 
 ---
 
+### 9. Social layer (added Oct 19)
+All of it respects the safe-space rule: unverified nonprofits stay invisible, so they can't post stories, reels or events or be messaged.
+- **Layout (signed in, desktop):** top bar (logo; Home, Reels, Messages with unread count, Following, Events, Notifications bell with dropdown; account menu on the right); center column = stories row + the existing ranked feed (unchanged); left sidebar = recent chats + followed organizations; right sidebar = your upcoming events. Below `lg`, sidebars hide and the top bar becomes a compact icon bar.
+- **Profiles for everyone:** photo + bio (max 300 characters, live counter) for supporters, nonprofits and sponsors (nonprofits and sponsors keep their logo as the photo). Upload through the `images` table, validated and resized/square-cropped on the server with sharp; default avatar. Supporter profile `/users/[id]`; nonprofit pages add bio, followers count, reels, upcoming events and a Message button. Owner-only edit, enforced in the Server Action.
+- **Following page** `/following`: followed organizations with unfollow and search, plus "Discover organizations" by cause.
+- **Saved posts:** bookmark on every post and reel (optimistic), private "Saved" tab on your own profile.
+- **Stories:** verified nonprofits post a photo or short video (≤ 15 s, small file cap) with an optional caption and Donate/link sticker; expire after 24 h; stories row with unseen rings; full-screen viewer (tap/arrows, hold/space to pause, progress bars, Esc); views recorded, owner sees the count.
+- **Reels:** verified nonprofits upload vertical MP4 videos (≤ 60 s) with caption and causes; `/reels` snap-scroll feed, muted autoplay of the visible one, like, save, share link, Donate.
+- **Messages:** one-to-one between any two users; `/messages` inbox + conversation; text first (images only if time allows); polling, no paid real-time service; participants-only on the server; block and report; unread counts feed the top bar and sidebar.
+- **Events:** verified nonprofits create/edit/cancel (title, description, cover, start/end stored in UTC and shown in the viewer's timezone, in person or online, causes, optional capacity). Any signed-in user responds Interested or Going (or clears it); counts shown; the organizer sees the lists. `/events` (followed orgs first, cause filter, "My events", "Hosting"), `/events/[id]`. Past events drop out; cancelled events show as cancelled to responders.
+- **Notifications:** `notifications` table + one helper; new message, new follower, RSVP, new event/story from followed orgs, event starting within 24 h, event cancelled/changed, grouped likes. Bell dropdown (latest ~10, mark all read) and `/notifications`; polling for unread counts; never notify people about their own actions.
+- **Media storage:** images and videos stay in Postgres (free) with strict caps: MP4 only for video, duration read from the file header (no ffmpeg on the server), uploads through a size-capped route, playback with byte-range support. Demo photos and videos come from Olya (gitignored `seed-media/`), never real organizations' branding.
+- **Without a background worker** (free Render): expired stories are filtered out of every query and deleted after responses; event reminders are created lazily when notifications or events load, deduplicated.
+
 ## Tech stack
 
 | Layer | Choice |
@@ -149,7 +163,20 @@ Dates are targets; the deadline is fixed.
 | 4 | Nov 2–8 | Sponsor matching campaigns + Payouts queue, boosted posts, AG Grid dashboards |
 | 5 | Nov 9–12 | Polish, mobile layout, error states, README, demo video (under 3 min), Devpost submission. **Submit by Nov 11 to be safe.** |
 
-If behind schedule, cut in this order: AG Grid natural-language agent → boosted posts → dashboards. **Never cut:** donations, verification, matching, the AI feed.
+Progress (Oct 19): weeks 1–3 and week 4's matching, Payouts and boosted posts are done and live; mobile polish and error states done early. AG Grid dashboards wait for the AG Studio trial (Olya starts it around Nov 1).
+
+**Social layer (Oct 19 → ~Nov 1, before the dashboards),** one slice at a time, each committed and pushed:
+1. Layout shell (top bar, three columns, responsive)
+2. Profiles for all users (photo + bio)
+3. Following page + left-sidebar following list
+4. Events + RSVPs + right sidebar
+5. Notifications
+6. Messages + left-sidebar recent chats
+7. Saved posts
+8. Stories
+9. Reels
+
+**Never cut, top priority:** donations, verification, matching, the AI feed. If behind schedule, Olya decides what to cut among the social-layer slices, AG Grid natural-language agent, boosted posts and dashboards at that point.
 
 ---
 
