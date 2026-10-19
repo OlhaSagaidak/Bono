@@ -1,10 +1,11 @@
 import "server-only";
-import { eq, or } from "drizzle-orm";
+import { and, eq, isNull, or } from "drizzle-orm";
 import { capturedPaymentSchema, refundSchema } from "pay-pal-server-sdk";
 import { z } from "zod";
 import { db } from "@/db";
-import { donations, verificationFees } from "@/db/schema";
+import { donations, matches, verificationFees } from "@/db/schema";
 import { settleDonation } from "@/lib/donations/settle";
+import { refreshMatchPayout } from "@/lib/matching/matching";
 import { settleFee } from "@/lib/verification/settle";
 import { getOrderCapture } from "./orders";
 
@@ -20,7 +21,37 @@ const CAPTURE_EVENTS = new Set([
   "PAYMENT.CAPTURE.DECLINED",
 ]);
 
+// A payout item's resource, per PayPal's Payouts spec ("show payout item").
+const payoutItemSchema = z.object({
+  payout_batch_id: z.string(),
+  sender_batch_id: z.string().optional(),
+  payout_item: z.object({ sender_item_id: z.string().optional() }).optional(),
+});
+
+/** Payout events: find the match (our id is the sender_batch_id), then ask PayPal how the payout is doing. */
+async function handlePayoutEvent(resource: unknown): Promise<{ text: string; resourceId?: string }> {
+  const parsed = payoutItemSchema.safeParse(resource);
+  if (!parsed.success) return { text: "ignored: unreadable payout item" };
+  const { payout_batch_id: batchId, sender_batch_id, payout_item } = parsed.data;
+  const ourId = [sender_batch_id, payout_item?.sender_item_id].find((id) => id && uuid.safeParse(id).success);
+
+  const [match] = await db
+    .select({ id: matches.id, status: matches.status })
+    .from(matches)
+    .where(ourId ? or(eq(matches.id, ourId), eq(matches.payoutBatchId, batchId)) : eq(matches.payoutBatchId, batchId));
+  if (!match) return { text: "ignored: not a Bono payout", resourceId: batchId };
+  if (match.status === "paid" || match.status === "failed") return { text: `match already ${match.status}`, resourceId: batchId };
+
+  // Record the batch id if the webhook beat our own bookkeeping.
+  await db.update(matches).set({ payoutBatchId: batchId }).where(and(eq(matches.id, match.id), isNull(matches.payoutBatchId)));
+  const result = await refreshMatchPayout(match.id, batchId);
+  if (result === "unknown") throw new Error(`couldn't read payout ${batchId} from PayPal`);
+  return { text: `match payout ${result}`, resourceId: batchId };
+}
+
 export async function handlePayPalEvent(eventType: string, resource: unknown): Promise<{ text: string; resourceId?: string }> {
+  if (eventType.startsWith("PAYMENT.PAYOUTS-ITEM.")) return handlePayoutEvent(resource);
+
   let ids: { customId?: string; orderId?: string; captureId?: string };
   if (CAPTURE_EVENTS.has(eventType)) {
     const capture = decode(() => capturedPaymentSchema.decode(resource));
