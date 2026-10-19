@@ -1,5 +1,6 @@
 import { and, asc, count, desc, eq, inArray, isNotNull, sql, type SQL } from "drizzle-orm";
 import { db } from "@/db";
+import { activeBoostSponsors } from "@/lib/boosts/queries";
 import { matchingSponsorsFor } from "@/lib/matching/matching";
 import { causes, follows, nonprofitProfiles, postCauses, postLikes, posts } from "@/db/schema";
 
@@ -35,10 +36,11 @@ export async function getPostsByIds(ids: string[], viewerId: string | null = nul
     .innerJoin(nonprofitProfiles, eq(nonprofitProfiles.userId, posts.nonprofitId))
     .where(inArray(posts.id, ids));
   const nonprofitIds = [...new Set(rows.map((r) => r.nonprofit.id))];
-  const [tags, engagement, matching] = await Promise.all([
+  const [tags, engagement, matching, boosted] = await Promise.all([
     getCauseTags(ids),
     getEngagement(ids, nonprofitIds, viewerId),
     matchingSponsorsFor(nonprofitIds),
+    activeBoostSponsors(ids),
   ]);
   const byId = new Map(
     rows.map((r) => [
@@ -51,6 +53,8 @@ export async function getPostsByIds(ids: string[], viewerId: string | null = nul
         viewerFollows: engagement.followed.has(r.nonprofit.id),
         // An active sponsor campaign that would match a donation here, if any.
         matchedBy: matching.get(r.nonprofit.id) ?? null,
+        // Sponsors paying to boost this post right now: always shown, never hidden.
+        boostedBy: boosted.get(r.id) ?? [],
       },
     ]),
   );

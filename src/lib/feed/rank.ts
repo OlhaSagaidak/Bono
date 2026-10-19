@@ -8,6 +8,7 @@ import { createHash } from "node:crypto";
 //         + 0.35 × freshness     1 for a brand-new post, halving every 3 days
 //         + 0.20 × followed      1 if they follow the nonprofit
 //         + 0.15 × popularity    likes and donations from everyone, with diminishing returns
+//         + 0.30 × boosted       1 while a sponsor pays to boost the post (always labeled "Boosted by")
 //         + 0.08 × exploration   a small random nudge, so other causes still surface
 //
 // relevance is the cosine similarity between the person's interest vector
@@ -18,9 +19,18 @@ import { createHash } from "node:crypto";
 // Posts they've already seen in the last few days go after all unseen ones
 // ("You're all caught up"), still in score order, instead of disappearing.
 //
-// Sponsor boosts join this sum in week 4.
+// A boost is a nudge, not a takeover: 0.30 lifts a post about as much as a
+// strong interest match, so an unrelated boosted post still sits below posts
+// that really fit the person.
 
-export const WEIGHTS = { relevance: 1.0, freshness: 0.35, followed: 0.2, popularity: 0.15, exploration: 0.08 } as const;
+export const WEIGHTS = {
+  relevance: 1.0,
+  freshness: 0.35,
+  followed: 0.2,
+  popularity: 0.15,
+  boosted: 0.3,
+  exploration: 0.08,
+} as const;
 export const FRESHNESS_HALF_LIFE_HOURS = 72;
 // Likes plus donations (a donation counts 3×) at which popularity reaches 1.
 const POPULARITY_FULL_AT = 30;
@@ -33,11 +43,19 @@ export type Candidate = {
   likes: number;
   donations: number;
   followed: boolean;
+  boosted: boolean;
   /** Seen by this viewer recently. */
   seen: boolean;
 };
 
-export type Factors = { relevance: number; freshness: number; followed: number; popularity: number; exploration: number };
+export type Factors = {
+  relevance: number;
+  freshness: number;
+  followed: number;
+  popularity: number;
+  boosted: number;
+  exploration: number;
+};
 export type Ranked = Candidate & { score: number; factors: Factors };
 
 /** 1 now, 0.5 after one half-life, 0.25 after two, and so on. */
@@ -69,6 +87,7 @@ export function rankPosts(candidates: Candidate[], viewerId: string, now = Date.
         freshness: freshness(c.createdAt, now),
         followed: c.followed ? 1 : 0,
         popularity: popularity(c.likes, c.donations),
+        boosted: c.boosted ? 1 : 0,
         exploration: exploration(viewerId, c.id, day),
       };
       const score = (Object.keys(WEIGHTS) as (keyof Factors)[]).reduce((sum, k) => sum + WEIGHTS[k] * factors[k], 0);

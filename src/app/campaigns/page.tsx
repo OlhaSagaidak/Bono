@@ -3,7 +3,9 @@ import { redirect } from "next/navigation";
 import { Suspense } from "react";
 import { PoolMeter } from "@/components/pool-meter";
 import { getSession } from "@/lib/auth/session";
-import { getSponsorCampaigns } from "@/lib/matching/queries";
+import { getSponsorBoosts } from "@/lib/boosts/queries";
+import { formatCents } from "@/lib/donations/amounts";
+import { getSponsorCampaigns, nowMs } from "@/lib/matching/queries";
 import { StateLabel } from "./state-label";
 
 export const metadata = { title: "Matching campaigns · Bono" };
@@ -22,6 +24,10 @@ export default function CampaignsPage() {
       </div>
       <Suspense fallback={<p className="text-zinc-600 dark:text-zinc-400">Loading…</p>}>
         <Campaigns />
+      </Suspense>
+      <h2 className="mt-4 text-xl font-bold">Boosted posts</h2>
+      <Suspense fallback={<p className="text-zinc-600 dark:text-zinc-400">Loading…</p>}>
+        <Boosts />
       </Suspense>
     </main>
   );
@@ -57,6 +63,35 @@ async function Campaigns() {
             </span>
             <PoolMeter usedCents={c.reservedCents} poolCents={c.poolCents} />
           </Link>
+        </li>
+      ))}
+    </ul>
+  );
+}
+
+const dateFormat = new Intl.DateTimeFormat("en", { dateStyle: "medium" });
+
+async function Boosts() {
+  const session = await getSession();
+  if (!session || session.user.role !== "sponsor") return null;
+  const boosts = await getSponsorBoosts(session.user.id);
+  if (boosts.length === 0) {
+    return <p className="text-zinc-600 dark:text-zinc-400">No boosts yet. Use Boost on any post in your feed.</p>;
+  }
+  return (
+    <ul className="flex flex-col gap-3">
+      {boosts.map((b) => (
+        <li key={b.id} className="flex flex-col gap-1 rounded-2xl border border-zinc-200 p-4 dark:border-zinc-800">
+          <span className="font-semibold">{b.nonprofitName}</span>
+          <span className="line-clamp-2 text-sm">{b.postBody}</span>
+          <span className="text-sm text-zinc-600 dark:text-zinc-400">
+            {formatCents(b.amountCents)} · {dateFormat.format(b.startsAt!)} – {dateFormat.format(b.endsAt!)}
+            {b.endsAt!.getTime() > nowMs() ? " · running" : " · ended"}
+          </span>
+          <span className="text-sm">
+            Since the boost: {b.views} {b.views === 1 ? "person" : "people"} saw it · {b.likes} new like{b.likes === 1 ? "" : "s"} ·{" "}
+            {formatCents(b.donationsCents)} donated from it
+          </span>
         </li>
       ))}
     </ul>

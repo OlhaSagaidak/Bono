@@ -13,6 +13,7 @@ export function PostList({
   nextLabel = "More posts",
   caughtUpAt = null,
   showWhy = false,
+  boost = null,
   empty,
 }: {
   posts: FeedPost[];
@@ -28,6 +29,8 @@ export function PostList({
   caughtUpAt?: number | null;
   /** Ranked feed only: "Why am I seeing this?" on each post. */
   showWhy?: boolean;
+  /** Sponsors viewing the feed can boost posts. */
+  boost?: { feeCents: number; days: number; clientId: string } | null;
   empty: React.ReactNode;
 }) {
   if (posts.length === 0) {
@@ -54,6 +57,7 @@ export function PostList({
             viewerLanguage={viewerLanguage}
             canTranslate={viewerId !== null}
             showWhy={showWhy}
+            boost={boost}
           />
         </Fragment>
       ))}

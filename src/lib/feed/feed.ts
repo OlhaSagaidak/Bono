@@ -1,7 +1,7 @@
 import "server-only";
 import { and, cosineDistance, desc, eq, gt, isNotNull, sql } from "drizzle-orm";
 import { db } from "@/db";
-import { donations, follows, nonprofitProfiles, postLikes, posts, postViews, type Role } from "@/db/schema";
+import { boosts, donations, follows, nonprofitProfiles, postLikes, posts, postViews, type Role } from "@/db/schema";
 import { getPostsByIds, PAGE_SIZE } from "@/lib/posts/queries";
 import { getUserVector } from "./learn";
 import { rankPosts, type Candidate, type Factors } from "./rank";
@@ -28,6 +28,8 @@ export async function getRankedFeed(viewer: { id: string; role: Role }, page: nu
       similarity,
       likes: sql<number>`(select count(*) from ${postLikes} where ${postLikes.postId} = ${posts.id})::int`,
       donations: sql<number>`(select count(*) from ${donations} where ${donations.postId} = ${posts.id} and ${donations.status} = 'completed')::int`,
+      boosted: sql<boolean>`exists (select 1 from ${boosts} where ${boosts.postId} = ${posts.id}
+        and ${boosts.startsAt} <= now() and ${boosts.endsAt} > now())`,
       followed: sql<boolean>`exists (select 1 from ${follows} where ${follows.followerId} = ${viewer.id} and ${follows.nonprofitId} = ${posts.nonprofitId})`,
       seen: sql<boolean>`exists (select 1 from ${postViews} where ${postViews.userId} = ${viewer.id} and ${postViews.postId} = ${posts.id}
         and ${postViews.dwellMs} >= ${SEEN_MIN_MS} and ${postViews.lastSeenAt} > now() - make_interval(days => ${SEEN_DAYS}))`,

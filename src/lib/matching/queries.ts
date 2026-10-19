@@ -75,3 +75,6 @@ export function defaultCampaignDates(now = Date.now()) {
   const day = (offset: number) => new Date(now + offset * 86_400_000).toISOString().slice(0, 10);
   return { today: day(0), inAMonth: day(30) };
 }
+
+/** The current time, for server components (keeps Date.now() out of render). */
+export const nowMs = () => Date.now();

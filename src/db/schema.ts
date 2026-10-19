@@ -357,5 +357,27 @@ export const matches = pgTable(
   (t) => [index("matches_campaign_idx").on(t.campaignId), index("matches_status_idx").on(t.status)],
 );
 
+// A sponsor pays the platform a fixed fee to boost a nonprofit's post for a
+// number of days: a ranking bonus plus a visible "Boosted by <Sponsor>" label.
+// Starts when the payment completes (startsAt/endsAt null until then).
+export const boosts = pgTable(
+  "boosts",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    sponsorId: uuid("sponsor_id")
+      .notNull()
+      .references(() => sponsorProfiles.userId, { onDelete: "cascade" }),
+    postId: uuid("post_id").notNull().references(() => posts.id, { onDelete: "cascade" }),
+    amountCents: integer("amount_cents").notNull(),
+    days: integer("days").notNull(),
+    paypalOrderId: text("paypal_order_id").unique(),
+    paypalCaptureId: text("paypal_capture_id").unique(),
+    startsAt: timestamp("starts_at", { withTimezone: true }),
+    endsAt: timestamp("ends_at", { withTimezone: true }),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [index("boosts_post_idx").on(t.postId, t.endsAt), index("boosts_sponsor_idx").on(t.sponsorId)],
+);
+
 export type User = typeof users.$inferSelect;
 export type Cause = typeof causes.$inferSelect;

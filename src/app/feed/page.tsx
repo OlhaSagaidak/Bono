@@ -7,6 +7,7 @@ import { PostList } from "@/components/post-list";
 import { getSession } from "@/lib/auth/session";
 import { viewerLanguage } from "@/lib/ai/viewer-language";
 import { payPalClientId } from "@/lib/paypal/public-config";
+import { boostTerms } from "@/lib/boosts/config";
 import { getRankedFeed } from "@/lib/feed/feed";
 
 export const metadata = { title: "Feed · Bono" };
@@ -45,6 +46,7 @@ async function Feed({ searchParams }: { searchParams: PageProps<"/feed">["search
         nextHref={nextPage ? `/feed?page=${nextPage}` : null}
         caughtUpAt={caughtUpAt}
         showWhy
+        boost={session.user.role === "sponsor" ? { ...boostTerms(), clientId: payPalClientId() } : null}
         empty={
           session.user.role === "nonprofit" ? (
             <>
