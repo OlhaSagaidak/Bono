@@ -43,6 +43,7 @@ import {
 import { embedCauses, embedPosts } from "@/lib/ai/embed-posts";
 import { fitImage, replaceImage, squarePhoto } from "@/lib/images";
 import { conversations as demoConversations, nonprofits, sponsors, supporters } from "./seed-data";
+import { seedStories } from "./seed-stories";
 
 // Bono login emails for demo accounts. `.example` is reserved, so these can
 // never belong to a real person.
@@ -342,6 +343,17 @@ async function main() {
       }
     }
 
+    // Fresh stories for the verified demo nonprofits (they expire after a day).
+    const supporterIds = (
+      await tx.select({ id: users.id }).from(users).where(inArray(users.email, supporters.map((s) => loginEmail(s.name))))
+    ).map((r) => r.id);
+    const storyCount = await seedStories(
+      tx,
+      now,
+      nonprofits.filter((n) => !n.unverified).map((n) => ({ slug: n.slug, name: n.name, id: nonprofitIds.get(n.slug)! })),
+      supporterIds,
+    );
+
     // Notifications for the history above, so bells aren't empty in the demo:
     // follows, RSVPs and likes for the nonprofits, new events for followers.
     // Dated like what they're about; about a third start out read. Existing
@@ -376,7 +388,7 @@ async function main() {
       .from(verificationFees)
       .where(inArray(verificationFees.nonprofitId, demoUsers));
 
-    return { removed, posts: postCount, keptDonations, keptFees, seededPostIds };
+    return { removed, posts: postCount, keptDonations, keptFees, seededPostIds, storyCount };
   });
 
   // Vectors for the AI feed. Seeded posts are re-embedded every run, since
@@ -386,7 +398,7 @@ async function main() {
 
   console.log(
     `Seeded ${nonprofits.length} nonprofits (${nonprofits.filter((n) => n.unverified).length} unverified), ` +
-      `${sponsors.length} sponsors, ${supporters.length} supporters and ${result.posts} posts.`,
+      `${sponsors.length} sponsors, ${supporters.length} supporters, ${result.posts} posts and ${result.storyCount} stories.`,
   );
   console.log(
     reset

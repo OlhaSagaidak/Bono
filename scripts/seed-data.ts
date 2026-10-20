@@ -346,3 +346,22 @@ export const conversations: { between: [string, string]; messages: [0 | 1, strin
     ],
   },
 ];
+
+// Stories (they expire after 24 hours, so each seed run posts fresh ones).
+// With no photo or video in seed-media/stories/<slug>-<n>.*, the seed draws a
+// simple text card from `text`. Each organization's stories, oldest first.
+export const stories: Record<string, { text: string; caption?: string; sticker?: "donate" | "link"; hoursAgo: number }[]> = {
+  "paws-haven": [
+    { text: "Biscuit, 11, is looking for a quiet home 🐾", caption: "Senior dogs make the best couch buddies.", sticker: "donate", hoursAgo: 5 },
+    { text: "Adoption Day this Saturday", caption: "Meet 20 dogs and cats looking for families.", hoursAgo: 2 },
+  ],
+  "green-seattle": [{ text: "312 trees planted this month 🌳", caption: "Thank you, volunteers! Next stop: Rainier Beach.", hoursAgo: 7 }],
+  "bright-futures": [
+    { text: "Mentors needed: 1 hour a week", caption: "Change a kid's year with one hour a week.", sticker: "link", hoursAgo: 9 },
+  ],
+  "open-pantry": [
+    { text: "The shelves are full again 🥫", caption: "Your donations stocked the pantry for the week.", sticker: "donate", hoursAgo: 3 },
+    { text: "Mobile pantry: Thursday 10–2", hoursAgo: 1 },
+  ],
+  "new-roots": [{ text: "Free legal clinic, Saturday 10–1", caption: "Asylum and work permit questions. No appointment needed.", hoursAgo: 6 }],
+};

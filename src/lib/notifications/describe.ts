@@ -89,7 +89,8 @@ export function describe(row: NotificationRow): NotificationView {
     }
     case "story_new":
       text = "posted a new story.";
-      href = "/feed";
+      // Opens that organization's stories (if they haven't expired yet).
+      href = row.targetId ? `/feed?story=${row.targetId}` : "/feed";
       break;
     case "message":
       text = "sent you a message.";

@@ -1,5 +1,7 @@
+import { eq } from "drizzle-orm";
 import Link from "next/link";
 import { redirect } from "next/navigation";
+import { after } from "next/server";
 import { Suspense } from "react";
 import { z } from "zod";
 import { DwellTracker } from "@/components/dwell-tracker";
@@ -8,11 +10,15 @@ import { FollowingSidebar } from "@/components/following-sidebar";
 import { PostList } from "@/components/post-list";
 import { RecentChatsSidebar } from "@/components/recent-chats-sidebar";
 import { SidebarEmpty, SidebarSection } from "@/components/sidebar-section";
+import { StoriesRow } from "@/components/stories-row";
+import { db } from "@/db";
+import { nonprofitProfiles } from "@/db/schema";
 import { getSession } from "@/lib/auth/session";
 import { viewerLanguage } from "@/lib/ai/viewer-language";
 import { payPalClientId } from "@/lib/paypal/public-config";
 import { boostTerms } from "@/lib/boosts/config";
 import { getRankedFeed } from "@/lib/feed/feed";
+import { cleanUpExpiredStories, getStoriesRow } from "@/lib/stories/queries";
 
 export const metadata = { title: "Feed · Bono" };
 
@@ -30,6 +36,9 @@ export default function FeedPage({ searchParams }: PageProps<"/feed">) {
         </Suspense>
       </aside>
       <main className="flex min-w-0 flex-col gap-6">
+        <Suspense fallback={<div className="h-[5.25rem]" aria-hidden />}>
+          <StoriesForViewer searchParams={searchParams} />
+        </Suspense>
         <h1 className="text-2xl font-bold">Your feed</h1>
         <Suspense fallback={<p className="text-zinc-600 dark:text-zinc-400">Loading posts…</p>}>
           <Feed searchParams={searchParams} />
@@ -99,4 +108,27 @@ async function EventsSidebarForViewer() {
 async function RecentChatsSidebarForViewer() {
   const session = await getSession();
   return session ? <RecentChatsSidebar userId={session.user.id} /> : null;
+}
+
+async function StoriesForViewer({ searchParams }: { searchParams: PageProps<"/feed">["searchParams"] }) {
+  const session = await getSession();
+  if (!session?.user.onboarded) return null;
+  const { id, role } = session.user;
+  const [orgs, profile, { story }] = await Promise.all([
+    getStoriesRow(id),
+    role === "nonprofit" ? db.query.nonprofitProfiles.findFirst({ where: eq(nonprofitProfiles.userId, id), columns: { verifiedAt: true } }) : null,
+    searchParams,
+  ]);
+  // Expired stories are deleted after the page is sent (there's no scheduler).
+  after(() => cleanUpExpiredStories().catch((error) => console.error("Story cleanup failed:", error)));
+  return (
+    <StoriesRow
+      // A new ?story= link (e.g. from a notification) starts the row afresh, opening that organization.
+      key={typeof story === "string" ? story : "row"}
+      orgs={orgs}
+      canPost={Boolean(profile?.verifiedAt)}
+      openOrgId={typeof story === "string" ? story : null}
+      donateClientId={payPalClientId()}
+    />
+  );
 }
