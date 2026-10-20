@@ -542,5 +542,53 @@ export const reports = pgTable("reports", {
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
 });
 
+// Uploaded videos, kept in Postgres like images (no paid file storage), with
+// strict size caps (lib/media/limits.ts). Length and size come from the file
+// itself (lib/media/mp4.ts), never from the browser.
+export const media = pgTable("media", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  ownerId: uuid("owner_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+  contentType: text("content_type").notNull(),
+  sizeBytes: integer("size_bytes").notNull(),
+  durationMs: integer("duration_ms").notNull(),
+  width: integer("width").notNull(),
+  height: integer("height").notNull(),
+  data: bytea("data").notNull(),
+  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+});
+
+// Stories: a photo or a short video from a verified nonprofit, gone after 24
+// hours. Queries skip expired ones; lib/stories/cleanup.ts deletes them.
+export const storyStickerEnum = pgEnum("story_sticker", ["none", "donate", "link"]);
+
+export const stories = pgTable(
+  "stories",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    nonprofitId: uuid("nonprofit_id")
+      .notNull()
+      .references(() => nonprofitProfiles.userId, { onDelete: "cascade" }),
+    // Exactly one of these is set.
+    imageId: uuid("image_id").references(() => images.id, { onDelete: "cascade" }),
+    mediaId: uuid("media_id").references(() => media.id, { onDelete: "cascade" }),
+    caption: text("caption").notNull().default(""),
+    sticker: storyStickerEnum("sticker").notNull().default("none"),
+    linkUrl: text("link_url"),
+    expiresAt: timestamp("expires_at", { withTimezone: true }).notNull(),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [index("stories_nonprofit_idx").on(t.nonprofitId, t.expiresAt), index("stories_expires_idx").on(t.expiresAt)],
+);
+
+export const storyViews = pgTable(
+  "story_views",
+  {
+    storyId: uuid("story_id").notNull().references(() => stories.id, { onDelete: "cascade" }),
+    userId: uuid("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+    viewedAt: timestamp("viewed_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [primaryKey({ columns: [t.storyId, t.userId] }), index("story_views_user_idx").on(t.userId)],
+);
+
 export type User = typeof users.$inferSelect;
 export type Cause = typeof causes.$inferSelect;
