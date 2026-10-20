@@ -59,17 +59,28 @@ Everything except two short text jobs runs inside the app, with no paid AI servi
 2. **Interests.** A new supporter starts at the average of the causes they picked.
    After that, their vector is recomputed from what they do:
    `normalize(1.0 × chosen causes + Σ weight × recency × engaged posts)`, with
-   donate 1.0 > follow 0.6 > like 0.4 > long look (8 s+ on screen, measured in the
-   browser) 0.2, and recency halving every 30 days
+   donate 1.0 > follow 0.6 > comment 0.5 > like 0.4 > long look (8 s+ on screen,
+   measured in the browser) 0.2, and recency halving every 30 days
    ([`src/lib/feed/learn.ts`](src/lib/feed/learn.ts)).
 3. **Ranking.** Every recent post gets
-   `1.00 × relevance + 0.35 × freshness + 0.20 × followed + 0.15 × popularity + 0.08 × exploration`,
+   `1.00 × relevance + 0.35 × freshness + 0.20 × followed + 0.15 × popularity + 0.30 × boosted + 0.08 × exploration`,
    where relevance is the cosine similarity between the person's vector and the
    post's; posts seen in the last 3 days move below "You're all caught up"
    ([`src/lib/feed/rank.ts`](src/lib/feed/rank.ts)).
-4. **Claude Haiku** translates posts on request and turns the real ranking reasons
+4. **Claude Haiku** translates posts and comments on request and turns the real ranking reasons
    into a one-line "Why am I seeing this?". Every result is cached, so the same
    input never reaches the API twice ([`src/lib/ai/claude.ts`](src/lib/ai/claude.ts)).
+
+## Tests
+
+- `npm test`: unit tests for the pure logic (feed ranking, the MP4 reader,
+  notification wording, comment language detection, donation amounts), with
+  Node's built-in test runner. No database needed.
+- `npm run test:e2e`: browser tests of the main flows (comments, messages,
+  events, saved posts, notifications, the safe-space rule) with Playwright,
+  against the local app and the seeded demo data. Run `npm run seed` first;
+  the first time, also `npx playwright install chromium`. They log in with the
+  demo password from `seed.local.json` and clean up after themselves.
 
 ## License
 
