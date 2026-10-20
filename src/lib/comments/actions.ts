@@ -1,10 +1,13 @@
 "use server";
 
-import { and, eq } from "drizzle-orm";
+import { and, eq, sql } from "drizzle-orm";
 import { z } from "zod";
 import { auth } from "@/auth";
 import { db } from "@/db";
 import { commentReactions, notifications, postComments, reactionEnum, type Reaction } from "@/db/schema";
+import { LIMITS, overLimit } from "@/lib/guards/rate-limit";
+import { publicStanding } from "@/lib/guards/standing";
+import { blockState } from "@/lib/messages/queries";
 import { notify } from "@/lib/notifications/notify";
 import { AiUnavailableError, translate } from "@/lib/ai/claude";
 import { LANGUAGES } from "@/lib/posts/validation";
@@ -12,11 +15,20 @@ import { detectLanguage } from "./language";
 import { COMMENT_MAX } from "./reactions";
 import { getComments, visiblePost, type CommentView } from "./queries";
 
-// Comments, replies and reactions. Every action re-checks who is calling
-// and that the post is one they may see.
+// Comments, replies and reactions. Every action re-checks who is calling,
+// that the post is one they may see, that they may be seen (unverified
+// nonprofits stay invisible), and that nobody involved blocked the other.
 
 const uuid = z.uuid();
 const NO_POST = "That post doesn't exist.";
+const BLOCKED = "You can't interact with this person.";
+
+/** True if either person blocked the other. */
+async function blockedBetween(a: string, b: string): Promise<boolean> {
+  if (a === b) return false;
+  const { iBlocked, theyBlocked } = await blockState(a, b);
+  return iBlocked || theyBlocked;
+}
 
 export async function addCommentAction(postId: string, body: string, parentId: string | null): Promise<{ comments: CommentView[] } | { error: string }> {
   const session = await auth();
@@ -28,6 +40,10 @@ export async function addCommentAction(postId: string, body: string, parentId: s
   const userId = session.user.id;
   const post = await visiblePost(postId, userId);
   if (!post) return { error: NO_POST };
+  const standing = await publicStanding(userId);
+  if (standing) return { error: standing };
+  if (await blockedBetween(userId, post.nonprofitId)) return { error: BLOCKED };
+  if (await overLimit(sql`${postComments}`, sql`author_id = ${userId}`, sql`created_at`, LIMITS.comments)) return { error: LIMITS.comments.message };
 
   // A reply to a reply joins the same thread, so replies stay one level deep.
   let threadId: string | null = null;
@@ -38,6 +54,7 @@ export async function addCommentAction(postId: string, body: string, parentId: s
       columns: { id: true, parentId: true, authorId: true },
     });
     if (!parent) return { error: "That comment was deleted." };
+    if (await blockedBetween(userId, parent.authorId)) return { error: BLOCKED };
     threadId = parent.parentId ?? parent.id;
     parentAuthorId = parent.authorId;
   }
@@ -83,6 +100,9 @@ export async function reactToCommentAction(
   const userId = session.user.id;
   const comment = await db.query.postComments.findFirst({ where: eq(postComments.id, commentId), columns: { postId: true, authorId: true } });
   if (!comment || !(await visiblePost(comment.postId, userId))) return { error: "That comment was deleted." };
+  const standing = await publicStanding(userId);
+  if (standing) return { error: standing };
+  if (await blockedBetween(userId, comment.authorId)) return { error: BLOCKED };
 
   if (reaction === null) {
     await db.delete(commentReactions).where(and(eq(commentReactions.commentId, commentId), eq(commentReactions.userId, userId)));

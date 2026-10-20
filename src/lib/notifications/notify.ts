@@ -1,7 +1,8 @@
 import "server-only";
-import { sql } from "drizzle-orm";
+import { eq, or, sql } from "drizzle-orm";
 import { db } from "@/db";
-import { notifications, type NotificationType } from "@/db/schema";
+import { blocks, notifications, type NotificationType } from "@/db/schema";
+import { publicStanding } from "@/lib/guards/standing";
 
 // The one way features create notifications. Each notification has a group
 // key (type + what it's about), so the same thing never piles up:
@@ -9,8 +10,10 @@ import { notifications, type NotificationType } from "@/db/schema";
 //   "bump": a repeat moves the existing one back to the top as unread (likes
 //           on a post, an event changed again). Grouped likes count from
 //           sinceAt, which restarts once the previous batch was read.
-// Nobody is notified about their own actions, and a failure here is logged
-// but never breaks the action that caused it.
+// Nobody is notified about their own actions, nobody hears from someone they
+// blocked (or who blocked them), and accounts that must stay invisible
+// (unverified nonprofits) never show up as the actor. A failure here is
+// logged but never breaks the action that caused it.
 
 export type Notice = {
   type: NotificationType;
@@ -24,7 +27,15 @@ export type Notice = {
 };
 
 export async function notify(recipientIds: string[], notice: Notice): Promise<void> {
-  const recipients = [...new Set(recipientIds)].filter((id) => id !== notice.actorId);
+  let recipients = [...new Set(recipientIds)].filter((id) => id !== notice.actorId);
+  if (recipients.length === 0) return;
+  if (await publicStanding(notice.actorId)) return;
+  const blocked = await db
+    .select({ a: blocks.blockerId, b: blocks.blockedId })
+    .from(blocks)
+    .where(or(eq(blocks.blockerId, notice.actorId), eq(blocks.blockedId, notice.actorId)));
+  const blockedIds = new Set(blocked.map((r) => (r.a === notice.actorId ? r.b : r.a)));
+  recipients = recipients.filter((id) => !blockedIds.has(id));
   if (recipients.length === 0) return;
   const rows = recipients.map((recipientId) => ({
     recipientId,

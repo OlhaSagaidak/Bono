@@ -1,9 +1,11 @@
-import { eq } from "drizzle-orm";
+import { eq, sql } from "drizzle-orm";
 import { z } from "zod";
 import { auth } from "@/auth";
 import { db } from "@/db";
 import { nonprofitCauses, nonprofitProfiles, reelCauses, reels } from "@/db/schema";
 import { REEL_VIDEO } from "@/lib/media/limits";
+import { LIMITS, overLimit } from "@/lib/guards/rate-limit";
+import { fromOurOrigin } from "@/lib/guards/same-origin";
 import { checkUploadedVideo, storeVideo } from "@/lib/media/video";
 import { REEL_CAPTION_MAX } from "@/lib/reels/queries";
 
@@ -29,10 +31,16 @@ export async function POST(request: Request) {
   });
   if (session.user.role !== "nonprofit" || !profile?.verifiedAt) return fail(403, { error: "Only verified nonprofits can post reels." });
 
-  // Refuse oversized uploads before reading the body.
-  if (Number(request.headers.get("content-length") ?? 0) > REEL_VIDEO.maxBytes + 64 * 1024) {
-    return fail(413, { fieldErrors: { file: ["That video is too large."] } });
+  // Where it came from and how often, before reading anything.
+  if (!fromOurOrigin(request)) return fail(403, { error: "That upload didn't come from Bono." });
+  if (await overLimit(sql`${reels}`, sql`nonprofit_id = ${nonprofitId}`, sql`created_at`, LIMITS.uploads)) {
+    return fail(429, { error: LIMITS.uploads.message });
   }
+  // Refuse oversized uploads before reading the body. Browsers always send the
+  // size; without it the whole body would have to be read to find out.
+  const size = Number(request.headers.get("content-length"));
+  if (!size) return fail(411, { error: "That upload didn't say how large it is. Please try again." });
+  if (size > REEL_VIDEO.maxBytes + 64 * 1024) return fail(413, { fieldErrors: { file: ["That video is too large."] } });
   let form: FormData;
   try {
     form = await request.formData();
