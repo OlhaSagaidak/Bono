@@ -14,6 +14,7 @@ import { StoriesRow } from "@/components/stories-row";
 import { db } from "@/db";
 import { nonprofitProfiles } from "@/db/schema";
 import { getSession } from "@/lib/auth/session";
+import { getAccount } from "@/lib/profiles/queries";
 import { viewerLanguage } from "@/lib/ai/viewer-language";
 import { payPalClientId } from "@/lib/paypal/public-config";
 import { boostTerms } from "@/lib/boosts/config";
@@ -36,10 +37,10 @@ export default function FeedPage({ searchParams }: PageProps<"/feed">) {
         </Suspense>
       </aside>
       <main className="flex min-w-0 flex-col gap-6">
-        <Suspense fallback={<div className="h-[5.25rem]" aria-hidden />}>
+        <Suspense fallback={<div className="h-[12.25rem]" aria-hidden />}>
           <StoriesForViewer searchParams={searchParams} />
         </Suspense>
-        <h1 className="text-2xl font-bold">Your feed</h1>
+        <h1 className="sr-only">Your feed</h1>
         <Suspense fallback={<p className="text-zinc-600 dark:text-zinc-400">Loading posts…</p>}>
           <Feed searchParams={searchParams} />
         </Suspense>
@@ -114,8 +115,9 @@ async function StoriesForViewer({ searchParams }: { searchParams: PageProps<"/fe
   const session = await getSession();
   if (!session?.user.onboarded) return null;
   const { id, role } = session.user;
-  const [orgs, profile, { story }] = await Promise.all([
+  const [orgs, account, profile, { story }] = await Promise.all([
     getStoriesRow(id),
+    getAccount(id),
     role === "nonprofit" ? db.query.nonprofitProfiles.findFirst({ where: eq(nonprofitProfiles.userId, id), columns: { verifiedAt: true } }) : null,
     searchParams,
   ]);
@@ -127,6 +129,7 @@ async function StoriesForViewer({ searchParams }: { searchParams: PageProps<"/fe
       key={typeof story === "string" ? story : "row"}
       orgs={orgs}
       canPost={Boolean(profile?.verifiedAt)}
+      viewerPhotoId={account?.photoImageId ?? null}
       openOrgId={typeof story === "string" ? story : null}
       donateClientId={payPalClientId()}
     />

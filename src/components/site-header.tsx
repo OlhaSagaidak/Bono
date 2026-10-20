@@ -9,6 +9,7 @@ import { nonprofitProfiles } from "@/db/schema";
 import { unreadConversationCount } from "@/lib/messages/queries";
 import { unreadNotificationCount } from "@/lib/notifications/queries";
 import { profilePath } from "@/lib/profiles/paths";
+import { getAccount } from "@/lib/profiles/queries";
 
 const navLink =
   "rounded-lg px-3 py-2 text-sm font-medium hover:bg-zinc-100 focus:outline-2 focus:outline-offset-2 focus:outline-emerald-600 dark:hover:bg-zinc-800";
@@ -76,7 +77,7 @@ async function Nav() {
   return (
     <nav aria-label="Main" className="flex items-center gap-1">
       <TopNav unreadNotifications={await unreadNotificationCount(id)} unreadMessages={await unreadConversationCount(id)} />
-      <AccountMenu name={name ?? ""} links={accountLinks} />
+      <AccountMenu name={name ?? ""} photoImageId={(await getAccount(id))?.photoImageId ?? null} links={accountLinks} />
     </nav>
   );
 }
