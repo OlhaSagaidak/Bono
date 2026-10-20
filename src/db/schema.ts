@@ -203,6 +203,8 @@ export const postComments = pgTable(
     authorId: uuid("author_id").notNull().references(() => users.id, { onDelete: "cascade" }),
     parentId: uuid("parent_id").references((): AnyPgColumn => postComments.id, { onDelete: "cascade" }),
     body: text("body").notNull(), // at most 1000 characters (lib/comments/actions.ts)
+    // Detected when posted (lib/comments/language.ts); null when too short to tell.
+    language: text("language"),
     createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
   },
   (t) => [index("post_comments_post_idx").on(t.postId, t.createdAt), index("post_comments_parent_idx").on(t.parentId)],

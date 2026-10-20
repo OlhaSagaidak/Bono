@@ -67,8 +67,8 @@ There is **no volunteer role**. Do not build volunteer features.
 ### 6. AI feed
 - **Embeddings:** a free open-source model running inside the app via `@huggingface/transformers` (transformers.js), e.g. `Xenova/all-MiniLM-L6-v2` (384 dimensions). No API key, no cost. Embed each post (text + cause tags) once, when it's created. Store vectors in Postgres with **pgvector**.
 - **Cold start:** the user's interest vector is the average of their chosen interests' embeddings.
-- **Signals:** likes, follows, donations, and **dwell time** (how long a post is visible on screen, measured in the browser with IntersectionObserver and sent to the server in batches).
-- **Learning:** update the user vector toward posts they engage with (a weighted moving average; stronger weights for donate > follow > like > long dwell). Recompute in a background job.
+- **Signals:** likes, comments, follows, donations, and **dwell time** (how long a post is visible on screen, measured in the browser with IntersectionObserver and sent to the server in batches).
+- **Learning:** update the user vector toward posts they engage with (a weighted moving average; stronger weights for donate > follow > comment > like > long dwell). Recompute in a background job.
 - **Ranking:** score = cosine similarity + engagement weight + freshness decay + boost bonus + a small exploration factor, so users still discover new causes. Exclude posts already seen recently.
 - Keep the ranking code simple, readable and documented. Olya must be able to explain it in an interview.
 

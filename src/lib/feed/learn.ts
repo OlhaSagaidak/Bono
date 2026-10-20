@@ -1,7 +1,7 @@
 import "server-only";
-import { and, eq, gte, isNotNull, sql } from "drizzle-orm";
+import { and, eq, gte, isNotNull, max, sql } from "drizzle-orm";
 import { db } from "@/db";
-import { donations, follows, postLikes, posts, postViews, userVectors, type Role } from "@/db/schema";
+import { donations, follows, postComments, postLikes, posts, postViews, userVectors, type Role } from "@/db/schema";
 import { coldStartVector, normalize } from "./interests";
 
 // How the feed learns what someone cares about.
@@ -11,13 +11,15 @@ import { coldStartVector, normalize } from "./interests";
 //   vector = normalize( 1.0 × cold start                      (the causes they picked)
 //                     + Σ weight × recency × post vector )     (what they engaged with)
 //
-// Stronger actions weigh more: donate > follow > like > a long look.
+// Stronger actions weigh more: donate > follow > comment > like > a long look.
+// Writing a comment shows more interest than a like; several comments on one
+// post still count once.
 // recency halves every 30 days, so tastes can drift. A follow, or a donation
 // made from a profile rather than a post, counts the nonprofit's average post.
 // Recomputing from scratch (instead of nudging the vector on every click)
 // keeps it easy to explain and check: the same history gives the same vector.
 
-export const SIGNAL_WEIGHTS = { donation: 1.0, follow: 0.6, like: 0.4, longLook: 0.2 } as const;
+export const SIGNAL_WEIGHTS = { donation: 1.0, follow: 0.6, comment: 0.5, like: 0.4, longLook: 0.2 } as const;
 export const COLD_START_WEIGHT = 1.0;
 export const LONG_LOOK_MS = 8_000;
 const RECENCY_HALF_LIFE_DAYS = 30;
@@ -36,12 +38,18 @@ async function engagementSignals(userId: string): Promise<Signal[]> {
   const nonprofitCentroid = (nonprofitId: unknown) =>
     sql<string | null>`(select avg(${posts.embedding})::text from ${posts} where ${posts.nonprofitId} = ${nonprofitId})`;
 
-  const [likes, looks, follows_, gifts] = await Promise.all([
+  const [likes, comments, looks, follows_, gifts] = await Promise.all([
     db
       .select({ at: postLikes.createdAt, vector: posts.embedding })
       .from(postLikes)
       .innerJoin(posts, eq(posts.id, postLikes.postId))
       .where(and(eq(postLikes.userId, userId), isNotNull(posts.embedding))),
+    db
+      .select({ at: max(postComments.createdAt), vector: posts.embedding })
+      .from(postComments)
+      .innerJoin(posts, eq(posts.id, postComments.postId))
+      .where(and(eq(postComments.authorId, userId), isNotNull(posts.embedding)))
+      .groupBy(posts.id),
     db
       .select({ at: postViews.lastSeenAt, vector: posts.embedding })
       .from(postViews)
@@ -64,6 +72,7 @@ async function engagementSignals(userId: string): Promise<Signal[]> {
 
   const signals: Signal[] = [];
   for (const r of likes) signals.push({ weight: SIGNAL_WEIGHTS.like, at: r.at, vector: r.vector! });
+  for (const r of comments) signals.push({ weight: SIGNAL_WEIGHTS.comment, at: r.at!, vector: r.vector! });
   for (const r of looks) signals.push({ weight: SIGNAL_WEIGHTS.longLook, at: r.at, vector: r.vector! });
   for (const r of follows_) {
     const v = parseVector(r.vector);
@@ -97,7 +106,7 @@ export async function computeUserVector(
 
 /**
  * The stored vector, recomputed first if anything happened since it was
- * computed (a like, follow, donation or long look). This stands in for a
+ * computed (a like, comment, follow, donation or long look). This stands in for a
  * background job: the work is a few vector additions, done when the feed loads.
  */
 export async function getUserVector(userId: string, role: Role): Promise<number[] | null> {
@@ -107,6 +116,7 @@ export async function getUserVector(userId: string, role: Role): Promise<number[
     const [{ latest }] = await db.execute<{ latest: Date | null }>(sql`
       select greatest(
         (select max(created_at) from ${postLikes} where user_id = ${userId}),
+        (select max(created_at) from ${postComments} where author_id = ${userId}),
         (select max(created_at) from ${follows} where follower_id = ${userId}),
         (select max(completed_at) from ${donations} where donor_id = ${userId} and status = 'completed'),
         (select max(last_seen_at) from ${postViews} where user_id = ${userId} and dwell_ms >= ${LONG_LOOK_MS})

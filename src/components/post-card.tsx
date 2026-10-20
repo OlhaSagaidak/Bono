@@ -142,6 +142,7 @@ export function PostCard({
           // Anyone signed in may comment, the post's own nonprofit included.
           signedIn={canEngage || canDelete}
           initiallyOpen={openComments}
+          viewerLanguage={viewerLanguage}
           left={
             <>
               <LikeButton postId={post.id} liked={post.likedByViewer} likes={post.likes} disabled={!canEngage} />

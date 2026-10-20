@@ -1,6 +1,7 @@
-import { sql } from "drizzle-orm";
+import { eq, isNull, sql } from "drizzle-orm";
 import type { db as Db } from "@/db";
 import { commentReactions, notifications, postComments, users } from "@/db/schema";
+import { detectLanguage } from "@/lib/comments/language";
 import { comments as demoComments } from "./seed-data";
 
 type Tx = Parameters<Parameters<typeof Db.transaction>[0]>[0];
@@ -24,7 +25,7 @@ export async function seedComments(tx: Tx, now: number, domain: string, postId: 
       for (const row of all) {
         const inserted = await tx
           .insert(postComments)
-          .values({ id: row.id, postId: post, authorId: who(row.by), parentId: row.parentId, body: row.text, createdAt: new Date(now - row.hoursAgo * 3_600_000) })
+          .values({ id: row.id, postId: post, authorId: who(row.by), parentId: row.parentId, body: row.text, language: detectLanguage(row.text), createdAt: new Date(now - row.hoursAgo * 3_600_000) })
           .onConflictDoNothing()
           .returning({ id: postComments.id });
         count += inserted.length;
@@ -36,6 +37,12 @@ export async function seedComments(tx: Tx, now: number, domain: string, postId: 
         }
       }
     }
+  }
+
+  // Comments written before languages were detected get one now.
+  for (const c of await tx.select({ id: postComments.id, body: postComments.body }).from(postComments).where(isNull(postComments.language))) {
+    const language = detectLanguage(c.body);
+    if (language) await tx.update(postComments).set({ language }).where(eq(postComments.id, c.id));
   }
 
   // "Commented on your post" (one per post) and "replied to your comment".

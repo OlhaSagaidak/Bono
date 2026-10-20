@@ -6,7 +6,7 @@ import { useCallback, useEffect, useId, useRef, useState, useTransition } from "
 import { Avatar } from "@/components/avatar";
 import { TimeAgo } from "@/components/local-time";
 import type { Reaction } from "@/db/schema";
-import { addCommentAction, deleteCommentAction, reactToCommentAction } from "@/lib/comments/actions";
+import { addCommentAction, deleteCommentAction, reactToCommentAction, translateCommentAction } from "@/lib/comments/actions";
 import type { CommentView } from "@/lib/comments/queries";
 import { COMMENT_MAX, REACTIONS } from "@/lib/comments/reactions";
 
@@ -24,6 +24,7 @@ export function PostActions({
   count,
   signedIn,
   initiallyOpen = false,
+  viewerLanguage,
   left,
   right,
 }: {
@@ -32,6 +33,8 @@ export function PostActions({
   /** Visitors see the count but need to log in to read and write comments. */
   signedIn: boolean;
   initiallyOpen?: boolean;
+  /** Comments in other languages get "See translation". */
+  viewerLanguage: string;
   left: React.ReactNode;
   right: React.ReactNode;
 }) {
@@ -100,7 +103,7 @@ export function PostActions({
           ) : comments === null ? (
             <p className="text-sm text-zinc-600 dark:text-zinc-400">Loading comments…</p>
           ) : (
-            <Thread postId={postId} comments={comments} onChange={setComments} />
+            <Thread postId={postId} comments={comments} viewerLanguage={viewerLanguage} onChange={setComments} />
           )}
         </section>
       )}
@@ -108,7 +111,17 @@ export function PostActions({
   );
 }
 
-function Thread({ postId, comments, onChange }: { postId: string; comments: CommentView[]; onChange: (c: CommentView[]) => void }) {
+function Thread({
+  postId,
+  comments,
+  viewerLanguage,
+  onChange,
+}: {
+  postId: string;
+  comments: CommentView[];
+  viewerLanguage: string;
+  onChange: (c: CommentView[]) => void;
+}) {
   const top = comments.filter((c) => !c.parentId);
   const update = (id: string, patch: Partial<CommentView>) => onChange(comments.map((c) => (c.id === id ? { ...c, ...patch } : c)));
   // Deleting a comment removes its replies too (the database does the same).
@@ -125,6 +138,7 @@ function Thread({ postId, comments, onChange }: { postId: string; comments: Comm
               postId={postId}
               comment={c}
               replies={comments.filter((r) => r.parentId === c.id)}
+              viewerLanguage={viewerLanguage}
               onUpdate={update}
               onRemove={remove}
               onReplaced={onChange}
@@ -141,6 +155,7 @@ function TopComment({
   postId,
   comment,
   replies,
+  viewerLanguage,
   onUpdate,
   onRemove,
   onReplaced,
@@ -148,6 +163,7 @@ function TopComment({
   postId: string;
   comment: CommentView;
   replies: CommentView[];
+  viewerLanguage: string;
   onUpdate: (id: string, patch: Partial<CommentView>) => void;
   onRemove: (id: string) => void;
   onReplaced: (all: CommentView[]) => void;
@@ -162,7 +178,7 @@ function TopComment({
 
   return (
     <li className="flex flex-col gap-2">
-      <Comment comment={comment} onReply={() => startReply("")} onUpdate={onUpdate} onRemove={onRemove} />
+      <Comment comment={comment} viewerLanguage={viewerLanguage} onReply={() => startReply("")} onUpdate={onUpdate} onRemove={onRemove} />
       {replies.length > 0 && !showReplies && (
         <button
           type="button"
@@ -178,7 +194,14 @@ function TopComment({
             <ul className="flex flex-col gap-2" aria-label={`Replies to ${comment.author.name}`}>
               {replies.map((r) => (
                 <li key={r.id}>
-                  <Comment comment={r} small onReply={() => startReply(r.author.name)} onUpdate={onUpdate} onRemove={onRemove} />
+                  <Comment
+                    comment={r}
+                    small
+                    viewerLanguage={viewerLanguage}
+                    onReply={() => startReply(r.author.name)}
+                    onUpdate={onUpdate}
+                    onRemove={onRemove}
+                  />
                 </li>
               ))}
             </ul>
@@ -207,12 +230,14 @@ function TopComment({
 function Comment({
   comment,
   small = false,
+  viewerLanguage,
   onReply,
   onUpdate,
   onRemove,
 }: {
   comment: CommentView;
   small?: boolean;
+  viewerLanguage: string;
   onReply: () => void;
   onUpdate: (id: string, patch: Partial<CommentView>) => void;
   onRemove: (id: string) => void;
@@ -220,6 +245,23 @@ function Comment({
   const [confirming, setConfirming] = useState(false);
   const [error, setError] = useState<string>();
   const total = comment.reactions.reduce((n, r) => n + r.count, 0);
+  const [translation, setTranslation] = useState<string | null>(null);
+  const [showTranslation, setShowTranslation] = useState(false);
+  const [translating, startTranslating] = useTransition();
+  const canTranslate = comment.language !== null && comment.language !== viewerLanguage;
+  const shown = showTranslation && translation;
+
+  function toggleTranslation() {
+    if (showTranslation) return setShowTranslation(false);
+    if (translation) return setShowTranslation(true);
+    setError(undefined);
+    startTranslating(async () => {
+      const result = await translateCommentAction(comment.id, viewerLanguage).catch(() => OFFLINE);
+      if ("error" in result) return setError(result.error);
+      setTranslation(result.text);
+      setShowTranslation(true);
+    });
+  }
 
   return (
     <div className="flex gap-2">
@@ -231,7 +273,10 @@ function Comment({
           <Link href={comment.author.href} className="text-sm font-semibold hover:underline focus:outline-2 focus:outline-emerald-600">
             {comment.author.name}
           </Link>
-          <p className="whitespace-pre-wrap break-words text-sm">{comment.body}</p>
+          {/* lang lets screen readers pronounce the text in the right language. */}
+          <p lang={shown ? viewerLanguage : (comment.language ?? undefined)} className="whitespace-pre-wrap break-words text-sm">
+            {shown ? translation : comment.body}
+          </p>
           {total > 0 && (
             <span
               title={comment.reactions.map((r) => `${byKey[r.key].label}: ${r.count}`).join(", ")}
@@ -249,6 +294,17 @@ function Comment({
           <button type="button" onClick={onReply} className="font-semibold hover:underline focus:outline-2 focus:outline-emerald-600">
             Reply
           </button>
+          {canTranslate && (
+            <button
+              type="button"
+              onClick={toggleTranslation}
+              disabled={translating}
+              className="font-semibold text-emerald-700 hover:underline focus:outline-2 focus:outline-emerald-600 disabled:opacity-60 dark:text-emerald-400"
+            >
+              {translating ? "Translating…" : shown ? "See original" : "See translation"}
+            </button>
+          )}
+          {shown && <span>Translated by AI</span>}
           {comment.canDelete &&
             (confirming ? (
               <span role="group" aria-label="Confirm deleting" className="flex items-center gap-2">
