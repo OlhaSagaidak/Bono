@@ -13,7 +13,11 @@ export function NotificationItem({ item, onOpen }: { item: NotificationView; onO
       <Link
         href={item.href}
         onClick={() => {
-          if (item.unread) void markNotificationReadAction(item.id).then(() => window.dispatchEvent(new Event("bono:badges")));
+          // Navigation goes ahead either way; if this is cut off, it simply stays unread.
+          if (item.unread)
+            markNotificationReadAction(item.id)
+              .then(() => window.dispatchEvent(new Event("bono:badges")))
+              .catch(() => {});
           onOpen?.();
         }}
         className={`flex gap-3 rounded-lg px-2 py-2 text-sm hover:bg-zinc-100 focus:outline-2 focus:outline-emerald-600 dark:hover:bg-zinc-800 ${

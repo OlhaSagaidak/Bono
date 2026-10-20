@@ -78,7 +78,8 @@ export function StoryViewer({
   // Count the view once, and turn the ring grey.
   const markSeen = useEffectEvent((storyId: string, seen: boolean) => {
     if (seen) return;
-    void recordStoryViewAction(storyId);
+    // Fire and forget: a view lost to a dropped connection doesn't matter.
+    recordStoryViewAction(storyId).catch(() => {});
     onSeen(pos.org, storyId);
   });
   useEffect(() => {
