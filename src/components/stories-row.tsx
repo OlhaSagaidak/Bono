@@ -101,7 +101,6 @@ export function StoriesRow({
               <button
                 type="button"
                 onClick={() => setOpenAt(i)}
-                aria-label={`${org.own ? "Your stories" : `${org.name}'s stories`}${org.allSeen ? "" : ", new"}`}
                 className={`${card} bg-zinc-800`}
               >
                 {preview.kind === "image" ? (
@@ -121,6 +120,11 @@ export function StoriesRow({
                 </span>
                 <span className="absolute inset-x-2 bottom-2 line-clamp-2 text-left text-xs font-semibold leading-tight text-white">
                   {org.own ? "Your story" : org.name}
+                  {/* The card's own text is its name; screen readers also hear what it is. */}
+                  <span className="sr-only">
+                    {org.own ? "" : ", stories"}
+                    {org.allSeen ? "" : ", new"}
+                  </span>
                 </span>
               </button>
             </li>

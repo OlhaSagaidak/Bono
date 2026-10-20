@@ -96,30 +96,31 @@ export function Chat({
     <>
       <div ref={scroller} className="flex-1 overflow-y-auto px-3 py-4">
         {list.length === 0 ? (
-          <p className="py-10 text-center text-sm text-zinc-600 dark:text-zinc-400">
-            No messages yet. Say hello to {otherName}.
-          </p>
+          <p className="py-10 text-center text-sm text-zinc-600 dark:text-zinc-400">No messages yet. Say hello to {otherName}.</p>
         ) : (
-          <ol role="log" aria-label={`Messages with ${otherName}`} aria-live="polite" className="flex flex-col gap-2">
-            {list.map((m) => {
-              const mine = m.senderId === viewerId;
-              return (
-                <li key={m.id} className={`flex flex-col ${mine ? "items-end" : "items-start"}`}>
-                  <span className="sr-only">{mine ? "You:" : `${otherName}:`}</span>
-                  <p
-                    className={`max-w-[80%] whitespace-pre-wrap break-words rounded-2xl px-3 py-2 text-sm ${
-                      mine ? "bg-emerald-700 text-white" : "bg-zinc-100 text-zinc-900 dark:bg-zinc-800 dark:text-zinc-100"
-                    } ${m.pending ? "opacity-70" : ""}`}
-                  >
-                    {m.body}
-                  </p>
-                  <span className="px-1 text-[11px] text-zinc-600 dark:text-zinc-400">
-                    {m.pending ? "Sending…" : <TimeAgo iso={m.createdAt} />}
-                  </span>
-                </li>
-              );
-            })}
-          </ol>
+          // The live log wraps the list, so the list keeps its list semantics.
+          <div role="log" aria-label={`Messages with ${otherName}`} aria-live="polite">
+            <ol className="flex flex-col gap-2">
+              {list.map((m) => {
+                const mine = m.senderId === viewerId;
+                return (
+                  <li key={m.id} className={`flex flex-col ${mine ? "items-end" : "items-start"}`}>
+                    <span className="sr-only">{mine ? "You:" : `${otherName}:`}</span>
+                    <p
+                      className={`max-w-[80%] whitespace-pre-wrap break-words rounded-2xl px-3 py-2 text-sm ${
+                        mine ? "bg-emerald-700 text-white" : "bg-zinc-100 text-zinc-900 dark:bg-zinc-800 dark:text-zinc-100"
+                      } ${m.pending ? "opacity-70" : ""}`}
+                    >
+                      {m.body}
+                    </p>
+                    <span className="px-1 text-[11px] text-zinc-600 dark:text-zinc-400">
+                      {m.pending ? "Sending…" : <TimeAgo iso={m.createdAt} />}
+                    </span>
+                  </li>
+                );
+              })}
+            </ol>
+          </div>
         )}
       </div>
 

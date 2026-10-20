@@ -19,16 +19,21 @@ const ITEMS: { href: string; label: string; Icon: LucideIcon; badge?: "messages"
 const itemClass =
   "relative flex flex-col items-center gap-0.5 rounded-lg px-2 py-1.5 text-xs font-medium text-zinc-700 hover:bg-zinc-100 focus:outline-2 focus:outline-offset-2 focus:outline-emerald-600 aria-[current=page]:text-emerald-800 dark:text-zinc-300 dark:hover:bg-zinc-800 dark:aria-[current=page]:text-emerald-300 lg:px-3";
 
-// Visual only: the link's own aria-label already says how many are unread.
-function Badge({ count }: { count: number }) {
-  if (count <= 0) return null;
+// The label and the count are real text (the label only visually hidden on
+// phones), so the accessible name is what people see: "Notifications 4
+// unread". Voice-control users can then say what's on screen.
+function Label({ text, count }: { text: string; count: number }) {
   return (
-    <span
-      aria-hidden
-      className="absolute right-0.5 top-0.5 min-w-4 rounded-full bg-rose-600 px-1 text-center text-[10px] font-semibold leading-4 text-white lg:right-1.5"
-    >
-      {count > 99 ? "99+" : count}
-    </span>
+    <>
+      <span className="sr-only lg:not-sr-only">{text}</span>
+      {count > 0 && (
+        <span className="absolute right-0.5 top-0.5 min-w-4 rounded-full bg-rose-600 px-1 text-center text-[10px] font-semibold leading-4 text-white lg:right-1.5">
+          <span className="sr-only"> </span>
+          {count > 99 ? "99+" : count}
+          <span className="sr-only"> unread</span>
+        </span>
+      )}
+    </>
   );
 }
 
@@ -84,12 +89,10 @@ export function TopNav({ unreadMessages = 0, unreadNotifications = 0 }: { unread
             <Link
               href={href}
               aria-current={current ? "page" : undefined}
-              aria-label={count > 0 ? `${label}, ${count} unread` : label}
               className={itemClass}
             >
               <Icon aria-hidden className="size-5" />
-              <span className="hidden lg:inline">{label}</span>
-              <Badge count={count} />
+              <Label text={label} count={count} />
             </Link>
           </li>
         );
@@ -158,7 +161,6 @@ function NotificationsBell({ unread }: { unread: number }) {
         type="button"
         aria-expanded={isOpen}
         aria-controls={panelId}
-        aria-label={unread > 0 ? `Notifications, ${unread} unread` : "Notifications"}
         onClick={() => {
           if (!isOpen) void load();
           setOpen(!isOpen);
@@ -167,8 +169,7 @@ function NotificationsBell({ unread }: { unread: number }) {
         className={itemClass}
       >
         <Bell aria-hidden className="size-5" />
-        <span className="hidden lg:inline">Notifications</span>
-        <Badge count={unread} />
+        <Label text="Notifications" count={unread} />
       </button>
       {isOpen && (
         <div
