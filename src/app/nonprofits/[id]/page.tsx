@@ -8,6 +8,7 @@ import { DonateButton } from "@/components/donate-button";
 import { EventCard } from "@/components/event-card";
 import { hostedEvents } from "@/lib/events/queries";
 import { FollowButton } from "@/components/follow-button";
+import { MessageButton } from "@/components/message-button";
 import { isFollowing } from "@/lib/engagement/queries";
 import { getSession } from "@/lib/auth/session";
 import { viewerLanguage } from "@/lib/ai/viewer-language";
@@ -80,6 +81,7 @@ async function NonprofitProfile({
         <div className="flex flex-wrap gap-3">
           <DonateButton nonprofitId={id} nonprofitName={profile.name} clientId={donateClientId} size="large" />
           <FollowButton nonprofitId={id} following={await isFollowing(viewerId, id)} size="large" />
+          <MessageButton userId={id} size="large" />
         </div>
       )}
       {!viewerId && (

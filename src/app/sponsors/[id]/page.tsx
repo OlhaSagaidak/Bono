@@ -1,9 +1,11 @@
 import { notFound } from "next/navigation";
 import { Suspense } from "react";
 import { z } from "zod";
+import { MessageButton } from "@/components/message-button";
 import { PoolMeter } from "@/components/pool-meter";
 import { ProfileHeader } from "@/components/profile-header";
 import { formatCents } from "@/lib/donations/amounts";
+import { getSession } from "@/lib/auth/session";
 import { getSponsorCampaigns } from "@/lib/matching/queries";
 import { getSponsorProfile } from "@/lib/profiles/queries";
 
@@ -20,14 +22,20 @@ export default function SponsorPage({ params }: PageProps<"/sponsors/[id]">) {
 async function SponsorProfile({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
   if (!z.uuid().safeParse(id).success) notFound();
-  const profile = await getSponsorProfile(id);
+  const [profile, session] = await Promise.all([getSponsorProfile(id), getSession()]);
   if (!profile) notFound();
+  const canMessage = session && session.user.id !== id;
 
   return (
     <>
       <title>{`${profile.name} · Bono`}</title>
       <ProfileHeader name={profile.name} imageId={profile.logoImageId} kicker="Sponsor" />
       {profile.bio && <p className="text-lg">{profile.bio}</p>}
+      {canMessage && (
+        <div className="flex">
+          <MessageButton userId={id} size="large" />
+        </div>
+      )}
       <ActiveCampaigns sponsorId={id} />
     </>
   );

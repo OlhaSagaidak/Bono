@@ -301,3 +301,48 @@ export const supporters: { name: string; interests: string[]; bio?: string }[] =
   { name: "Nadia Haddad", interests: ["health"], bio: "Public health researcher. Fan of good data and good neighbors." },
   { name: "Ruth Abrams", interests: ["food-security", "climate", "refugees"], bio: "Retired teacher. Now I have time for every cause I care about." },
 ];
+
+// A few conversations so Messages isn't empty in the demo. People are named by
+// login (the part before @): a nonprofit or sponsor slug, or firstname.lastname.
+// Each message: [sender index in `between`, text, hours ago].
+export const conversations: { between: [string, string]; messages: [0 | 1, string, number][] }[] = [
+  {
+    between: ["maya.chen", "paws-haven"],
+    messages: [
+      [0, "Hi! I saw the post about foster homes for senior dogs. We have a fenced yard. What does fostering involve?", 30],
+      [1, "Hi Maya, thank you! We cover food and vet costs. Fosters usually keep a dog for 2–6 weeks. Come to the foster info night and we'll walk you through it.", 29],
+      [0, "Perfect, I just marked myself as going. See you there!", 28],
+      [1, "Wonderful. Bring any questions. Our senior beagle Biscuit says hello.", 3],
+    ],
+  },
+  {
+    between: ["maya.chen", "sofia.rossi"],
+    messages: [
+      [1, "Are you going to the adoption day on Saturday?", 20],
+      [0, "Yes! Want to go together? I can pick you up around 9:30.", 19],
+      [1, "That'd be great, thanks 🙂", 2],
+    ],
+  },
+  {
+    between: ["acme", "green-seattle"],
+    messages: [
+      [0, "Hello from Acme. We'd like to match donations to your tree planting events this month. Could you share your goals for the season?", 50],
+      [1, "That's fantastic news! We're aiming for 1,200 trees across three neighborhoods by the end of November.", 47],
+      [0, "Great. We'll set up a 1:1 match with a $2,000 pool. Let us know if a boost on your next event post would help.", 26],
+    ],
+  },
+  {
+    between: ["daniel.ortiz", "open-pantry"],
+    messages: [
+      [0, "I can drive the mobile pantry route on Thursdays again starting next week.", 12],
+      [1, "Thank you Daniel! You're on the schedule. Pickup is at 8 at the warehouse as usual.", 11],
+    ],
+  },
+  {
+    between: ["olek.kovalenko", "new-roots"],
+    messages: [
+      [0, "Добрий день! Do you still need Ukrainian interpreters for the Saturday clinic?", 8],
+      [1, "Yes, we do! Two families this week only speak Ukrainian. Could you come 10–1?", 6],
+    ],
+  },
+];

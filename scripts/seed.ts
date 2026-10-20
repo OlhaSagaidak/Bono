@@ -35,10 +35,13 @@ import {
   verificationFees,
   donations,
   notifications,
+  conversations,
+  conversationMembers,
+  messages,
 } from "@/db/schema";
 import { embedCauses, embedPosts } from "@/lib/ai/embed-posts";
 import { fitImage, replaceImage, squarePhoto } from "@/lib/images";
-import { nonprofits, sponsors, supporters } from "./seed-data";
+import { conversations as demoConversations, nonprofits, sponsors, supporters } from "./seed-data";
 
 // Bono login emails for demo accounts. `.example` is reserved, so these can
 // never belong to a real person.
@@ -300,6 +303,39 @@ async function main() {
           return roll < 0.3 ? [{ eventId: ev.id, userId: id, status: "going" }] : roll < 0.65 ? [{ eventId: ev.id, userId: id, status: "interested" }] : [];
         });
       if (rsvps.length) await tx.insert(eventRsvps).values(rsvps).onConflictDoNothing();
+    }
+
+    // Demo conversations, added only the first time (real messages are never touched).
+    // Each person has read up to their own last message, so replies show as unread.
+    for (const c of demoConversations) {
+      const ids: string[] = [];
+      for (const login of c.between) {
+        const [row] = await tx.select({ id: users.id }).from(users).where(eq(users.email, `${login}@${DEMO_DOMAIN}`));
+        if (!row) throw new Error(`Demo conversation: no account ${login}@${DEMO_DOMAIN}`);
+        ids.push(row.id);
+      }
+      const [userLow, userHigh] = [...ids].sort();
+      await tx.insert(conversations).values({ userLow, userHigh }).onConflictDoNothing();
+      const [conv] = await tx
+        .select({ id: conversations.id, last: conversations.lastMessageAt })
+        .from(conversations)
+        .where(and(eq(conversations.userLow, userLow), eq(conversations.userHigh, userHigh)));
+      if (conv.last) continue;
+      const rows = c.messages.map(([from, body, h]) => ({ conversationId: conv.id, senderId: ids[from], body, createdAt: hoursAgo(h) }));
+      await tx.insert(messages).values(rows);
+      const lastAt = rows.at(-1)!.createdAt;
+      await tx.update(conversations).set({ lastMessageAt: lastAt }).where(eq(conversations.id, conv.id));
+      for (const [i, userId] of ids.entries()) {
+        const mine = rows.filter((r) => r.senderId === userId).at(-1)?.createdAt ?? hoursAgo(1000);
+        await tx.insert(conversationMembers).values({ conversationId: conv.id, userId, lastReadAt: mine }).onConflictDoNothing();
+        const lastFromOther = rows.filter((r) => r.senderId !== userId).at(-1);
+        if (lastFromOther && lastFromOther.createdAt > mine) {
+          await tx
+            .insert(notifications)
+            .values({ recipientId: userId, type: "message", actorId: ids[1 - i], targetId: conv.id, groupKey: `message:${conv.id}`, createdAt: lastFromOther.createdAt })
+            .onConflictDoNothing();
+        }
+      }
     }
 
     // Notifications for the history above, so bells aren't empty in the demo:

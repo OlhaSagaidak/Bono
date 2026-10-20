@@ -473,5 +473,63 @@ export const notifications = pgTable(
   ],
 );
 
+// One-to-one messages. A conversation belongs to exactly two people: userLow
+// and userHigh are the pair in a fixed order, so the same two people can't
+// end up with two conversations. Each member's lastReadAt drives unread counts.
+export const conversations = pgTable(
+  "conversations",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    userLow: uuid("user_low").notNull().references(() => users.id, { onDelete: "cascade" }),
+    userHigh: uuid("user_high").notNull().references(() => users.id, { onDelete: "cascade" }),
+    lastMessageAt: timestamp("last_message_at", { withTimezone: true }),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [uniqueIndex("conversations_pair_idx").on(t.userLow, t.userHigh)],
+);
+
+export const conversationMembers = pgTable(
+  "conversation_members",
+  {
+    conversationId: uuid("conversation_id").notNull().references(() => conversations.id, { onDelete: "cascade" }),
+    userId: uuid("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+    lastReadAt: timestamp("last_read_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [primaryKey({ columns: [t.conversationId, t.userId] }), index("conversation_members_user_idx").on(t.userId)],
+);
+
+export const messages = pgTable(
+  "messages",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    conversationId: uuid("conversation_id").notNull().references(() => conversations.id, { onDelete: "cascade" }),
+    senderId: uuid("sender_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+    body: text("body").notNull(), // at most 2000 characters (lib/messages/actions.ts)
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [index("messages_conversation_idx").on(t.conversationId, t.createdAt)],
+);
+
+// Blocking works both ways: neither person can message the other.
+export const blocks = pgTable(
+  "blocks",
+  {
+    blockerId: uuid("blocker_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+    blockedId: uuid("blocked_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [primaryKey({ columns: [t.blockerId, t.blockedId] }), index("blocks_blocked_idx").on(t.blockedId)],
+);
+
+// Reports are stored for review. There's no moderation screen in the demo.
+export const reports = pgTable("reports", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  reporterId: uuid("reporter_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+  reportedId: uuid("reported_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+  conversationId: uuid("conversation_id").references(() => conversations.id, { onDelete: "set null" }),
+  reason: text("reason").notNull(),
+  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+});
+
 export type User = typeof users.$inferSelect;
 export type Cause = typeof causes.$inferSelect;
