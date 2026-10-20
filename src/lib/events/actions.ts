@@ -6,9 +6,10 @@ import { redirect } from "next/navigation";
 import { z } from "zod";
 import { auth } from "@/auth";
 import { db } from "@/db";
-import { eventCauses, eventRsvps, events, nonprofitCauses, nonprofitProfiles } from "@/db/schema";
+import { eventCauses, eventRsvps, events, follows, nonprofitCauses, nonprofitProfiles } from "@/db/schema";
 import { formText, type FormState } from "@/lib/forms";
 import { applyPhotoChange, checkUploadedImage, fitImage, type PhotoChange } from "@/lib/images";
+import { notify } from "@/lib/notifications/notify";
 import { eventSchema } from "./validation";
 
 // Events: verified nonprofits create, edit and cancel them; anyone signed in
@@ -23,6 +24,11 @@ async function verifiedNonprofit(): Promise<string | null> {
     columns: { verifiedAt: true },
   });
   return profile?.verifiedAt ? session.user.id : null;
+}
+
+async function respondents(eventId: string): Promise<string[]> {
+  const rows = await db.select({ userId: eventRsvps.userId }).from(eventRsvps).where(eq(eventRsvps.eventId, eventId));
+  return rows.map((r) => r.userId);
 }
 
 /** Creates an event, or updates one (hidden eventId) that the caller hosts. */
@@ -96,6 +102,21 @@ export async function saveEventAction(_prev: FormState, formData: FormData): Pro
     return id!;
   });
 
+  if (!existing) {
+    // A new event: tell the organization's followers.
+    const followers = await db.select({ id: follows.followerId }).from(follows).where(eq(follows.nonprofitId, nonprofitId));
+    await notify(followers.map((f) => f.id), { type: "event_new", actorId: nonprofitId, targetId: id, key: id, repeat: "once" });
+  } else if (
+    // Only a new time or place is worth telling people who responded; wording fixes aren't.
+    existing.startsAt.getTime() !== row.startsAt.getTime() ||
+    existing.endsAt.getTime() !== row.endsAt.getTime() ||
+    existing.locationType !== row.locationType ||
+    existing.address !== row.address ||
+    existing.onlineUrl !== row.onlineUrl
+  ) {
+    await notify(await respondents(id), { type: "event_changed", actorId: nonprofitId, targetId: id, key: id, repeat: "bump" });
+  }
+
   revalidatePath("/events");
   revalidatePath(`/events/${id}`);
   redirect(`/events/${id}`);
@@ -111,6 +132,7 @@ export async function cancelEventAction(eventId: string): Promise<{ error?: stri
     .where(and(eq(events.id, eventId), eq(events.nonprofitId, nonprofitId), eq(events.status, "scheduled")))
     .returning({ id: events.id });
   if (!cancelled) return { error: "That event wasn't found or is already cancelled." };
+  await notify(await respondents(eventId), { type: "event_cancelled", actorId: nonprofitId, targetId: eventId, key: eventId, repeat: "once" });
   revalidatePath("/events");
   revalidatePath(`/events/${eventId}`);
   return {};
@@ -153,10 +175,14 @@ export async function rsvpAction(eventId: string, status: "interested" | "going"
       .insert(eventRsvps)
       .values({ eventId, userId, status })
       .onConflictDoUpdate({ target: [eventRsvps.eventId, eventRsvps.userId], set: { status } });
-    return null;
+    return { organizerId: event.nonprofitId };
   });
 
-  if (result) return { error: result };
+  if (typeof result === "string") return { error: result };
+  // Tell the organizer; switching between Interested and Going updates the same notification.
+  if (result && status) {
+    await notify([result.organizerId], { type: "rsvp", actorId: userId, targetId: eventId, key: `${eventId}:${userId}`, repeat: "bump" });
+  }
   revalidatePath(`/events/${eventId}`);
   return {};
 }

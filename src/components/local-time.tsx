@@ -41,3 +41,35 @@ export function LocalTimeRange({ startIso, endIso }: { startIso: string; endIso:
     </span>
   );
 }
+
+// A shared clock for "5 min ago": the snapshot is the current minute, so it
+// stays stable between renders, and one timer tells every TimeAgo to re-check.
+const clockListeners = new Set<() => void>();
+let clockTimer: ReturnType<typeof setInterval> | undefined;
+function subscribeClock(listener: () => void) {
+  if (clockListeners.size === 0) clockTimer = setInterval(() => clockListeners.forEach((l) => l()), 15_000);
+  clockListeners.add(listener);
+  return () => {
+    clockListeners.delete(listener);
+    if (clockListeners.size === 0) clearInterval(clockTimer);
+  };
+}
+const currentMinute = () => Math.floor(Date.now() / 60_000) * 60_000;
+
+const relative = new Intl.RelativeTimeFormat("en", { numeric: "auto", style: "short" });
+
+/** "just now", "5 min. ago", "3 days ago", then a date. The server render shows the date. */
+export function TimeAgo({ iso }: { iso: string }) {
+  const now = useSyncExternalStore(subscribeClock, currentMinute, () => 0);
+  const date = new Date(iso);
+  const dateText = new Intl.DateTimeFormat("en", { month: "short", day: "numeric", ...(now ? {} : { timeZone: "UTC" }) }).format(date);
+  let text = dateText;
+  if (now) {
+    const minutes = Math.round((now - date.getTime()) / 60_000);
+    if (minutes < 1) text = "just now";
+    else if (minutes < 60) text = relative.format(-minutes, "minute");
+    else if (minutes < 24 * 60) text = relative.format(-Math.round(minutes / 60), "hour");
+    else if (minutes < 7 * 24 * 60) text = relative.format(-Math.round(minutes / 1440), "day");
+  }
+  return <time dateTime={iso}>{text}</time>;
+}

@@ -6,6 +6,8 @@ import { AccountMenu } from "@/components/account-menu";
 import { TopNav } from "@/components/top-nav";
 import { db } from "@/db";
 import { nonprofitProfiles } from "@/db/schema";
+import { unreadNotificationCount } from "@/lib/notifications/queries";
+import { profilePath } from "@/lib/profiles/paths";
 
 const navLink =
   "rounded-lg px-3 py-2 text-sm font-medium hover:bg-zinc-100 focus:outline-2 focus:outline-offset-2 focus:outline-emerald-600 dark:hover:bg-zinc-800";
@@ -59,13 +61,13 @@ async function Nav() {
   const accountLinks = [
     ...(role === "nonprofit" ? [verified ? { href: "/posts/new", label: "New post" } : { href: "/verify", label: "Get verified" }] : []),
     ...(role === "sponsor" ? [{ href: "/campaigns", label: "Campaigns & boosts" }] : []),
-    { href: role === "nonprofit" ? `/nonprofits/${id}` : role === "sponsor" ? `/sponsors/${id}` : `/users/${id}`, label: "Your profile" },
+    { href: profilePath(role, id), label: "Your profile" },
     { href: "/profile/edit", label: "Edit profile" },
   ];
 
   return (
     <nav aria-label="Main" className="flex items-center gap-1">
-      <TopNav />
+      <TopNav unreadNotifications={await unreadNotificationCount(id)} />
       <AccountMenu name={name ?? ""} links={accountLinks} />
     </nav>
   );
