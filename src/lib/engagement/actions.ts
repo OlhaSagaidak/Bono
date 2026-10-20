@@ -5,6 +5,7 @@ import { z } from "zod";
 import { auth } from "@/auth";
 import { db } from "@/db";
 import { follows, nonprofitProfiles, postLikes, postSaves, posts } from "@/db/schema";
+import { resetUserVector } from "@/lib/feed/learn";
 import { notify } from "@/lib/notifications/notify";
 
 // Likes and follows: small signals the AI feed learns from. Both toggle, and
@@ -32,6 +33,8 @@ export async function toggleLikeAction(postId: string): Promise<Result<{ liked: 
     .delete(postLikes)
     .where(and(eq(postLikes.userId, userId), eq(postLikes.postId, postId)))
     .returning({ postId: postLikes.postId });
+  // An unlike doesn't add anything the feed would notice, so recompute next time.
+  if (removed.length > 0) await resetUserVector(userId);
   if (removed.length === 0) {
     const [like] = await db.insert(postLikes).values({ userId, postId }).onConflictDoNothing().returning({ at: postLikes.createdAt });
     // Grouped per post: "Maya and 3 others liked your post".
@@ -81,6 +84,7 @@ export async function toggleFollowAction(nonprofitId: string): Promise<Result<{ 
     .delete(follows)
     .where(and(eq(follows.followerId, followerId), eq(follows.nonprofitId, nonprofitId)))
     .returning({ nonprofitId: follows.nonprofitId });
+  if (removed.length > 0) await resetUserVector(followerId); // same for an unfollow
   if (removed.length === 0) {
     await db.insert(follows).values({ followerId, nonprofitId }).onConflictDoNothing();
     // Once per follower, so unfollowing and following again doesn't notify twice.

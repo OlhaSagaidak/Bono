@@ -11,12 +11,15 @@ export type CommentView = {
   /** "en", "es" or "uk"; null when it was too short to tell. */
   language: string | null;
   createdAt: string; // ISO
+  editedAt: string | null;
   author: { id: string; name: string; photoImageId: string | null; href: string };
   /** How many of each reaction, most used first. */
   reactions: { key: Reaction; count: number }[];
   viewerReaction: Reaction | null;
   /** The author, or the nonprofit whose post it is. */
   canDelete: boolean;
+  /** Only the author edits; everyone else can report it. */
+  mine: boolean;
 };
 
 /**
@@ -48,6 +51,7 @@ export async function getComments(postId: string, viewerId: string): Promise<Com
       body: postComments.body,
       language: postComments.language,
       createdAt: postComments.createdAt,
+      editedAt: postComments.editedAt,
       authorId: users.id,
       authorRole: users.role,
       authorName: sql<string>`coalesce(${nonprofitProfiles.name}, ${sponsorProfiles.name}, ${users.name})`,
@@ -77,9 +81,11 @@ export async function getComments(postId: string, viewerId: string): Promise<Com
     body: r.body,
     language: r.language,
     createdAt: r.createdAt.toISOString(),
+    editedAt: r.editedAt?.toISOString() ?? null,
     author: { id: r.authorId, name: r.authorName, photoImageId: r.authorPhoto, href: profilePath(r.authorRole as Role, r.authorId) },
     reactions: r.reactions,
     viewerReaction: r.viewerReaction,
     canDelete: r.authorId === viewerId || post.nonprofitId === viewerId,
+    mine: r.authorId === viewerId,
   }));
 }

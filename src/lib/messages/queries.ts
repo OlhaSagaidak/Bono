@@ -76,9 +76,9 @@ export async function getConversation(conversationId: string, viewerId: string) 
   return { id: row.id, other, problem };
 }
 
-export type MessageView = { id: string; senderId: string; body: string; createdAt: string };
+export type MessageView = { id: string; senderId: string; body: string; imageId: string | null; createdAt: string };
 
-const toView = (m: { id: string; senderId: string; body: string; createdAt: Date }): MessageView => ({
+const toView = (m: { id: string; senderId: string; body: string; imageId: string | null; createdAt: Date }): MessageView => ({
   ...m,
   createdAt: m.createdAt.toISOString(),
 });
@@ -95,7 +95,7 @@ export async function getMessages(conversationId: string, viewerId: string, afte
     filters.push(sql`(${messages.createdAt}, ${messages.id}) > (select created_at, id from ${messages} where id = ${afterId} and conversation_id = ${conversationId})`);
   }
   const rows = await db
-    .select({ id: messages.id, senderId: messages.senderId, body: messages.body, createdAt: messages.createdAt })
+    .select({ id: messages.id, senderId: messages.senderId, body: messages.body, imageId: messages.imageId, createdAt: messages.createdAt })
     .from(messages)
     .where(and(...filters))
     .orderBy(desc(messages.createdAt), desc(messages.id))
@@ -108,7 +108,7 @@ export async function getInbox(viewerId: string, limit = 50) {
   const me = alias(conversationMembers, "me");
   const other = alias(users, "other");
   const latest = (column: string) =>
-    sql.raw(`(select m.${column} from messages m where m.conversation_id = "conversations"."id" order by m.created_at desc, m.id desc limit 1)`);
+    sql.raw(`(select ${column} from messages m where m.conversation_id = "conversations"."id" order by m.created_at desc, m.id desc limit 1)`);
   return db
     .select({
       id: conversations.id,
@@ -118,8 +118,9 @@ export async function getInbox(viewerId: string, limit = 50) {
         name: sql<string>`coalesce(${nonprofitProfiles.name}, ${sponsorProfiles.name}, ${other.name})`,
         photoImageId: sql<string | null>`coalesce(${nonprofitProfiles.logoImageId}, ${sponsorProfiles.logoImageId}, ${other.avatarImageId})`,
       },
-      lastBody: sql<string>`${latest("body")}`,
-      lastFromMe: sql<boolean>`${latest("sender_id")} = ${viewerId}`,
+      // A photo with no text shows as "📷 Photo" in the inbox.
+      lastBody: sql<string>`${latest("case when m.body = '' then '📷 Photo' else m.body end")}`,
+      lastFromMe: sql<boolean>`${latest("m.sender_id")} = ${viewerId}`,
       unread: sql<boolean>`exists (select 1 from ${messages} m where m.conversation_id = ${conversations.id} and m.sender_id <> ${viewerId} and m.created_at > ${me.lastReadAt})`,
     })
     .from(conversations)

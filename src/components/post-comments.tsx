@@ -6,7 +6,14 @@ import { useCallback, useEffect, useId, useRef, useState, useTransition } from "
 import { Avatar } from "@/components/avatar";
 import { TimeAgo } from "@/components/local-time";
 import type { Reaction } from "@/db/schema";
-import { addCommentAction, deleteCommentAction, reactToCommentAction, translateCommentAction } from "@/lib/comments/actions";
+import {
+  addCommentAction,
+  deleteCommentAction,
+  editCommentAction,
+  reactToCommentAction,
+  reportCommentAction,
+  translateCommentAction,
+} from "@/lib/comments/actions";
 import type { CommentView } from "@/lib/comments/queries";
 import { COMMENT_MAX, REACTIONS } from "@/lib/comments/reactions";
 
@@ -250,6 +257,37 @@ function Comment({
   const [translating, startTranslating] = useTransition();
   const canTranslate = comment.language !== null && comment.language !== viewerLanguage;
   const shown = showTranslation && translation;
+  // Editing (the author) or reporting (anyone else) happens in place.
+  const [mode, setMode] = useState<"view" | "edit" | "report" | "reported">("view");
+  const [draft, setDraft] = useState("");
+  const [saving, startSaving] = useTransition();
+  const draftId = useId();
+
+  function saveEdit() {
+    const body = draft.trim();
+    if (!body || saving) return;
+    startSaving(async () => {
+      const result = await editCommentAction(comment.id, body).catch(() => OFFLINE);
+      if ("error" in result) return setError(result.error);
+      setError(undefined);
+      onUpdate(comment.id, result);
+      // An old translation no longer matches the new text.
+      setTranslation(null);
+      setShowTranslation(false);
+      setMode("view");
+    });
+  }
+
+  function sendReport() {
+    const reason = draft.trim();
+    if (!reason || saving) return;
+    startSaving(async () => {
+      const result = await reportCommentAction(comment.id, reason).catch(() => OFFLINE);
+      if (result.error) return setError(result.error);
+      setError(undefined);
+      setMode("reported");
+    });
+  }
 
   function toggleTranslation() {
     if (showTranslation) return setShowTranslation(false);
@@ -273,10 +311,48 @@ function Comment({
           <Link href={comment.author.href} className="text-sm font-semibold hover:underline focus:outline-2 focus:outline-emerald-600">
             {comment.author.name}
           </Link>
-          {/* lang lets screen readers pronounce the text in the right language. */}
-          <p lang={shown ? viewerLanguage : (comment.language ?? undefined)} className="whitespace-pre-wrap break-words text-sm">
-            {shown ? translation : comment.body}
-          </p>
+          {mode === "edit" ? (
+            <form
+              onSubmit={(e) => {
+                e.preventDefault();
+                saveEdit();
+              }}
+              className="mt-1 flex flex-col gap-1"
+            >
+              <label htmlFor={draftId} className="sr-only">
+                Edit your comment
+              </label>
+              <textarea
+                id={draftId}
+                autoFocus
+                rows={2}
+                value={draft}
+                maxLength={COMMENT_MAX}
+                onChange={(e) => setDraft(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === "Escape") setMode("view");
+                  if (e.key === "Enter" && !e.shiftKey && !e.nativeEvent.isComposing) {
+                    e.preventDefault();
+                    saveEdit();
+                  }
+                }}
+                className="w-72 max-w-full rounded-lg border border-zinc-300 bg-white px-2 py-1 text-sm focus:outline-2 focus:outline-emerald-600 dark:border-zinc-700 dark:bg-zinc-900"
+              />
+              <span className="flex gap-2 text-xs">
+                <button type="submit" disabled={saving || !draft.trim()} className="font-semibold text-emerald-700 hover:underline disabled:opacity-50 dark:text-emerald-400">
+                  {saving ? "Saving…" : "Save"}
+                </button>
+                <button type="button" onClick={() => setMode("view")} className="font-semibold hover:underline">
+                  Cancel
+                </button>
+              </span>
+            </form>
+          ) : (
+            // lang lets screen readers pronounce the text in the right language.
+            <p lang={shown ? viewerLanguage : (comment.language ?? undefined)} className="whitespace-pre-wrap break-words text-sm">
+              {shown ? translation : comment.body}
+            </p>
+          )}
           {total > 0 && (
             <span
               title={comment.reactions.map((r) => `${byKey[r.key].label}: ${r.count}`).join(", ")}
@@ -290,6 +366,7 @@ function Comment({
         </div>
         <div className="flex flex-wrap items-center gap-x-3 px-2 text-xs text-zinc-600 dark:text-zinc-400">
           <TimeAgo iso={comment.createdAt} />
+          {comment.editedAt && <span title="This comment was changed after it was posted">Edited</span>}
           <ReactionControl comment={comment} onUpdate={onUpdate} onError={setError} />
           <button type="button" onClick={onReply} className="font-semibold hover:underline focus:outline-2 focus:outline-emerald-600">
             Reply
@@ -305,6 +382,31 @@ function Comment({
             </button>
           )}
           {shown && <span>Translated by AI</span>}
+          {comment.mine && mode === "view" && (
+            <button
+              type="button"
+              onClick={() => {
+                setDraft(comment.body);
+                setMode("edit");
+              }}
+              className="font-semibold hover:underline focus:outline-2 focus:outline-emerald-600"
+            >
+              Edit
+            </button>
+          )}
+          {!comment.mine && mode === "view" && (
+            <button
+              type="button"
+              onClick={() => {
+                setDraft("");
+                setMode("report");
+              }}
+              className="font-semibold hover:underline focus:outline-2 focus:outline-emerald-600"
+            >
+              Report
+            </button>
+          )}
+          {mode === "reported" && <span role="status">Reported. Thanks for letting us know.</span>}
           {comment.canDelete &&
             (confirming ? (
               <span role="group" aria-label="Confirm deleting" className="flex items-center gap-2">
@@ -331,6 +433,32 @@ function Comment({
               </button>
             ))}
         </div>
+        {mode === "report" && (
+          <form
+            onSubmit={(e) => {
+              e.preventDefault();
+              sendReport();
+            }}
+            className="flex flex-wrap items-center gap-2 px-2 text-xs"
+          >
+            <label htmlFor={draftId}>What&apos;s wrong with it?</label>
+            <input
+              id={draftId}
+              autoFocus
+              value={draft}
+              maxLength={500}
+              onChange={(e) => setDraft(e.target.value)}
+              onKeyDown={(e) => e.key === "Escape" && setMode("view")}
+              className="min-w-40 flex-1 rounded-lg border border-zinc-300 bg-white px-2 py-1 text-sm focus:outline-2 focus:outline-emerald-600 dark:border-zinc-700 dark:bg-zinc-900"
+            />
+            <button type="submit" disabled={saving || !draft.trim()} className="font-semibold text-emerald-700 hover:underline disabled:opacity-50 dark:text-emerald-400">
+              Send report
+            </button>
+            <button type="button" onClick={() => setMode("view")} className="font-semibold hover:underline">
+              Cancel
+            </button>
+          </form>
+        )}
         {error && (
           <p role="alert" className="px-2 text-xs text-red-700 dark:text-red-400">
             {error}

@@ -1,14 +1,20 @@
 "use client";
 
+import { ImagePlus, X } from "lucide-react";
 import { useCallback, useEffect, useRef, useState, useTransition } from "react";
 import { TimeAgo } from "@/components/local-time";
+import { imageUrl } from "@/lib/image-url";
 import { sendMessageAction } from "@/lib/messages/actions";
 import type { MessageView } from "@/lib/messages/queries";
 
 const POLL_MS = 3_000;
 const MAX = 2000;
+// Must match lib/images.ts (the server checks again, and re-encodes the photo).
+const MAX_PHOTO_BYTES = 2 * 1024 * 1024;
+const PHOTO_TYPES = ["image/jpeg", "image/png", "image/webp"];
 
-type Shown = MessageView & { pending?: boolean };
+/** A message as shown: while sending, a photo is previewed from the local file. */
+type Shown = MessageView & { pending?: boolean; localPhoto?: string };
 
 /**
  * The open conversation. New messages arrive by polling every few seconds
@@ -31,6 +37,8 @@ export function Chat({
 }) {
   const [list, setList] = useState<Shown[]>(initial);
   const [draft, setDraft] = useState("");
+  const [photo, setPhoto] = useState<{ file: File; preview: string } | null>(null);
+  const photoInput = useRef<HTMLInputElement>(null);
   const [error, setError] = useState<string>();
   const [, startTransition] = useTransition();
   const scroller = useRef<HTMLDivElement>(null);
@@ -68,22 +76,52 @@ export function Chat({
     scroller.current?.scrollTo({ top: scroller.current.scrollHeight });
   }, [list.length]);
 
+  function pickPhoto(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    e.target.value = ""; // so picking the same file again still fires
+    if (!file) return;
+    if (!PHOTO_TYPES.includes(file.type)) return setError("Use a JPEG, PNG or WebP photo.");
+    if (file.size > MAX_PHOTO_BYTES) return setError("That photo is over 2 MB. Choose a smaller one.");
+    setError(undefined);
+    setPhoto({ file, preview: URL.createObjectURL(file) });
+  }
+
   function send() {
     const body = draft.trim();
-    if (!body) return;
+    if (!body && !photo) return;
+    const sending = photo;
+    const form = new FormData();
+    form.set("body", body);
+    if (sending) form.set("photo", sending.file);
     const tempId = `pending-${Date.now()}`;
-    setList((all) => [...all, { id: tempId, senderId: viewerId, body, createdAt: new Date().toISOString(), pending: true }]);
+    setList((all) => [
+      ...all,
+      {
+        id: tempId,
+        senderId: viewerId,
+        body,
+        imageId: null,
+        localPhoto: sending?.preview,
+        createdAt: new Date().toISOString(),
+        pending: true,
+      },
+    ]);
     setDraft("");
+    setPhoto(null);
     setError(undefined);
     startTransition(async () => {
-      const result = await sendMessageAction(conversationId, body);
+      const result = await sendMessageAction(conversationId, form).catch(() => ({
+        error: "Couldn't reach Bono. Check your connection and try again.",
+      }));
       if ("error" in result) {
-        // Put the text back so nothing is lost.
+        // Put the text and photo back so nothing is lost.
         setList((all) => all.filter((m) => m.id !== tempId));
         setDraft(body);
+        setPhoto(sending);
         setError(result.error);
         return;
       }
+      if (sending) URL.revokeObjectURL(sending.preview);
       setList((all) => {
         const rest = all.filter((m) => m.id !== tempId && m.id !== result.message.id);
         return [...rest, result.message];
@@ -106,13 +144,30 @@ export function Chat({
                 return (
                   <li key={m.id} className={`flex flex-col ${mine ? "items-end" : "items-start"}`}>
                     <span className="sr-only">{mine ? "You:" : `${otherName}:`}</span>
-                    <p
-                      className={`max-w-[80%] whitespace-pre-wrap break-words rounded-2xl px-3 py-2 text-sm ${
-                        mine ? "bg-emerald-700 text-white" : "bg-zinc-100 text-zinc-900 dark:bg-zinc-800 dark:text-zinc-100"
-                      } ${m.pending ? "opacity-70" : ""}`}
-                    >
-                      {m.body}
-                    </p>
+                    {(m.imageId || m.localPhoto) && (
+                      <a
+                        href={m.imageId ? imageUrl(m.imageId) : undefined}
+                        target="_blank"
+                        rel="noopener"
+                        className={`mb-1 block overflow-hidden rounded-2xl focus:outline-2 focus:outline-emerald-600 ${m.pending ? "opacity-70" : ""}`}
+                      >
+                        {/* eslint-disable-next-line @next/next/no-img-element -- private photos come from our own API */}
+                        <img
+                          src={m.localPhoto ?? imageUrl(m.imageId!)}
+                          alt={mine ? "Photo you sent" : `Photo from ${otherName}`}
+                          className="max-h-72 max-w-60 object-cover"
+                        />
+                      </a>
+                    )}
+                    {m.body && (
+                      <p
+                        className={`max-w-[80%] whitespace-pre-wrap break-words rounded-2xl px-3 py-2 text-sm ${
+                          mine ? "bg-emerald-700 text-white" : "bg-zinc-100 text-zinc-900 dark:bg-zinc-800 dark:text-zinc-100"
+                        } ${m.pending ? "opacity-70" : ""}`}
+                      >
+                        {m.body}
+                      </p>
+                    )}
                     <span className="px-1 text-[11px] text-zinc-600 dark:text-zinc-400">
                       {m.pending ? "Sending…" : <TimeAgo iso={m.createdAt} />}
                     </span>
@@ -134,7 +189,41 @@ export function Chat({
           }}
           className="flex flex-col gap-1 border-t border-zinc-200 p-3 dark:border-zinc-800"
         >
+          {photo && (
+            <div className="relative self-start">
+              {/* eslint-disable-next-line @next/next/no-img-element -- a local preview */}
+              <img src={photo.preview} alt="Photo to send" className="h-20 rounded-lg object-cover" />
+              <button
+                type="button"
+                onClick={() => {
+                  URL.revokeObjectURL(photo.preview);
+                  setPhoto(null);
+                }}
+                aria-label="Remove the photo"
+                className="absolute -right-2 -top-2 rounded-full bg-zinc-800 p-0.5 text-white focus:outline-2 focus:outline-emerald-600"
+              >
+                <X aria-hidden className="size-4" />
+              </button>
+            </div>
+          )}
           <div className="flex items-end gap-2">
+            <input
+              ref={photoInput}
+              type="file"
+              accept={PHOTO_TYPES.join(",")}
+              onChange={pickPhoto}
+              className="hidden"
+              tabIndex={-1}
+              aria-hidden
+            />
+            <button
+              type="button"
+              onClick={() => photoInput.current?.click()}
+              aria-label="Add a photo"
+              className="rounded-lg p-2 text-zinc-700 hover:bg-zinc-100 focus:outline-2 focus:outline-offset-2 focus:outline-emerald-600 dark:text-zinc-300 dark:hover:bg-zinc-800"
+            >
+              <ImagePlus aria-hidden className="size-5" />
+            </button>
             <label htmlFor="message-draft" className="sr-only">
               Message {otherName}
             </label>
@@ -157,7 +246,7 @@ export function Chat({
             />
             <button
               type="submit"
-              disabled={!draft.trim()}
+              disabled={!draft.trim() && !photo}
               className="rounded-lg bg-emerald-700 px-4 py-2 text-sm font-semibold text-white hover:bg-emerald-800 focus:outline-2 focus:outline-offset-2 focus:outline-emerald-600 disabled:opacity-50"
             >
               Send
