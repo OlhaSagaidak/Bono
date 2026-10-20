@@ -365,3 +365,29 @@ export const stories: Record<string, { text: string; caption?: string; sticker?:
   ],
   "new-roots": [{ text: "Free legal clinic, Saturday 10–1", caption: "Asylum and work permit questions. No appointment needed.", hoursAgo: 6 }],
 };
+
+// Captions for reels made from seed-media/reels/<slug>-<n>.mp4 (the n-th entry
+// goes with file n). Without the video files, no demo reels are created.
+export const reels: Record<string, { caption: string; hoursAgo: number }[]> = {
+  "paws-haven": [
+    { caption: "Morning zoomies at the shelter. Every one of these pups is up for adoption 🐶", hoursAgo: 20 },
+    { caption: "From scared stray to couch potato: six weeks with a foster family.", hoursAgo: 60 },
+    { caption: "Bath day! Volunteers make this place run.", hoursAgo: 120 },
+  ],
+  "green-seattle": [
+    { caption: "One Saturday, 40 volunteers, 300 native trees.", hoursAgo: 30 },
+    { caption: "Why street trees matter on hot summer days.", hoursAgo: 90 },
+  ],
+  "bright-futures": [
+    { caption: "Mentors and mentees, one year in.", hoursAgo: 40 },
+    { caption: "What one hour a week can do.", hoursAgo: 100 },
+  ],
+  "open-pantry": [
+    { caption: "Sorting 2 tons of donated food in one afternoon.", hoursAgo: 15 },
+    { caption: "The mobile pantry on its Thursday route.", hoursAgo: 75 },
+  ],
+  "new-roots": [
+    { caption: "Welcome dinner for families who arrived this month.", hoursAgo: 25 },
+    { caption: "Volunteer interpreters at the Saturday clinic.", hoursAgo: 110 },
+  ],
+};

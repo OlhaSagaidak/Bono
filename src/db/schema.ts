@@ -590,5 +590,52 @@ export const storyViews = pgTable(
   (t) => [primaryKey({ columns: [t.storyId, t.userId] }), index("story_views_user_idx").on(t.userId)],
 );
 
+// Reels: short vertical videos from verified nonprofits, shown at /reels.
+export const reels = pgTable(
+  "reels",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    nonprofitId: uuid("nonprofit_id")
+      .notNull()
+      .references(() => nonprofitProfiles.userId, { onDelete: "cascade" }),
+    mediaId: uuid("media_id")
+      .notNull()
+      .references(() => media.id, { onDelete: "cascade" }),
+    caption: text("caption").notNull().default(""),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [index("reels_created_idx").on(t.createdAt), index("reels_nonprofit_idx").on(t.nonprofitId, t.createdAt)],
+);
+
+export const reelCauses = pgTable(
+  "reel_causes",
+  {
+    reelId: uuid("reel_id").notNull().references(() => reels.id, { onDelete: "cascade" }),
+    causeSlug: text("cause_slug").notNull().references(() => causes.slug),
+  },
+  (t) => [primaryKey({ columns: [t.reelId, t.causeSlug] })],
+);
+
+export const reelLikes = pgTable(
+  "reel_likes",
+  {
+    userId: uuid("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+    reelId: uuid("reel_id").notNull().references(() => reels.id, { onDelete: "cascade" }),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [primaryKey({ columns: [t.userId, t.reelId] }), index("reel_likes_reel_idx").on(t.reelId)],
+);
+
+// Bookmarked reels: private, shown on the owner's Saved tab with saved posts.
+export const reelSaves = pgTable(
+  "reel_saves",
+  {
+    userId: uuid("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+    reelId: uuid("reel_id").notNull().references(() => reels.id, { onDelete: "cascade" }),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [primaryKey({ columns: [t.userId, t.reelId] }), index("reel_saves_user_idx").on(t.userId, t.createdAt)],
+);
+
 export type User = typeof users.$inferSelect;
 export type Cause = typeof causes.$inferSelect;

@@ -61,7 +61,12 @@ async function Nav() {
     Boolean((await db.query.nonprofitProfiles.findFirst({ where: eq(nonprofitProfiles.userId, id), columns: { verifiedAt: true } }))?.verifiedAt);
   const accountLinks = [
     ...(role === "nonprofit" ? [verified ? { href: "/posts/new", label: "New post" } : { href: "/verify", label: "Get verified" }] : []),
-    ...(verified ? [{ href: "/stories/new", label: "New story" }] : []),
+    ...(verified
+      ? [
+          { href: "/stories/new", label: "New story" },
+          { href: "/reels/new", label: "New reel" },
+        ]
+      : []),
     ...(role === "sponsor" ? [{ href: "/campaigns", label: "Campaigns & boosts" }] : []),
     { href: profilePath(role, id), label: "Your profile" },
     { href: `${profilePath(role, id)}?tab=saved`, label: "Saved posts" },
