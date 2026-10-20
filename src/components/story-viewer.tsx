@@ -71,8 +71,13 @@ export function StoryViewer({
   };
   const onTimerEnd = useEffectEvent(next);
 
+  // Opening the dialog moves focus to its first link, so focus Close after it
+  // opens: Esc and Enter both close from there. The browser returns focus to
+  // the story card when the dialog closes.
+  const closeRef = useRef<HTMLButtonElement>(null);
   useEffect(() => {
     dialogRef.current?.showModal();
+    closeRef.current?.focus();
   }, []);
 
   // Count the view once, and turn the ring grey.
@@ -164,7 +169,7 @@ export function StoryViewer({
             <button type="button" onClick={() => setPaused((p) => !p)} aria-label={paused ? "Play" : "Pause"} className={iconButton}>
               {paused ? <Play aria-hidden className="size-5" /> : <Pause aria-hidden className="size-5" />}
             </button>
-            <button type="button" onClick={close} aria-label="Close stories" autoFocus className={iconButton}>
+            <button ref={closeRef} type="button" onClick={close} aria-label="Close stories" className={iconButton}>
               <X aria-hidden className="size-6" />
             </button>
           </span>
