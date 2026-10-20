@@ -4,9 +4,10 @@ import { and, eq, sql } from "drizzle-orm";
 import { z } from "zod";
 import { auth } from "@/auth";
 import { db } from "@/db";
-import { commentReactions, notifications, postComments, reactionEnum, type Reaction } from "@/db/schema";
+import { commentReactions, notifications, postComments, reactionEnum, reports, type Reaction } from "@/db/schema";
 import { LIMITS, overLimit } from "@/lib/guards/rate-limit";
 import { publicStanding } from "@/lib/guards/standing";
+import { resetUserVector } from "@/lib/feed/learn";
 import { blockState } from "@/lib/messages/queries";
 import { notify } from "@/lib/notifications/notify";
 import { AiUnavailableError, translate } from "@/lib/ai/claude";
@@ -84,6 +85,8 @@ export async function deleteCommentAction(commentId: string): Promise<{ error?: 
   // Replies go with it (cascade); so do notifications pointing at it.
   await db.delete(postComments).where(eq(postComments.id, commentId));
   await db.delete(notifications).where(eq(notifications.groupKey, `comment_reply:${commentId}`));
+  // The comment no longer counts toward its author's feed: recompute next time.
+  await resetUserVector(comment.authorId);
   return {};
 }
 
@@ -135,4 +138,47 @@ export async function translateCommentAction(commentId: string, language: string
     if (error instanceof AiUnavailableError) return { error: "Translation isn't available right now. Please try again later." };
     throw error;
   }
+}
+
+/** The author rewrites their comment; it's then marked "Edited". */
+export async function editCommentAction(
+  commentId: string,
+  body: string,
+): Promise<{ body: string; language: string | null; editedAt: string } | { error: string }> {
+  const session = await auth();
+  if (!session) return { error: "Log in first." };
+  if (!uuid.safeParse(commentId).success) return { error: "That comment was deleted." };
+  const text = typeof body === "string" ? body.trim() : "";
+  if (!text) return { error: "A comment can't be empty. Delete it instead." };
+  if (text.length > COMMENT_MAX) return { error: `Comments can be up to ${COMMENT_MAX} characters.` };
+  const standing = await publicStanding(session.user.id);
+  if (standing) return { error: standing };
+  const [updated] = await db
+    .update(postComments)
+    .set({ body: text, language: detectLanguage(text), editedAt: new Date() })
+    // Only the author's own comment matches, whatever id is sent.
+    .where(and(eq(postComments.id, commentId), eq(postComments.authorId, session.user.id)))
+    .returning({ body: postComments.body, language: postComments.language, editedAt: postComments.editedAt });
+  if (!updated) return { error: "You can only edit your own comments." };
+  return { ...updated, editedAt: updated.editedAt!.toISOString() };
+}
+
+const REASON_MAX = 500;
+
+/** Flags a comment for review (stored; there's no moderation screen in the demo). */
+export async function reportCommentAction(commentId: string, reason: string): Promise<{ error?: string }> {
+  const session = await auth();
+  if (!session) return { error: "Log in first." };
+  if (!uuid.safeParse(commentId).success) return { error: "That comment was deleted." };
+  const text = typeof reason === "string" ? reason.trim() : "";
+  if (!text) return { error: "Tell us briefly what's wrong." };
+  if (text.length > REASON_MAX) return { error: `Keep it under ${REASON_MAX} characters.` };
+  const userId = session.user.id;
+  const comment = await db.query.postComments.findFirst({ where: eq(postComments.id, commentId), columns: { postId: true, authorId: true } });
+  if (!comment || !(await visiblePost(comment.postId, userId))) return { error: "That comment was deleted." };
+  if (comment.authorId === userId) return { error: "That's your own comment: edit or delete it instead." };
+  // One report per person and comment is enough.
+  const already = await db.query.reports.findFirst({ where: and(eq(reports.reporterId, userId), eq(reports.commentId, commentId)), columns: { id: true } });
+  if (!already) await db.insert(reports).values({ reporterId: userId, reportedId: comment.authorId, commentId, reason: text });
+  return {};
 }

@@ -7,7 +7,9 @@ import { z } from "zod";
 import { auth } from "@/auth";
 import { db } from "@/db";
 import { blocks, conversationMembers, conversations, messages, reports, users } from "@/db/schema";
+import { formText } from "@/lib/forms";
 import { LIMITS, overLimit } from "@/lib/guards/rate-limit";
+import { checkUploadedImage, fitImage, storeImage } from "@/lib/images";
 import { notify } from "@/lib/notifications/notify";
 import { getConversation, MESSAGE_MAX, messagingProblem, type MessageView } from "./queries";
 
@@ -49,13 +51,19 @@ export async function startConversationAction(otherId: string): Promise<void> {
   redirect(`/messages/${id}`);
 }
 
-export async function sendMessageAction(conversationId: string, body: string): Promise<{ message: MessageView } | { error: string }> {
+/** Sends text, a photo, or both (form fields "body" and "photo"). */
+export async function sendMessageAction(conversationId: string, form: FormData): Promise<{ message: MessageView } | { error: string }> {
   const session = await auth();
   if (!session) return { error: "Log in to send messages." };
-  if (!uuid.safeParse(conversationId).success) return { error: "That conversation wasn't found." };
-  const text = typeof body === "string" ? body.trim() : "";
-  if (!text) return { error: "Write a message first." };
+  if (!uuid.safeParse(conversationId).success || !(form instanceof FormData)) return { error: "That conversation wasn't found." };
+  const text = formText(form, "body");
   if (text.length > MESSAGE_MAX) return { error: `Messages can be up to ${MESSAGE_MAX} characters.` };
+  // A photo is checked and re-encoded like every other upload (type from its bytes, 2 MB cap, no metadata).
+  const upload = await checkUploadedImage(form.get("photo"));
+  if (upload.kind === "error") return { error: upload.message };
+  const photo = upload.kind === "ok" ? await fitImage(upload, 1280).catch(() => null) : null;
+  if (upload.kind === "ok" && !photo) return { error: "That photo couldn't be read. Try another one." };
+  if (!text && !photo) return { error: "Write a message or add a photo first." };
 
   const viewerId = session.user.id;
   const conversation = await getConversation(conversationId, viewerId);
@@ -66,8 +74,8 @@ export async function sendMessageAction(conversationId: string, body: string): P
   const message = await db.transaction(async (tx) => {
     const [m] = await tx
       .insert(messages)
-      .values({ conversationId, senderId: viewerId, body: text })
-      .returning({ id: messages.id, senderId: messages.senderId, body: messages.body, createdAt: messages.createdAt });
+      .values({ conversationId, senderId: viewerId, body: text, imageId: photo ? await storeImage(tx, viewerId, photo) : null })
+      .returning({ id: messages.id, senderId: messages.senderId, body: messages.body, imageId: messages.imageId, createdAt: messages.createdAt });
     await tx.update(conversations).set({ lastMessageAt: m.createdAt }).where(eq(conversations.id, conversationId));
     // Sending means you've seen everything before it.
     await tx

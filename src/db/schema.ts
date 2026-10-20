@@ -206,6 +206,7 @@ export const postComments = pgTable(
     // Detected when posted (lib/comments/language.ts); null when too short to tell.
     language: text("language"),
     createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+    editedAt: timestamp("edited_at", { withTimezone: true }), // shown as "Edited"
   },
   (t) => [index("post_comments_post_idx").on(t.postId, t.createdAt), index("post_comments_parent_idx").on(t.parentId)],
 );
@@ -550,10 +551,12 @@ export const messages = pgTable(
     id: uuid("id").primaryKey().defaultRandom(),
     conversationId: uuid("conversation_id").notNull().references(() => conversations.id, { onDelete: "cascade" }),
     senderId: uuid("sender_id").notNull().references(() => users.id, { onDelete: "cascade" }),
-    body: text("body").notNull(), // at most 2000 characters (lib/messages/actions.ts)
+    body: text("body").notNull(), // at most 2000 characters (lib/messages/actions.ts); may be empty with a photo
+    // A photo sent in the conversation. Only the two members can load it (api/images).
+    imageId: uuid("image_id").references(() => images.id, { onDelete: "set null" }),
     createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
   },
-  (t) => [index("messages_conversation_idx").on(t.conversationId, t.createdAt)],
+  (t) => [index("messages_conversation_idx").on(t.conversationId, t.createdAt), index("messages_image_idx").on(t.imageId)],
 );
 
 // Blocking works both ways: neither person can message the other.
@@ -572,7 +575,9 @@ export const reports = pgTable("reports", {
   id: uuid("id").primaryKey().defaultRandom(),
   reporterId: uuid("reporter_id").notNull().references(() => users.id, { onDelete: "cascade" }),
   reportedId: uuid("reported_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+  // What was reported: a conversation or a comment.
   conversationId: uuid("conversation_id").references(() => conversations.id, { onDelete: "set null" }),
+  commentId: uuid("comment_id").references(() => postComments.id, { onDelete: "set null" }),
   reason: text("reason").notNull(),
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
 });
