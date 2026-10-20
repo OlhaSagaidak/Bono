@@ -14,6 +14,18 @@ export type DemoNonprofit = {
   // Seeded unverified, so the verification flow can be shown live. Defaults to verified.
   unverified?: true;
   bio: string;
+  events?: DemoEvent[];
+};
+
+export type DemoEvent = {
+  title: string;
+  description: string;
+  daysAhead: number; // from today, so seeded events always stay upcoming
+  startHour: number; // Seattle time, 24h
+  hours: number;
+  online?: true; // otherwise in person at `address`
+  address?: string;
+  capacity?: number;
 };
 
 export type DemoPost = {
@@ -26,6 +38,10 @@ export type DemoPost = {
 export const nonprofits: DemoNonprofit[] = [
   {
     slug: "paws-haven",
+    events: [
+      { title: "Adoption Day at the shelter", description: "Meet dogs and cats looking for homes. Adoption counselors on site all day, and the adoption fee is waived for senior pets.", daysAhead: 3, startHour: 11, hours: 4, address: "4100 Maple Bluff Road, Seattle" },
+      { title: "Foster parent info night", description: "What fostering a kitten or a recovering dog really looks like, what we provide, and how to start. Questions welcome.", daysAhead: 8, startHour: 18, hours: 1, online: true },
+    ],
     bio: "Rescue, rehab and rehoming since 2009. Volunteers, fosters and a lot of very good dogs.",
     ein: "000000101",
     name: "Paws Haven",
@@ -61,6 +77,10 @@ export const nonprofits: DemoNonprofit[] = [
   },
   {
     slug: "green-seattle",
+    events: [
+      { title: "Tree planting in Rainier Beach", description: "We plant 120 street trees in one morning. Gloves, tools and coffee provided; wear shoes that can get muddy.", daysAhead: 5, startHour: 9, hours: 3, address: "Corner of Alder Street and 52nd Ave S, Seattle", capacity: 60 },
+      { title: "Thornton Creek cleanup", description: "Pulling ivy and picking up trash along the creek before the salmon run. Ages 12 and up.", daysAhead: 12, startHour: 10, hours: 3, address: "Willow Creek trailhead, NE 105th St, Seattle" },
+    ],
     bio: "Neighbors planting trees and restoring creeks, one block at a time. Gloves provided.",
     ein: "000000102",
     name: "Green Seattle",
@@ -100,6 +120,10 @@ export const nonprofits: DemoNonprofit[] = [
   },
   {
     slug: "bright-futures",
+    events: [
+      { title: "New mentor orientation", description: "Thinking about mentoring? Hear from current mentors and mentees and learn how matching works. About an hour.", daysAhead: 4, startHour: 18, hours: 1, online: true },
+      { title: "Teen mural unveiling", description: "Twelve students spent eight Saturdays designing this wall. Come see it, meet the artists, and stay for snacks.", daysAhead: 10, startHour: 16, hours: 2, address: "Community center, 2300 23rd Ave, Seattle" },
+    ],
     bio: "Mentors and young people, meeting every week. Friendships that last years, not weeks.",
     ein: "000000103",
     name: "Bright Futures",
@@ -141,6 +165,10 @@ export const nonprofits: DemoNonprofit[] = [
   },
   {
     slug: "open-pantry",
+    events: [
+      { title: "Mobile pantry volunteer shift", description: "Help load the truck and hand out fresh produce in Delridge. No experience needed; we'll train you on the spot.", daysAhead: 2, startHour: 15, hours: 3, address: "Delridge Way SW and SW Brandon St, Seattle", capacity: 12 },
+      { title: "Community dinner", description: "A free hot meal at real tables. Come to eat, come to cook, or both. Everyone is welcome.", daysAhead: 6, startHour: 17, hours: 2, address: "Open Pantry kitchen, 815 Harbor Lane, Seattle" },
+    ],
     bio: "Food banks, a mobile pantry and Friday community dinners. No forms, no questions.",
     ein: "000000104",
     name: "Open Pantry",
@@ -182,6 +210,10 @@ export const nonprofits: DemoNonprofit[] = [
   },
   {
     slug: "new-roots",
+    events: [
+      { title: "Free legal clinic", description: "Volunteer lawyers help with asylum paperwork and work permits. No appointment needed; bring your documents.", daysAhead: 6, startHour: 10, hours: 4, address: "New Roots Welcome Center, 1520 Cedar Court, Seattle" },
+      { title: "Neighborhood potluck", description: "Bring a dish from home, or just bring yourself. Ukrainian, Afghan, Guatemalan and many more kitchens at one table.", daysAhead: 9, startHour: 18, hours: 2, address: "New Roots Welcome Center, 1520 Cedar Court, Seattle" },
+    ],
     bio: "Helping newcomers find a home, a job, English classes and friends. Ласкаво просимо. Bienvenidos.",
     ein: "000000105",
     name: "New Roots Welcome Center",

@@ -5,6 +5,8 @@ import { z } from "zod";
 import { PostList } from "@/components/post-list";
 import { ProfileHeader } from "@/components/profile-header";
 import { DonateButton } from "@/components/donate-button";
+import { EventCard } from "@/components/event-card";
+import { hostedEvents } from "@/lib/events/queries";
 import { FollowButton } from "@/components/follow-button";
 import { isFollowing } from "@/lib/engagement/queries";
 import { getSession } from "@/lib/auth/session";
@@ -30,6 +32,7 @@ async function NonprofitProfile({
   const { id } = await params;
   if (!z.uuid().safeParse(id).success) notFound();
   const [profile, session, followers] = await Promise.all([getNonprofitProfile(id), getSession(), countFollowers(id)]);
+  const upcoming = await hostedEvents(id, session?.user.id ?? null, { upcomingOnly: true });
   if (!profile) notFound();
   const viewerId = session?.user.id ?? null;
   const isOwner = viewerId === id;
@@ -96,6 +99,18 @@ async function NonprofitProfile({
           </li>
         ))}
       </ul>
+      {upcoming.length > 0 && (
+        <section aria-labelledby="events-heading" className="flex flex-col gap-3">
+          <h2 id="events-heading" className="text-xl font-semibold">
+            Upcoming events
+          </h2>
+          <ul className="flex flex-col gap-2">
+            {upcoming.slice(0, 3).map((e) => (
+              <EventCard key={e.id} event={e} />
+            ))}
+          </ul>
+        </section>
+      )}
       <section aria-labelledby="posts-heading" className="flex flex-col gap-4">
         <h2 id="posts-heading" className="text-xl font-semibold">
           Posts

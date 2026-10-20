@@ -3,6 +3,7 @@ import { redirect } from "next/navigation";
 import { Suspense } from "react";
 import { z } from "zod";
 import { DwellTracker } from "@/components/dwell-tracker";
+import { EventsSidebar } from "@/components/events-sidebar";
 import { FollowingSidebar } from "@/components/following-sidebar";
 import { PostList } from "@/components/post-list";
 import { SidebarEmpty, SidebarSection } from "@/components/sidebar-section";
@@ -34,9 +35,9 @@ export default function FeedPage({ searchParams }: PageProps<"/feed">) {
         </Suspense>
       </main>
       <aside aria-label="Your upcoming events" className="hidden flex-col gap-4 lg:flex">
-        <SidebarSection title="Your upcoming events" href="/events" linkLabel="Events">
-          <SidebarEmpty>Events you&apos;re interested in or going to will show here.</SidebarEmpty>
-        </SidebarSection>
+        <Suspense fallback={<SidebarSection title="Your upcoming events"><SidebarEmpty>Loading…</SidebarEmpty></SidebarSection>}>
+          <EventsSidebarForViewer />
+        </Suspense>
       </aside>
     </div>
   );
@@ -87,4 +88,9 @@ async function Feed({ searchParams }: { searchParams: PageProps<"/feed">["search
 async function FollowingSidebarForViewer() {
   const session = await getSession();
   return session ? <FollowingSidebar userId={session.user.id} /> : null;
+}
+
+async function EventsSidebarForViewer() {
+  const session = await getSession();
+  return session ? <EventsSidebar userId={session.user.id} /> : null;
 }

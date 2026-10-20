@@ -26,6 +26,9 @@ import {
   userInterests,
   users,
   userVectors,
+  eventCauses,
+  eventRsvps,
+  events,
   follows,
   postLikes,
   postViews,
@@ -33,7 +36,7 @@ import {
   donations,
 } from "@/db/schema";
 import { embedCauses, embedPosts } from "@/lib/ai/embed-posts";
-import { replaceImage, squarePhoto } from "@/lib/images";
+import { fitImage, replaceImage, squarePhoto } from "@/lib/images";
 import { nonprofits, sponsors, supporters } from "./seed-data";
 
 // Bono login emails for demo accounts. `.example` is reserved, so these can
@@ -68,6 +71,21 @@ const loginEmail = (name: string) =>
     .replace(/[̀-ͯ]/g, "")
     .toLowerCase()
     .replace(/[^a-z0-9]+/g, ".")}@${DEMO_DOMAIN}`;
+
+/**
+ * `daysAhead` days from now at `hour`:00 Seattle time, as a UTC Date. Uses the
+ * real Pacific offset for that date, so it's right on both sides of DST.
+ */
+function seattleTime(now: number, daysAhead: number, hour: number): Date {
+  const day = new Date(now + daysAhead * 86_400_000);
+  const ymd = new Intl.DateTimeFormat("en-CA", { timeZone: "America/Los_Angeles", dateStyle: "short" }).format(day);
+  const guess = new Date(`${ymd}T${String(hour).padStart(2, "0")}:00:00Z`);
+  const offset = new Intl.DateTimeFormat("en-US", { timeZone: "America/Los_Angeles", timeZoneName: "shortOffset" })
+    .formatToParts(guess)
+    .find((p) => p.type === "timeZoneName")!.value; // e.g. "GMT-7"
+  const hours = Number(offset.replace("GMT", "") || 0);
+  return new Date(guess.getTime() - hours * 3_600_000);
+}
 
 // A fixed UUID per seeded post, so a re-run updates the post instead of adding
 // a copy (and anything pointing at it, like a donation, stays attached).
@@ -201,6 +219,40 @@ async function main() {
         .onConflictDoUpdate({ target: sponsorProfiles.userId, set: profile });
     }
 
+    // Events: two upcoming per verified demo nonprofit, dated relative to today
+    // (so they never go stale), with RSVPs from supporters who share a cause.
+    const seededEvents: { id: string; causes: string[] }[] = [];
+    for (const np of nonprofits) {
+      if (np.unverified || !np.events) continue;
+      const [org] = await tx.select({ id: users.id }).from(users).where(eq(users.email, `${np.slug}@${DEMO_DOMAIN}`));
+      for (const [i, ev] of np.events.entries()) {
+        const id = stableId(`event:${np.slug}:${i}`);
+        const startsAt = seattleTime(now, ev.daysAhead, ev.startHour);
+        const coverFile = ["jpg", "jpeg", "png", "webp"].map((ext) => `seed-media/events/${np.slug}-${i + 1}.${ext}`).find((f) => existsSync(f));
+        const current = (await tx.select({ cover: events.coverImageId }).from(events).where(eq(events.id, id)))[0]?.cover ?? null;
+        const coverImageId = coverFile
+          ? await replaceImage(tx, org.id, await fitImage({ kind: "ok", contentType: "image/jpeg", data: readFileSync(coverFile) }), current)
+          : current;
+        const values = {
+          nonprofitId: org.id,
+          title: ev.title,
+          description: ev.description,
+          startsAt,
+          endsAt: new Date(startsAt.getTime() + ev.hours * 3_600_000),
+          locationType: ev.online ? ("online" as const) : ("in_person" as const),
+          address: ev.online ? null : (ev.address ?? null),
+          onlineUrl: ev.online ? "https://meet.example.com/bono-demo" : null,
+          capacity: ev.capacity ?? null,
+          status: "scheduled" as const,
+          coverImageId,
+        };
+        await tx.insert(events).values({ id, ...values }).onConflictDoUpdate({ target: events.id, set: values });
+        await tx.delete(eventCauses).where(eq(eventCauses.eventId, id));
+        await tx.insert(eventCauses).values(np.causes.map((causeSlug) => ({ eventId: id, causeSlug })));
+        seededEvents.push({ id, causes: np.causes });
+      }
+    }
+
     // Seeded posts by cause, and the nonprofit behind each, for engagement history below.
     const seededPosts = nonprofits.flatMap((np) =>
       np.posts.map((post, i) => ({ id: stableId(`post:${np.slug}:${i}`), nonprofitSlug: np.slug, causes: post.causes ?? np.causes })),
@@ -238,6 +290,15 @@ async function main() {
       const favourite = mine.length ? mine[Math.floor(pick("follow") * mine.length)].nonprofitSlug : null;
       if (favourite) await tx.insert(follows).values({ followerId: id, nonprofitId: nonprofitIds.get(favourite)! }).onConflictDoNothing();
       await tx.delete(userVectors).where(eq(userVectors.userId, id)); // recompute from the (new) history
+
+      // Responses to events in their causes. Added only if missing: real ones stay.
+      const rsvps = seededEvents
+        .filter((ev) => ev.causes.some((c) => s.interests.includes(c)))
+        .flatMap((ev): (typeof eventRsvps.$inferInsert)[] => {
+          const roll = pick(`rsvp:${ev.id}`);
+          return roll < 0.3 ? [{ eventId: ev.id, userId: id, status: "going" }] : roll < 0.65 ? [{ eventId: ev.id, userId: id, status: "interested" }] : [];
+        });
+      if (rsvps.length) await tx.insert(eventRsvps).values(rsvps).onConflictDoNothing();
     }
 
     // What history the demo accounts carry after this run.
