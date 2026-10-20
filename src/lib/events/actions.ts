@@ -9,6 +9,7 @@ import { db } from "@/db";
 import { eventCauses, eventRsvps, events, follows, nonprofitCauses, nonprofitProfiles } from "@/db/schema";
 import { formText, type FormState } from "@/lib/forms";
 import { applyPhotoChange, checkUploadedImage, fitImage, type PhotoChange } from "@/lib/images";
+import { publicStanding } from "@/lib/guards/standing";
 import { notify } from "@/lib/notifications/notify";
 import { eventSchema } from "./validation";
 
@@ -146,6 +147,11 @@ export async function rsvpAction(eventId: string, status: "interested" | "going"
     return { error: "That event wasn't found." };
   }
   const userId = session.user.id;
+  // A response puts your name on the organizer's list: only for people who may be seen.
+  if (status !== null) {
+    const standing = await publicStanding(userId);
+    if (standing) return { error: standing };
+  }
 
   const result = await db.transaction(async (tx) => {
     // Lock the event so two people can't take the last spot at the same moment.

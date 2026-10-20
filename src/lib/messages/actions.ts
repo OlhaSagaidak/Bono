@@ -1,12 +1,13 @@
 "use server";
 
-import { and, eq } from "drizzle-orm";
+import { and, eq, sql } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { z } from "zod";
 import { auth } from "@/auth";
 import { db } from "@/db";
-import { blocks, conversationMembers, conversations, messages, reports } from "@/db/schema";
+import { blocks, conversationMembers, conversations, messages, reports, users } from "@/db/schema";
+import { LIMITS, overLimit } from "@/lib/guards/rate-limit";
 import { notify } from "@/lib/notifications/notify";
 import { getConversation, MESSAGE_MAX, messagingProblem, type MessageView } from "./queries";
 
@@ -60,6 +61,7 @@ export async function sendMessageAction(conversationId: string, body: string): P
   const conversation = await getConversation(conversationId, viewerId);
   if (!conversation) return { error: "That conversation wasn't found." };
   if (conversation.problem) return { error: conversation.problem };
+  if (await overLimit(sql`${messages}`, sql`sender_id = ${viewerId}`, sql`created_at`, LIMITS.messages)) return { error: LIMITS.messages.message };
 
   const message = await db.transaction(async (tx) => {
     const [m] = await tx
@@ -85,6 +87,7 @@ export async function setBlockedAction(otherId: string, blocked: boolean): Promi
   const session = await auth();
   if (!session) return { error: "Log in first." };
   if (!uuid.safeParse(otherId).success || otherId === session.user.id) return { error: "That person wasn't found." };
+  if (!(await db.query.users.findFirst({ where: eq(users.id, otherId), columns: { id: true } }))) return { error: "That person wasn't found." };
   if (blocked) {
     await db.insert(blocks).values({ blockerId: session.user.id, blockedId: otherId }).onConflictDoNothing();
   } else {
