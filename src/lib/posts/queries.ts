@@ -2,7 +2,7 @@ import { and, asc, count, desc, eq, inArray, isNotNull, sql, type SQL } from "dr
 import { db } from "@/db";
 import { activeBoostSponsors } from "@/lib/boosts/queries";
 import { matchingSponsorsFor } from "@/lib/matching/matching";
-import { causes, follows, nonprofitProfiles, postCauses, postLikes, posts } from "@/db/schema";
+import { causes, follows, nonprofitProfiles, postCauses, postLikes, postSaves, posts } from "@/db/schema";
 
 export const PAGE_SIZE = 20;
 
@@ -50,6 +50,7 @@ export async function getPostsByIds(ids: string[], viewerId: string | null = nul
         causes: tags.get(r.id) ?? [],
         likes: engagement.likes.get(r.id) ?? 0,
         likedByViewer: engagement.liked.has(r.id),
+        savedByViewer: engagement.saved.has(r.id),
         viewerFollows: engagement.followed.has(r.nonprofit.id),
         // An active sponsor campaign that would match a donation here, if any.
         matchedBy: matching.get(r.nonprofit.id) ?? null,
@@ -62,7 +63,7 @@ export async function getPostsByIds(ids: string[], viewerId: string | null = nul
 }
 
 async function getEngagement(postIds: string[], nonprofitIds: string[], viewerId: string | null) {
-  const [likeCounts, liked, followed] = await Promise.all([
+  const [likeCounts, liked, saved, followed] = await Promise.all([
     db
       .select({ postId: postLikes.postId, n: count() })
       .from(postLikes)
@@ -74,6 +75,12 @@ async function getEngagement(postIds: string[], nonprofitIds: string[], viewerId
           .from(postLikes)
           .where(and(eq(postLikes.userId, viewerId), inArray(postLikes.postId, postIds)))
       : [],
+    viewerId
+      ? db
+          .select({ postId: postSaves.postId })
+          .from(postSaves)
+          .where(and(eq(postSaves.userId, viewerId), inArray(postSaves.postId, postIds)))
+      : [],
     viewerId && nonprofitIds.length
       ? db
           .select({ nonprofitId: follows.nonprofitId })
@@ -84,6 +91,7 @@ async function getEngagement(postIds: string[], nonprofitIds: string[], viewerId
   return {
     likes: new Map(likeCounts.map((r) => [r.postId, r.n])),
     liked: new Set(liked.map((r) => r.postId)),
+    saved: new Set(saved.map((r) => r.postId)),
     followed: new Set(followed.map((r) => r.nonprofitId)),
   };
 }
@@ -147,4 +155,31 @@ async function getCauseTags(postIds: string[]) {
     byPost.set(postId, [...(byPost.get(postId) ?? []), cause]);
   }
   return byPost;
+}
+
+/**
+ * The viewer's saved posts, most recently saved first. `before` is the id of
+ * the last post on the previous page. Only verified nonprofits' posts.
+ */
+export async function getSavedPosts(userId: string, before?: string) {
+  const filters: SQL[] = [eq(postSaves.userId, userId), isNotNull(nonprofitProfiles.verifiedAt)];
+  if (before) {
+    filters.push(
+      sql`(${postSaves.createdAt}, ${postSaves.postId}) < (SELECT created_at, post_id FROM ${postSaves} WHERE user_id = ${userId} AND post_id = ${before})`,
+    );
+  }
+  const rows = await db
+    .select({ id: postSaves.postId })
+    .from(postSaves)
+    .innerJoin(posts, eq(posts.id, postSaves.postId))
+    .innerJoin(nonprofitProfiles, eq(nonprofitProfiles.userId, posts.nonprofitId))
+    .where(and(...filters))
+    .orderBy(desc(postSaves.createdAt), desc(postSaves.postId))
+    .limit(PAGE_SIZE + 1);
+  const page = rows.slice(0, PAGE_SIZE);
+  return {
+    posts: await getPostsByIds(page.map((p) => p.id), userId),
+    nextBefore: rows.length > PAGE_SIZE ? page.at(-1)!.id : null,
+    fetchedAt: Date.now(),
+  };
 }

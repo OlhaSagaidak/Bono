@@ -4,7 +4,7 @@ import { and, count, eq, isNotNull } from "drizzle-orm";
 import { z } from "zod";
 import { auth } from "@/auth";
 import { db } from "@/db";
-import { follows, nonprofitProfiles, postLikes, posts } from "@/db/schema";
+import { follows, nonprofitProfiles, postLikes, postSaves, posts } from "@/db/schema";
 import { notify } from "@/lib/notifications/notify";
 
 // Likes and follows: small signals the AI feed learns from. Both toggle, and
@@ -40,6 +40,28 @@ export async function toggleLikeAction(postId: string): Promise<Result<{ liked: 
 
   const [{ likes }] = await db.select({ likes: count() }).from(postLikes).where(eq(postLikes.postId, postId));
   return { liked: removed.length === 0, likes };
+}
+
+/** Bookmarks a post, or removes the bookmark. Private: only the saver ever sees it. */
+export async function toggleSaveAction(postId: string): Promise<Result<{ saved: boolean }>> {
+  const session = await auth();
+  if (!session) return { error: "Log in to save posts." };
+  if (!uuid.safeParse(postId).success) return { error: "That post doesn't exist." };
+  const userId = session.user.id;
+
+  const [post] = await db
+    .select({ id: posts.id })
+    .from(posts)
+    .innerJoin(nonprofitProfiles, eq(nonprofitProfiles.userId, posts.nonprofitId))
+    .where(and(eq(posts.id, postId), isNotNull(nonprofitProfiles.verifiedAt)));
+  if (!post) return { error: "That post doesn't exist." };
+
+  const removed = await db
+    .delete(postSaves)
+    .where(and(eq(postSaves.userId, userId), eq(postSaves.postId, postId)))
+    .returning({ postId: postSaves.postId });
+  if (removed.length === 0) await db.insert(postSaves).values({ userId, postId }).onConflictDoNothing();
+  return { saved: removed.length === 0 };
 }
 
 export async function toggleFollowAction(nonprofitId: string): Promise<Result<{ following: boolean }>> {

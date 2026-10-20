@@ -5,6 +5,7 @@ import { DonateButton } from "@/components/donate-button";
 import { FollowButton } from "@/components/follow-button";
 import { LikeButton } from "@/components/like-button";
 import { PostBody } from "@/components/post-body";
+import { SaveButton } from "@/components/save-button";
 import { WhyButton } from "@/components/why-button";
 import { Logo } from "@/components/profile-header";
 import { imageUrl } from "@/lib/images";
@@ -134,6 +135,7 @@ export function PostCard({
         <div className="flex items-center justify-between gap-2 border-t border-zinc-200 pt-3 dark:border-zinc-800">
           <div className="flex items-center gap-2">
             <LikeButton postId={post.id} liked={post.likedByViewer} likes={post.likes} disabled={!canEngage} />
+            {canEngage && <SaveButton postId={post.id} saved={post.savedByViewer} />}
             {donateClientId && (
               <DonateButton
                 nonprofitId={post.nonprofit.id}

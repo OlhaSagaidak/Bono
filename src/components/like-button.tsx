@@ -14,7 +14,8 @@ export function LikeButton({ postId, liked, likes, disabled = false }: { postId:
     setState({ liked: !before.liked, likes: before.likes + (before.liked ? -1 : 1) });
     setError(undefined);
     startTransition(async () => {
-      const result = await toggleLikeAction(postId);
+      // A lost connection throws instead of returning an error: treat it the same.
+      const result = await toggleLikeAction(postId).catch(() => ({ error: "Couldn't reach Bono. Check your connection and try again." }));
       if ("error" in result) {
         setState(before);
         setError(result.error);

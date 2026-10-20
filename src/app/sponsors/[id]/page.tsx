@@ -3,28 +3,34 @@ import { Suspense } from "react";
 import { z } from "zod";
 import { MessageButton } from "@/components/message-button";
 import { PoolMeter } from "@/components/pool-meter";
+import { ProfileTabs } from "@/components/profile-tabs";
+import { SavedPosts } from "@/components/saved-posts";
 import { ProfileHeader } from "@/components/profile-header";
 import { formatCents } from "@/lib/donations/amounts";
 import { getSession } from "@/lib/auth/session";
 import { getSponsorCampaigns } from "@/lib/matching/queries";
 import { getSponsorProfile } from "@/lib/profiles/queries";
 
-export default function SponsorPage({ params }: PageProps<"/sponsors/[id]">) {
+export default function SponsorPage({ params, searchParams }: PageProps<"/sponsors/[id]">) {
   return (
     <main className="mx-auto flex w-full max-w-2xl flex-1 flex-col gap-6 px-4 py-12">
       <Suspense fallback={<p className="text-zinc-600 dark:text-zinc-400">Loading…</p>}>
-        <SponsorProfile params={params} />
+        <SponsorProfile params={params} searchParams={searchParams} />
       </Suspense>
     </main>
   );
 }
 
-async function SponsorProfile({ params }: { params: Promise<{ id: string }> }) {
+async function SponsorProfile({ params, searchParams }: Pick<PageProps<"/sponsors/[id]">, "params" | "searchParams">) {
   const { id } = await params;
   if (!z.uuid().safeParse(id).success) notFound();
   const [profile, session] = await Promise.all([getSponsorProfile(id), getSession()]);
   if (!profile) notFound();
-  const canMessage = session && session.user.id !== id;
+  const isOwner = session?.user.id === id;
+  const canMessage = session && !isOwner;
+  const { tab, before } = await searchParams;
+  const savedTab = isOwner && tab === "saved";
+  const cursor = z.uuid().safeParse(before);
 
   return (
     <>
@@ -36,7 +42,12 @@ async function SponsorProfile({ params }: { params: Promise<{ id: string }> }) {
           <MessageButton userId={id} size="large" />
         </div>
       )}
-      <ActiveCampaigns sponsorId={id} />
+      {isOwner && <ProfileTabs basePath={`/sponsors/${id}`} first="Campaigns" savedActive={savedTab} />}
+      {savedTab ? (
+        <SavedPosts userId={id} basePath={`/sponsors/${id}`} before={cursor.success ? cursor.data : undefined} />
+      ) : (
+        <ActiveCampaigns sponsorId={id} />
+      )}
     </>
   );
 }
