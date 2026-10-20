@@ -31,6 +31,7 @@ import {
   events,
   follows,
   postLikes,
+  postSaves,
   postViews,
   verificationFees,
   donations,
@@ -285,6 +286,9 @@ async function main() {
       const liked = [...mine.filter((p) => pick(`like:${p.id}`) < 0.35), ...others.filter((p) => pick(`like:${p.id}`) < 0.05)];
       const looked = mine.filter((p) => !liked.includes(p) && pick(`look:${p.id}`) < 0.4);
       if (liked.length) await tx.insert(postLikes).values(liked.map((p) => ({ userId: id, postId: p.id }))).onConflictDoNothing();
+      // A couple of liked posts are also saved, so the Saved tab has something in it.
+      const saved = liked.filter((p) => pick(`save:${p.id}`) < 0.4).slice(0, 3);
+      if (saved.length) await tx.insert(postSaves).values(saved.map((p) => ({ userId: id, postId: p.id }))).onConflictDoNothing();
       if (looked.length) {
         await tx
           .insert(postViews)

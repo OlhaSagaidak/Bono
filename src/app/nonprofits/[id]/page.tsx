@@ -4,6 +4,8 @@ import { Suspense } from "react";
 import { z } from "zod";
 import { PostList } from "@/components/post-list";
 import { ProfileHeader } from "@/components/profile-header";
+import { ProfileTabs } from "@/components/profile-tabs";
+import { SavedPosts } from "@/components/saved-posts";
 import { DonateButton } from "@/components/donate-button";
 import { EventCard } from "@/components/event-card";
 import { hostedEvents } from "@/lib/events/queries";
@@ -40,8 +42,10 @@ async function NonprofitProfile({
   // Unverified nonprofits are invisible to everyone else, as if they didn't exist yet.
   if (!profile.verifiedAt && !isOwner) notFound();
 
-  const { before } = await searchParams;
+  const { before, tab } = await searchParams;
   const cursor = z.uuid().safeParse(before);
+  // The Saved tab is private: anyone else asking for it gets the public page.
+  const savedTab = isOwner && tab === "saved";
   const { posts, nextBefore, fetchedAt } = await getPosts({
     nonprofitId: id,
     before: cursor.success ? cursor.data : undefined,
@@ -113,21 +117,26 @@ async function NonprofitProfile({
           </ul>
         </section>
       )}
-      <section aria-labelledby="posts-heading" className="flex flex-col gap-4">
-        <h2 id="posts-heading" className="text-xl font-semibold">
-          Posts
-        </h2>
-        <PostList
-          posts={posts}
-          fetchedAt={fetchedAt}
-          viewerId={viewerId}
-          donateClientId={donateClientId}
-          viewerLanguage={await viewerLanguage()}
-          nextHref={nextBefore && `/nonprofits/${id}?before=${nextBefore}`}
-          nextLabel="Older posts"
-          empty="No posts yet."
-        />
-      </section>
+      {isOwner && <ProfileTabs basePath={`/nonprofits/${id}`} first="Posts" savedActive={savedTab} />}
+      {savedTab ? (
+        <SavedPosts userId={id} basePath={`/nonprofits/${id}`} before={cursor.success ? cursor.data : undefined} />
+      ) : (
+        <section aria-labelledby="posts-heading" className="flex flex-col gap-4">
+          <h2 id="posts-heading" className="text-xl font-semibold">
+            Posts
+          </h2>
+          <PostList
+            posts={posts}
+            fetchedAt={fetchedAt}
+            viewerId={viewerId}
+            donateClientId={donateClientId}
+            viewerLanguage={await viewerLanguage()}
+            nextHref={nextBefore && `/nonprofits/${id}?before=${nextBefore}`}
+            nextLabel="Older posts"
+            empty="No posts yet."
+          />
+        </section>
+      )}
     </>
   );
 }

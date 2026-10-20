@@ -193,6 +193,17 @@ export const follows = pgTable(
   (t) => [primaryKey({ columns: [t.followerId, t.nonprofitId] }), index("follows_nonprofit_idx").on(t.nonprofitId)],
 );
 
+// Posts someone bookmarked: private, shown only on their own profile's Saved tab.
+export const postSaves = pgTable(
+  "post_saves",
+  {
+    userId: uuid("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+    postId: uuid("post_id").notNull().references(() => posts.id, { onDelete: "cascade" }),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [primaryKey({ columns: [t.userId, t.postId] }), index("post_saves_user_idx").on(t.userId, t.createdAt)],
+);
+
 // How long each person has looked at each post (summed over visits), and when
 // they last saw it. Written in batches from the browser (IntersectionObserver).
 export const postViews = pgTable(
