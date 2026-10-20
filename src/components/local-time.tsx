@@ -5,6 +5,10 @@ import { useSyncExternalStore } from "react";
 // Times are stored in UTC and shown in the viewer's own timezone. The server
 // doesn't know that timezone, so the server render shows UTC (labeled) and
 // the browser re-renders it in local time right away.
+//
+// That first UTC text is built by hand, not with Intl: browsers format dates
+// slightly differently from Node (Safari, for one, uses another space before
+// "AM"), and the browser's first render must match the server's exactly.
 const noop = () => () => {};
 export function useIsClient() {
   return useSyncExternalStore(noop, () => true, () => false);
@@ -18,11 +22,26 @@ const formats = {
   time: { hour: "numeric", minute: "2-digit" },
 } as const satisfies Record<string, Intl.DateTimeFormatOptions>;
 
+const MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+const WEEKDAYS = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+
+/** The same shapes as `formats`, in UTC, without Intl. */
+function utcText(d: Date, format: keyof typeof formats): string {
+  const h = d.getUTCHours();
+  const time = `${h % 12 || 12}:${String(d.getUTCMinutes()).padStart(2, "0")} ${h < 12 ? "AM" : "PM"}`;
+  const date = `${MONTHS[d.getUTCMonth()]} ${d.getUTCDate()}`;
+  if (format === "date") return date;
+  if (format === "time") return time;
+  return `${WEEKDAYS[d.getUTCDay()]}, ${date}, ${time}`;
+}
+
+const local = (d: Date, format: keyof typeof formats) => new Intl.DateTimeFormat("en", formats[format]).format(d);
+
 export function LocalTime({ iso, format = "full" }: { iso: string; format?: keyof typeof formats }) {
   const isClient = useIsClient();
   const date = new Date(iso);
-  const text = new Intl.DateTimeFormat("en", { ...formats[format], ...(isClient ? {} : { timeZone: "UTC" }) }).format(date);
-  return <time dateTime={iso}>{isClient || format === "date" ? text : `${text} UTC`}</time>;
+  if (isClient) return <time dateTime={iso}>{local(date, format)}</time>;
+  return <time dateTime={iso}>{format === "date" ? utcText(date, format) : `${utcText(date, format)} UTC`}</time>;
 }
 
 /** "Sat, Oct 25, 10:00 AM – 1:00 PM" (or a second date when it ends on another day). */
@@ -30,13 +49,13 @@ export function LocalTimeRange({ startIso, endIso }: { startIso: string; endIso:
   const isClient = useIsClient();
   const start = new Date(startIso);
   const end = new Date(endIso);
-  const tz = isClient ? {} : { timeZone: "UTC" };
-  const sameDay = new Intl.DateTimeFormat("en-CA", { dateStyle: "short", ...tz }).format(start) === new Intl.DateTimeFormat("en-CA", { dateStyle: "short", ...tz }).format(end);
-  const startText = new Intl.DateTimeFormat("en", { ...formats.full, ...tz }).format(start);
-  const endText = new Intl.DateTimeFormat("en", { ...(sameDay ? formats.time : formats.full), ...tz }).format(end);
+  const sameDay = isClient
+    ? start.toDateString() === end.toDateString()
+    : start.toISOString().slice(0, 10) === end.toISOString().slice(0, 10);
+  const show = isClient ? local : utcText;
   return (
     <span>
-      <time dateTime={startIso}>{startText}</time> – <time dateTime={endIso}>{endText}</time>
+      <time dateTime={startIso}>{show(start, "full")}</time> – <time dateTime={endIso}>{show(end, sameDay ? "time" : "full")}</time>
       {!isClient && " UTC"}
     </span>
   );
@@ -62,8 +81,7 @@ const relative = new Intl.RelativeTimeFormat("en", { numeric: "auto", style: "sh
 export function TimeAgo({ iso }: { iso: string }) {
   const now = useSyncExternalStore(subscribeClock, currentMinute, () => 0);
   const date = new Date(iso);
-  const dateText = new Intl.DateTimeFormat("en", { month: "short", day: "numeric", ...(now ? {} : { timeZone: "UTC" }) }).format(date);
-  let text = dateText;
+  let text = now ? local(date, "date") : utcText(date, "date");
   if (now) {
     const minutes = Math.round((now - date.getTime()) / 60_000);
     if (minutes < 1) text = "just now";

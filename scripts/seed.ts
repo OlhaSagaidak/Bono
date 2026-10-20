@@ -43,6 +43,7 @@ import {
 import { embedCauses, embedPosts } from "@/lib/ai/embed-posts";
 import { fitImage, replaceImage, squarePhoto } from "@/lib/images";
 import { conversations as demoConversations, nonprofits, sponsors, supporters } from "./seed-data";
+import { seedReels } from "./seed-reels";
 import { seedStories } from "./seed-stories";
 
 // Bono login emails for demo accounts. `.example` is reserved, so these can
@@ -354,6 +355,16 @@ async function main() {
       supporterIds,
     );
 
+    // Reels from seed-media/reels, if Olya added any (they don't expire, so they're added once).
+    const supporterRows = await tx.select({ id: users.id, email: users.email }).from(users).where(inArray(users.id, supporterIds));
+    const reelCount = await seedReels(
+      tx,
+      now,
+      nonprofits.filter((n) => !n.unverified).map((n) => ({ slug: n.slug, id: nonprofitIds.get(n.slug)!, causes: n.causes })),
+      supporterRows.map((r) => ({ id: r.id, interests: supporters.find((s) => loginEmail(s.name) === r.email)?.interests ?? [] })),
+      stableId,
+    );
+
     // Notifications for the history above, so bells aren't empty in the demo:
     // follows, RSVPs and likes for the nonprofits, new events for followers.
     // Dated like what they're about; about a third start out read. Existing
@@ -388,7 +399,7 @@ async function main() {
       .from(verificationFees)
       .where(inArray(verificationFees.nonprofitId, demoUsers));
 
-    return { removed, posts: postCount, keptDonations, keptFees, seededPostIds, storyCount };
+    return { removed, posts: postCount, keptDonations, keptFees, seededPostIds, storyCount, reelCount };
   });
 
   // Vectors for the AI feed. Seeded posts are re-embedded every run, since
@@ -398,7 +409,7 @@ async function main() {
 
   console.log(
     `Seeded ${nonprofits.length} nonprofits (${nonprofits.filter((n) => n.unverified).length} unverified), ` +
-      `${sponsors.length} sponsors, ${supporters.length} supporters, ${result.posts} posts and ${result.storyCount} stories.`,
+      `${sponsors.length} sponsors, ${supporters.length} supporters, ${result.posts} posts, ${result.storyCount} stories and ${result.reelCount} reels.`,
   );
   console.log(
     reset

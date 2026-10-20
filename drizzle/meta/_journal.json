@@ -155,6 +155,13 @@
       "when": 1792505374104,
       "tag": "0021_stories",
       "breakpoints": true
+    },
+    {
+      "idx": 22,
+      "version": "7",
+      "when": 1792506194162,
+      "tag": "0022_reels",
+      "breakpoints": true
     }
   ]
 }

@@ -5,6 +5,7 @@ import { z } from "zod";
 import { PostList } from "@/components/post-list";
 import { ProfileHeader } from "@/components/profile-header";
 import { ProfileTabs } from "@/components/profile-tabs";
+import { ReelThumbs } from "@/components/reel-thumbs";
 import { SavedPosts } from "@/components/saved-posts";
 import { DonateButton } from "@/components/donate-button";
 import { EventCard } from "@/components/event-card";
@@ -16,6 +17,7 @@ import { getSession } from "@/lib/auth/session";
 import { viewerLanguage } from "@/lib/ai/viewer-language";
 import { payPalClientId } from "@/lib/paypal/public-config";
 import { getPosts } from "@/lib/posts/queries";
+import { getNonprofitReels } from "@/lib/reels/queries";
 import { countFollowers, getNonprofitProfile } from "@/lib/profiles/queries";
 
 export default function NonprofitPage({ params, searchParams }: PageProps<"/nonprofits/[id]">) {
@@ -35,7 +37,7 @@ async function NonprofitProfile({
   const { id } = await params;
   if (!z.uuid().safeParse(id).success) notFound();
   const [profile, session, followers] = await Promise.all([getNonprofitProfile(id), getSession(), countFollowers(id)]);
-  const upcoming = await hostedEvents(id, session?.user.id ?? null, { upcomingOnly: true });
+  const [upcoming, reels] = await Promise.all([hostedEvents(id, session?.user.id ?? null, { upcomingOnly: true }), getNonprofitReels(id)]);
   if (!profile) notFound();
   const viewerId = session?.user.id ?? null;
   const isOwner = viewerId === id;
@@ -115,6 +117,14 @@ async function NonprofitProfile({
               <EventCard key={e.id} event={e} />
             ))}
           </ul>
+        </section>
+      )}
+      {reels.length > 0 && (
+        <section aria-labelledby="reels-heading" className="flex flex-col gap-3">
+          <h2 id="reels-heading" className="text-xl font-semibold">
+            Reels
+          </h2>
+          <ReelThumbs reels={reels} />
         </section>
       )}
       {isOwner && <ProfileTabs basePath={`/nonprofits/${id}`} first="Posts" savedActive={savedTab} />}
