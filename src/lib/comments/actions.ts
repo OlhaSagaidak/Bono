@@ -6,6 +6,9 @@ import { auth } from "@/auth";
 import { db } from "@/db";
 import { commentReactions, notifications, postComments, reactionEnum, type Reaction } from "@/db/schema";
 import { notify } from "@/lib/notifications/notify";
+import { AiUnavailableError, translate } from "@/lib/ai/claude";
+import { LANGUAGES } from "@/lib/posts/validation";
+import { detectLanguage } from "./language";
 import { COMMENT_MAX } from "./reactions";
 import { getComments, visiblePost, type CommentView } from "./queries";
 
@@ -39,7 +42,7 @@ export async function addCommentAction(postId: string, body: string, parentId: s
     parentAuthorId = parent.authorId;
   }
 
-  const [comment] = await db.insert(postComments).values({ postId, authorId: userId, parentId: threadId, body: text }).returning({ id: postComments.id, at: postComments.createdAt });
+  const [comment] = await db.insert(postComments).values({ postId, authorId: userId, parentId: threadId, body: text, language: detectLanguage(text) }).returning({ id: postComments.id, at: postComments.createdAt });
 
   // The nonprofit hears about comments on its post (one notification per post,
   // bumped by each new comment); the person replied to hears about the reply.
@@ -94,4 +97,22 @@ export async function reactToCommentAction(
   }
   const fresh = (await getComments(comment.postId, userId))?.find((c) => c.id === commentId);
   return { reactions: fresh?.reactions ?? [], viewerReaction: fresh?.viewerReaction ?? null };
+}
+
+const languages = new Set<string>(LANGUAGES.map((l) => l.value));
+
+/** A comment in the viewer's language: one cached Haiku call per comment and language, ever. */
+export async function translateCommentAction(commentId: string, language: string): Promise<{ text: string } | { error: string }> {
+  const session = await auth();
+  if (!session) return { error: "Log in to translate comments." };
+  if (!uuid.safeParse(commentId).success || !languages.has(language)) return { error: "That translation isn't available." };
+  const comment = await db.query.postComments.findFirst({ where: eq(postComments.id, commentId), columns: { postId: true, body: true, language: true } });
+  if (!comment || !(await visiblePost(comment.postId, session.user.id))) return { error: "That comment was deleted." };
+  if (comment.language === language) return { text: comment.body };
+  try {
+    return { text: await translate(comment.body, language) };
+  } catch (error) {
+    if (error instanceof AiUnavailableError) return { error: "Translation isn't available right now. Please try again later." };
+    throw error;
+  }
 }

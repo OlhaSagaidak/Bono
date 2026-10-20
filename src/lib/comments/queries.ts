@@ -8,6 +8,8 @@ export type CommentView = {
   id: string;
   parentId: string | null;
   body: string;
+  /** "en", "es" or "uk"; null when it was too short to tell. */
+  language: string | null;
   createdAt: string; // ISO
   author: { id: string; name: string; photoImageId: string | null; href: string };
   /** How many of each reaction, most used first. */
@@ -44,6 +46,7 @@ export async function getComments(postId: string, viewerId: string): Promise<Com
       id: postComments.id,
       parentId: postComments.parentId,
       body: postComments.body,
+      language: postComments.language,
       createdAt: postComments.createdAt,
       authorId: users.id,
       authorRole: users.role,
@@ -72,6 +75,7 @@ export async function getComments(postId: string, viewerId: string): Promise<Com
     id: r.id,
     parentId: r.parentId,
     body: r.body,
+    language: r.language,
     createdAt: r.createdAt.toISOString(),
     author: { id: r.authorId, name: r.authorName, photoImageId: r.authorPhoto, href: profilePath(r.authorRole as Role, r.authorId) },
     reactions: r.reactions,
