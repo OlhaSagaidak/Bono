@@ -383,5 +383,54 @@ export const boosts = pgTable(
   (t) => [index("boosts_post_idx").on(t.postId, t.endsAt), index("boosts_sponsor_idx").on(t.sponsorId)],
 );
 
+// Events hosted by verified nonprofits. Times are stored in UTC and shown in
+// each viewer's own timezone. Cancelled events stay, so people who responded
+// see that they're cancelled.
+export const eventLocationEnum = pgEnum("event_location", ["in_person", "online"]);
+export const eventStatusEnum = pgEnum("event_status", ["scheduled", "cancelled"]);
+export const rsvpStatusEnum = pgEnum("rsvp_status", ["interested", "going"]);
+
+export const events = pgTable(
+  "events",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    nonprofitId: uuid("nonprofit_id")
+      .notNull()
+      .references(() => nonprofitProfiles.userId, { onDelete: "cascade" }),
+    title: text("title").notNull(),
+    description: text("description").notNull(),
+    coverImageId: uuid("cover_image_id").references(() => images.id, { onDelete: "set null" }),
+    startsAt: timestamp("starts_at", { withTimezone: true }).notNull(),
+    endsAt: timestamp("ends_at", { withTimezone: true }).notNull(),
+    locationType: eventLocationEnum("location_type").notNull(),
+    address: text("address"),
+    onlineUrl: text("online_url"),
+    capacity: integer("capacity"), // null = no limit on "Going"
+    status: eventStatusEnum("status").notNull().default("scheduled"),
+    ...timestamps,
+  },
+  (t) => [index("events_starts_idx").on(t.startsAt), index("events_nonprofit_idx").on(t.nonprofitId, t.startsAt)],
+);
+
+export const eventCauses = pgTable(
+  "event_causes",
+  {
+    eventId: uuid("event_id").notNull().references(() => events.id, { onDelete: "cascade" }),
+    causeSlug: text("cause_slug").notNull().references(() => causes.slug),
+  },
+  (t) => [primaryKey({ columns: [t.eventId, t.causeSlug] })],
+);
+
+export const eventRsvps = pgTable(
+  "event_rsvps",
+  {
+    eventId: uuid("event_id").notNull().references(() => events.id, { onDelete: "cascade" }),
+    userId: uuid("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+    status: rsvpStatusEnum("status").notNull(),
+    ...timestamps,
+  },
+  (t) => [primaryKey({ columns: [t.eventId, t.userId] }), index("event_rsvps_user_idx").on(t.userId, t.status)],
+);
+
 export type User = typeof users.$inferSelect;
 export type Cause = typeof causes.$inferSelect;
