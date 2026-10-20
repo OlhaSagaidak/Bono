@@ -12,7 +12,7 @@
 import { createHash } from "node:crypto";
 import { existsSync, readFileSync } from "node:fs";
 import bcrypt from "bcryptjs";
-import { and, count, eq, inArray, like, notInArray, sql } from "drizzle-orm";
+import { and, count, eq, inArray, like, notInArray, sql, type SQL } from "drizzle-orm";
 import { z } from "zod";
 import { db } from "@/db";
 import {
@@ -34,6 +34,7 @@ import {
   postViews,
   verificationFees,
   donations,
+  notifications,
 } from "@/db/schema";
 import { embedCauses, embedPosts } from "@/lib/ai/embed-posts";
 import { fitImage, replaceImage, squarePhoto } from "@/lib/images";
@@ -300,6 +301,29 @@ async function main() {
         });
       if (rsvps.length) await tx.insert(eventRsvps).values(rsvps).onConflictDoNothing();
     }
+
+    // Notifications for the history above, so bells aren't empty in the demo:
+    // follows, RSVPs and likes for the nonprofits, new events for followers.
+    // Dated like what they're about; about a third start out read. Existing
+    // ones are left alone (on conflict do nothing), so read state survives re-runs.
+    const demo = sql`(select id from ${users} where email like ${`%@${DEMO_DOMAIN}`})`;
+    const someRead = (key: SQL) => sql`case when abs(hashtext(${key})) % 3 = 0 then now() end`;
+    await tx.execute(sql`
+      insert into ${notifications} (recipient_id, type, actor_id, target_id, group_key, created_at, since_at, read_at)
+      select f.nonprofit_id, 'follow'::notification_type, f.follower_id, null::uuid, 'follow:' || f.follower_id, f.created_at, f.created_at, ${someRead(sql`f.follower_id::text`)}
+      from ${follows} f where f.nonprofit_id in ${demo} and f.follower_id in ${demo}
+      union all
+      select e.nonprofit_id, 'rsvp'::notification_type, r.user_id, e.id, 'rsvp:' || e.id || ':' || r.user_id, r.created_at, r.created_at, ${someRead(sql`r.user_id::text || e.id`)}
+      from ${eventRsvps} r join ${events} e on e.id = r.event_id where e.nonprofit_id in ${demo} and r.user_id in ${demo}
+      union all
+      select f.follower_id, 'event_new'::notification_type, e.nonprofit_id, e.id, 'event_new:' || e.id, e.created_at, e.created_at, ${someRead(sql`f.follower_id::text || e.id`)}
+      from ${events} e join ${follows} f on f.nonprofit_id = e.nonprofit_id where e.nonprofit_id in ${demo} and f.follower_id in ${demo}
+      union all
+      select p.nonprofit_id, 'post_likes'::notification_type, (array_agg(l.user_id order by l.created_at desc))[1], p.id, 'post_likes:' || p.id,
+             max(l.created_at), min(l.created_at), ${someRead(sql`p.id::text`)}
+      from ${postLikes} l join ${posts} p on p.id = l.post_id where p.nonprofit_id in ${demo} and l.user_id in ${demo}
+      group by p.id, p.nonprofit_id
+      on conflict (recipient_id, group_key) do nothing`);
 
     // What history the demo accounts carry after this run.
     const demoUsers = tx.select({ id: users.id }).from(users).where(like(users.email, `%@${DEMO_DOMAIN}`));

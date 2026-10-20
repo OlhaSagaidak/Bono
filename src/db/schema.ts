@@ -8,6 +8,7 @@ import {
   primaryKey,
   text,
   timestamp,
+  uniqueIndex,
   uuid,
   vector,
 } from "drizzle-orm/pg-core";
@@ -430,6 +431,46 @@ export const eventRsvps = pgTable(
     ...timestamps,
   },
   (t) => [primaryKey({ columns: [t.eventId, t.userId] }), index("event_rsvps_user_idx").on(t.userId, t.status)],
+);
+
+// Notifications: one row per thing to tell someone, written by lib/notifications.
+// target_id points at the post, event, story or conversation the type implies.
+// group_key makes a notification one-per-thing: repeats bump the same row
+// (likes on a post become "Maya and 11 others liked your post") or are
+// skipped (a reminder is sent once).
+export const notificationTypeEnum = pgEnum("notification_type", [
+  "message",
+  "follow",
+  "rsvp",
+  "event_new",
+  "story_new",
+  "event_soon",
+  "event_cancelled",
+  "event_changed",
+  "post_likes",
+]);
+export type NotificationType = (typeof notificationTypeEnum.enumValues)[number];
+
+export const notifications = pgTable(
+  "notifications",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    recipientId: uuid("recipient_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+    type: notificationTypeEnum("type").notNull(),
+    // Who did it: the latest one, for grouped notifications.
+    actorId: uuid("actor_id").references(() => users.id, { onDelete: "cascade" }),
+    targetId: uuid("target_id"),
+    groupKey: text("group_key").notNull(),
+    // Grouped notifications count what happened since this moment (reset when
+    // a new one arrives after the last was read).
+    sinceAt: timestamp("since_at", { withTimezone: true }).notNull().defaultNow(),
+    readAt: timestamp("read_at", { withTimezone: true }),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [
+    index("notifications_recipient_idx").on(t.recipientId, t.createdAt),
+    uniqueIndex("notifications_group_idx").on(t.recipientId, t.groupKey),
+  ],
 );
 
 export type User = typeof users.$inferSelect;

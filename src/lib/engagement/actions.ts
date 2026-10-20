@@ -5,6 +5,7 @@ import { z } from "zod";
 import { auth } from "@/auth";
 import { db } from "@/db";
 import { follows, nonprofitProfiles, postLikes, posts } from "@/db/schema";
+import { notify } from "@/lib/notifications/notify";
 
 // Likes and follows: small signals the AI feed learns from. Both toggle, and
 // both only work on verified nonprofits (others are invisible anyway).
@@ -31,7 +32,11 @@ export async function toggleLikeAction(postId: string): Promise<Result<{ liked: 
     .delete(postLikes)
     .where(and(eq(postLikes.userId, userId), eq(postLikes.postId, postId)))
     .returning({ postId: postLikes.postId });
-  if (removed.length === 0) await db.insert(postLikes).values({ userId, postId }).onConflictDoNothing();
+  if (removed.length === 0) {
+    const [like] = await db.insert(postLikes).values({ userId, postId }).onConflictDoNothing().returning({ at: postLikes.createdAt });
+    // Grouped per post: "Maya and 3 others liked your post".
+    if (like) await notify([post.nonprofitId], { type: "post_likes", actorId: userId, targetId: postId, key: postId, repeat: "bump", at: like.at });
+  }
 
   const [{ likes }] = await db.select({ likes: count() }).from(postLikes).where(eq(postLikes.postId, postId));
   return { liked: removed.length === 0, likes };
@@ -54,6 +59,10 @@ export async function toggleFollowAction(nonprofitId: string): Promise<Result<{ 
     .delete(follows)
     .where(and(eq(follows.followerId, followerId), eq(follows.nonprofitId, nonprofitId)))
     .returning({ nonprofitId: follows.nonprofitId });
-  if (removed.length === 0) await db.insert(follows).values({ followerId, nonprofitId }).onConflictDoNothing();
+  if (removed.length === 0) {
+    await db.insert(follows).values({ followerId, nonprofitId }).onConflictDoNothing();
+    // Once per follower, so unfollowing and following again doesn't notify twice.
+    await notify([nonprofitId], { type: "follow", actorId: followerId, targetId: null, key: followerId, repeat: "once" });
+  }
   return { following: removed.length === 0 };
 }

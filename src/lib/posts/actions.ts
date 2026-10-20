@@ -6,7 +6,7 @@ import { redirect } from "next/navigation";
 import { z } from "zod";
 import { auth } from "@/auth";
 import { db } from "@/db";
-import { images, nonprofitCauses, nonprofitProfiles, postCauses, posts } from "@/db/schema";
+import { images, nonprofitCauses, nonprofitProfiles, notifications, postCauses, posts } from "@/db/schema";
 import { formText, type FormState } from "@/lib/forms";
 import { embedPosts } from "@/lib/ai/embed-posts";
 import { checkUploadedImage, fitImage, storeImage } from "@/lib/images";
@@ -96,6 +96,8 @@ export async function deletePostAction(postId: string): Promise<{ error?: string
       .where(and(eq(posts.id, postId), eq(posts.nonprofitId, session.user.id)))
       .returning({ imageId: posts.imageId });
     if (post?.imageId) await tx.delete(images).where(eq(images.id, post.imageId));
+    // "liked your post" notifications would point at nothing.
+    if (post) await tx.delete(notifications).where(and(eq(notifications.targetId, postId), eq(notifications.type, "post_likes")));
     return Boolean(post);
   });
   if (!deleted) return { error: "That post was already deleted, or isn't yours." };

@@ -103,4 +103,5 @@ export async function replaceImage(
   return id;
 }
 
-export const imageUrl = (id: string) => `/api/images/${id}`;
+// Also importable from client components, which can't load sharp.
+export { imageUrl } from "@/lib/image-url";
