@@ -162,6 +162,13 @@
       "when": 1792506194162,
       "tag": "0022_reels",
       "breakpoints": true
+    },
+    {
+      "idx": 23,
+      "version": "7",
+      "when": 1792508381720,
+      "tag": "0023_comments",
+      "breakpoints": true
     }
   ]
 }

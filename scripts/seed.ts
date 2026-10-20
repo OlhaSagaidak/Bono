@@ -43,6 +43,7 @@ import {
 import { embedCauses, embedPosts } from "@/lib/ai/embed-posts";
 import { fitImage, replaceImage, squarePhoto } from "@/lib/images";
 import { conversations as demoConversations, nonprofits, sponsors, supporters } from "./seed-data";
+import { seedComments } from "./seed-comments";
 import { seedReels } from "./seed-reels";
 import { seedStories } from "./seed-stories";
 
@@ -365,6 +366,9 @@ async function main() {
       stableId,
     );
 
+    // Comments, replies and reactions on a few demo posts.
+    const commentCount = await seedComments(tx, now, DEMO_DOMAIN, (org, n) => stableId(`post:${org}:${n}`), stableId);
+
     // Notifications for the history above, so bells aren't empty in the demo:
     // follows, RSVPs and likes for the nonprofits, new events for followers.
     // Dated like what they're about; about a third start out read. Existing
@@ -399,7 +403,7 @@ async function main() {
       .from(verificationFees)
       .where(inArray(verificationFees.nonprofitId, demoUsers));
 
-    return { removed, posts: postCount, keptDonations, keptFees, seededPostIds, storyCount, reelCount };
+    return { removed, posts: postCount, keptDonations, keptFees, seededPostIds, storyCount, reelCount, commentCount };
   });
 
   // Vectors for the AI feed. Seeded posts are re-embedded every run, since
@@ -409,7 +413,7 @@ async function main() {
 
   console.log(
     `Seeded ${nonprofits.length} nonprofits (${nonprofits.filter((n) => n.unverified).length} unverified), ` +
-      `${sponsors.length} sponsors, ${supporters.length} supporters, ${result.posts} posts, ${result.storyCount} stories and ${result.reelCount} reels.`,
+      `${sponsors.length} sponsors, ${supporters.length} supporters, ${result.posts} posts, ${result.storyCount} stories, ${result.reelCount} reels and ${result.commentCount} new comments.`,
   );
   console.log(
     reset

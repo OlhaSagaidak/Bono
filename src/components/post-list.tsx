@@ -14,6 +14,7 @@ export function PostList({
   caughtUpAt = null,
   showWhy = false,
   boost = null,
+  openComments = false,
   empty,
 }: {
   posts: FeedPost[];
@@ -31,6 +32,8 @@ export function PostList({
   showWhy?: boolean;
   /** Sponsors viewing the feed can boost posts. */
   boost?: { feeCents: number; days: number; clientId: string } | null;
+  /** A single post's page opens its comments. */
+  openComments?: boolean;
   empty: React.ReactNode;
 }) {
   if (posts.length === 0) {
@@ -58,6 +61,7 @@ export function PostList({
             canTranslate={viewerId !== null}
             showWhy={showWhy}
             boost={boost}
+            openComments={openComments}
           />
         </Fragment>
       ))}

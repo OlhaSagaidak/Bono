@@ -193,6 +193,36 @@ export const follows = pgTable(
   (t) => [primaryKey({ columns: [t.followerId, t.nonprofitId] }), index("follows_nonprofit_idx").on(t.nonprofitId)],
 );
 
+// Comments on posts. Replies are one level deep, like Facebook's: a reply's
+// parentId is always a top-level comment.
+export const postComments = pgTable(
+  "post_comments",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    postId: uuid("post_id").notNull().references(() => posts.id, { onDelete: "cascade" }),
+    authorId: uuid("author_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+    parentId: uuid("parent_id").references((): AnyPgColumn => postComments.id, { onDelete: "cascade" }),
+    body: text("body").notNull(), // at most 1000 characters (lib/comments/actions.ts)
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [index("post_comments_post_idx").on(t.postId, t.createdAt), index("post_comments_parent_idx").on(t.parentId)],
+);
+
+// One reaction per person per comment. No "angry": Bono is a positive space.
+export const reactionEnum = pgEnum("reaction", ["like", "love", "care", "haha", "wow", "sad"]);
+export type Reaction = (typeof reactionEnum.enumValues)[number];
+
+export const commentReactions = pgTable(
+  "comment_reactions",
+  {
+    commentId: uuid("comment_id").notNull().references(() => postComments.id, { onDelete: "cascade" }),
+    userId: uuid("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+    reaction: reactionEnum("reaction").notNull(),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [primaryKey({ columns: [t.commentId, t.userId] })],
+);
+
 // Posts someone bookmarked: private, shown only on their own profile's Saved tab.
 export const postSaves = pgTable(
   "post_saves",
@@ -459,6 +489,9 @@ export const notificationTypeEnum = pgEnum("notification_type", [
   "event_cancelled",
   "event_changed",
   "post_likes",
+  "post_comment",
+  "comment_reply",
+  "comment_reactions",
 ]);
 export type NotificationType = (typeof notificationTypeEnum.enumValues)[number];
 

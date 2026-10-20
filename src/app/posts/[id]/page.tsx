@@ -52,6 +52,7 @@ async function Post({ params }: Pick<PageProps<"/posts/[id]">, "params">) {
         donateClientId={viewerId && viewerId !== owner.nonprofitId ? payPalClientId() : null}
         viewerLanguage={await viewerLanguage()}
         nextHref={null}
+        openComments
         empty="This post was deleted."
       />
     </>

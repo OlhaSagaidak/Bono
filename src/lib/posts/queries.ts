@@ -2,7 +2,7 @@ import { and, asc, count, desc, eq, inArray, isNotNull, sql, type SQL } from "dr
 import { db } from "@/db";
 import { activeBoostSponsors } from "@/lib/boosts/queries";
 import { matchingSponsorsFor } from "@/lib/matching/matching";
-import { causes, follows, nonprofitProfiles, postCauses, postLikes, postSaves, posts } from "@/db/schema";
+import { causes, follows, nonprofitProfiles, postCauses, postComments, postLikes, postSaves, posts } from "@/db/schema";
 
 export const PAGE_SIZE = 20;
 
@@ -49,6 +49,7 @@ export async function getPostsByIds(ids: string[], viewerId: string | null = nul
         ...r,
         causes: tags.get(r.id) ?? [],
         likes: engagement.likes.get(r.id) ?? 0,
+        comments: engagement.comments.get(r.id) ?? 0,
         likedByViewer: engagement.liked.has(r.id),
         savedByViewer: engagement.saved.has(r.id),
         viewerFollows: engagement.followed.has(r.nonprofit.id),
@@ -63,12 +64,17 @@ export async function getPostsByIds(ids: string[], viewerId: string | null = nul
 }
 
 async function getEngagement(postIds: string[], nonprofitIds: string[], viewerId: string | null) {
-  const [likeCounts, liked, saved, followed] = await Promise.all([
+  const [likeCounts, commentCounts, liked, saved, followed] = await Promise.all([
     db
       .select({ postId: postLikes.postId, n: count() })
       .from(postLikes)
       .where(inArray(postLikes.postId, postIds))
       .groupBy(postLikes.postId),
+    db
+      .select({ postId: postComments.postId, n: count() })
+      .from(postComments)
+      .where(inArray(postComments.postId, postIds))
+      .groupBy(postComments.postId),
     viewerId
       ? db
           .select({ postId: postLikes.postId })
@@ -90,6 +96,7 @@ async function getEngagement(postIds: string[], nonprofitIds: string[], viewerId
   ]);
   return {
     likes: new Map(likeCounts.map((r) => [r.postId, r.n])),
+    comments: new Map(commentCounts.map((r) => [r.postId, r.n])),
     liked: new Set(liked.map((r) => r.postId)),
     saved: new Set(saved.map((r) => r.postId)),
     followed: new Set(followed.map((r) => r.nonprofitId)),

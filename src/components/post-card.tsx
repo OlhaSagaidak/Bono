@@ -5,6 +5,7 @@ import { DonateButton } from "@/components/donate-button";
 import { FollowButton } from "@/components/follow-button";
 import { LikeButton } from "@/components/like-button";
 import { PostBody } from "@/components/post-body";
+import { PostActions } from "@/components/post-comments";
 import { SaveButton } from "@/components/save-button";
 import { WhyButton } from "@/components/why-button";
 import { Logo } from "@/components/profile-header";
@@ -42,6 +43,7 @@ export function PostCard({
   canTranslate,
   showWhy,
   boost,
+  openComments = false,
 }: {
   post: FeedPost;
   now: number;
@@ -57,6 +59,8 @@ export function PostCard({
   showWhy: boolean;
   /** For sponsors: what a boost costs, and the PayPal client ID to pay with. */
   boost: { feeCents: number; days: number; clientId: string } | null;
+  /** A post's own page shows its comments right away. */
+  openComments?: boolean;
 }) {
   const profileHref = `/nonprofits/${post.nonprofit.id}`;
   return (
@@ -131,25 +135,31 @@ export function PostCard({
 
       {showWhy && canEngage && <WhyButton postId={post.id} />}
 
-      {(canDelete || canEngage || boost || post.likes > 0) && (
-        <div className="flex items-center justify-between gap-2 border-t border-zinc-200 pt-3 dark:border-zinc-800">
-          <div className="flex items-center gap-2">
-            <LikeButton postId={post.id} liked={post.likedByViewer} likes={post.likes} disabled={!canEngage} />
-            {canEngage && <SaveButton postId={post.id} saved={post.savedByViewer} />}
-            {donateClientId && (
-              <DonateButton
-                nonprofitId={post.nonprofit.id}
-                nonprofitName={post.nonprofit.name}
-                postId={post.id}
-                clientId={donateClientId}
-              />
-            )}
-          </div>
-          {boost && (
-            <BoostButton postId={post.id} nonprofitName={post.nonprofit.name} feeCents={boost.feeCents} days={boost.days} clientId={boost.clientId} />
-          )}
-          {canDelete && <DeletePostButton postId={post.id} />}
-        </div>
+      {(canDelete || canEngage || boost || post.likes > 0 || post.comments > 0) && (
+        <PostActions
+          postId={post.id}
+          count={post.comments}
+          // Anyone signed in may comment, the post's own nonprofit included.
+          signedIn={canEngage || canDelete}
+          initiallyOpen={openComments}
+          left={
+            <>
+              <LikeButton postId={post.id} liked={post.likedByViewer} likes={post.likes} disabled={!canEngage} />
+              {canEngage && <SaveButton postId={post.id} saved={post.savedByViewer} />}
+              {donateClientId && (
+                <DonateButton nonprofitId={post.nonprofit.id} nonprofitName={post.nonprofit.name} postId={post.id} clientId={donateClientId} />
+              )}
+            </>
+          }
+          right={
+            <>
+              {boost && (
+                <BoostButton postId={post.id} nonprofitName={post.nonprofit.name} feeCents={boost.feeCents} days={boost.days} clientId={boost.clientId} />
+              )}
+              {canDelete && <DeletePostButton postId={post.id} />}
+            </>
+          }
+        />
       )}
     </article>
   );
