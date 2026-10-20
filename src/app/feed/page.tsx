@@ -6,6 +6,7 @@ import { DwellTracker } from "@/components/dwell-tracker";
 import { EventsSidebar } from "@/components/events-sidebar";
 import { FollowingSidebar } from "@/components/following-sidebar";
 import { PostList } from "@/components/post-list";
+import { RecentChatsSidebar } from "@/components/recent-chats-sidebar";
 import { SidebarEmpty, SidebarSection } from "@/components/sidebar-section";
 import { getSession } from "@/lib/auth/session";
 import { viewerLanguage } from "@/lib/ai/viewer-language";
@@ -21,9 +22,9 @@ export default function FeedPage({ searchParams }: PageProps<"/feed">) {
     // sidebars' content is reachable from the top bar).
     <div className="mx-auto grid w-full max-w-7xl flex-1 gap-6 px-4 py-6 lg:grid-cols-[16rem_minmax(0,36rem)_17rem] lg:justify-center">
       <aside aria-label="Chats and following" className="hidden flex-col gap-4 lg:flex">
-        <SidebarSection title="Recent chats" href="/messages" linkLabel="Messages">
-          <SidebarEmpty>Your conversations will show here.</SidebarEmpty>
-        </SidebarSection>
+        <Suspense fallback={<SidebarSection title="Recent chats"><SidebarEmpty>Loading…</SidebarEmpty></SidebarSection>}>
+          <RecentChatsSidebarForViewer />
+        </Suspense>
         <Suspense fallback={<SidebarSection title="Following"><SidebarEmpty>Loading…</SidebarEmpty></SidebarSection>}>
           <FollowingSidebarForViewer />
         </Suspense>
@@ -93,4 +94,9 @@ async function FollowingSidebarForViewer() {
 async function EventsSidebarForViewer() {
   const session = await getSession();
   return session ? <EventsSidebar userId={session.user.id} /> : null;
+}
+
+async function RecentChatsSidebarForViewer() {
+  const session = await getSession();
+  return session ? <RecentChatsSidebar userId={session.user.id} /> : null;
 }

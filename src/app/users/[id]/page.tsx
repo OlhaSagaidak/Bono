@@ -2,6 +2,7 @@ import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 import { Suspense } from "react";
 import { z } from "zod";
+import { MessageButton } from "@/components/message-button";
 import { Logo, ProfileHeader } from "@/components/profile-header";
 import { getSession } from "@/lib/auth/session";
 import { getFollowedOrgs } from "@/lib/engagement/queries";
@@ -43,6 +44,11 @@ async function UserProfile({ params }: { params: PageProps<"/users/[id]">["param
         <p className="text-lg whitespace-pre-line">{account.bio}</p>
       ) : (
         isOwner && <p className="text-zinc-600 dark:text-zinc-400">You haven&apos;t written a bio yet.</p>
+      )}
+      {!isOwner && (
+        <div className="flex">
+          <MessageButton userId={id} size="large" />
+        </div>
       )}
       {isOwner && (
         <Link

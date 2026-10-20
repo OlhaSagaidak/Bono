@@ -6,6 +6,7 @@ import { AccountMenu } from "@/components/account-menu";
 import { TopNav } from "@/components/top-nav";
 import { db } from "@/db";
 import { nonprofitProfiles } from "@/db/schema";
+import { unreadConversationCount } from "@/lib/messages/queries";
 import { unreadNotificationCount } from "@/lib/notifications/queries";
 import { profilePath } from "@/lib/profiles/paths";
 
@@ -67,7 +68,7 @@ async function Nav() {
 
   return (
     <nav aria-label="Main" className="flex items-center gap-1">
-      <TopNav unreadNotifications={await unreadNotificationCount(id)} />
+      <TopNav unreadNotifications={await unreadNotificationCount(id)} unreadMessages={await unreadConversationCount(id)} />
       <AccountMenu name={name ?? ""} links={accountLinks} />
     </nav>
   );

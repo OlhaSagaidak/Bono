@@ -1,26 +1,10 @@
 "use client";
 
 import Link from "next/link";
+import { Avatar } from "@/components/avatar";
 import { LocalTime, TimeAgo } from "@/components/local-time";
-import { imageUrl } from "@/lib/image-url";
 import { markNotificationReadAction } from "@/lib/notifications/actions";
 import type { NotificationView } from "@/lib/notifications/describe";
-
-/** Small round photo, or the first letter of the name. */
-export function Avatar({ name, imageId, className = "size-10" }: { name: string; imageId: string | null; className?: string }) {
-  if (imageId) {
-    // eslint-disable-next-line @next/next/no-img-element -- served from our own API, no optimization needed
-    return <img src={imageUrl(imageId)} alt="" className={`${className} shrink-0 rounded-full object-cover`} />;
-  }
-  return (
-    <span
-      aria-hidden
-      className={`${className} flex shrink-0 items-center justify-center rounded-full bg-emerald-100 font-bold text-emerald-800 dark:bg-emerald-900 dark:text-emerald-100`}
-    >
-      {name.trim().charAt(0).toUpperCase()}
-    </span>
-  );
-}
 
 /** One notification: unread ones are tinted and say so to screen readers. Opening one marks it read. */
 export function NotificationItem({ item, onOpen }: { item: NotificationView; onOpen?: () => void }) {
