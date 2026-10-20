@@ -2,11 +2,12 @@ import "server-only";
 import { and, count, desc, eq, inArray, isNull, sql, type SQL } from "drizzle-orm";
 import { alias } from "drizzle-orm/pg-core";
 import { db } from "@/db";
-import { eventRsvps, events, nonprofitProfiles, notifications, postLikes, posts, sponsorProfiles, users } from "@/db/schema";
+import { commentReactions, eventRsvps, events, nonprofitProfiles, notifications, postComments, postLikes, posts, sponsorProfiles, users } from "@/db/schema";
 import { describe, type NotificationRow, type NotificationView } from "./describe";
 
 export const NOTIFICATIONS_PAGE_SIZE = 30;
 const EVENT_TYPES = ["rsvp", "event_new", "event_soon", "event_cancelled", "event_changed"] as const;
+const POST_TYPES = ["post_likes", "post_comment", "comment_reply", "comment_reactions"] as const;
 
 /**
  * "Your event starts within 24 hours" reminders. There's no scheduler on the
@@ -63,8 +64,14 @@ export async function listNotifications(
       eventTitle: events.title,
       eventStartsAt: events.startsAt,
       postBody: posts.body,
-      likeCount: sql<number>`case when ${notifications.type} = 'post_likes'
-        then (select count(*) from ${postLikes} l where l.post_id = ${notifications.targetId} and l.created_at >= ${notifications.sinceAt})
+      // For grouped notifications: how many happened in this batch.
+      batchCount: sql<number>`case ${notifications.type}
+        when 'post_likes' then (select count(*) from ${postLikes} l
+          where l.post_id = ${notifications.targetId} and l.created_at >= ${notifications.sinceAt})
+        when 'post_comment' then (select count(distinct c.author_id) from ${postComments} c
+          where c.post_id = ${notifications.targetId} and c.created_at >= ${notifications.sinceAt} and c.author_id <> ${notifications.recipientId})
+        when 'comment_reactions' then (select count(*) from ${commentReactions} r
+          where r.comment_id::text = split_part(${notifications.groupKey}, ':', 2) and r.created_at >= ${notifications.sinceAt})
         else 0 end::int`,
       rsvpStatus: sql<"interested" | "going" | null>`case when ${notifications.type} = 'rsvp'
         then (select r.status::text from ${eventRsvps} r where r.event_id = ${notifications.targetId} and r.user_id = ${notifications.actorId}) end`,
@@ -74,7 +81,7 @@ export async function listNotifications(
     .leftJoin(nonprofitProfiles, eq(nonprofitProfiles.userId, notifications.actorId))
     .leftJoin(sponsorProfiles, eq(sponsorProfiles.userId, notifications.actorId))
     .leftJoin(events, and(eq(events.id, notifications.targetId), inArray(notifications.type, [...EVENT_TYPES])))
-    .leftJoin(posts, and(eq(posts.id, notifications.targetId), eq(notifications.type, "post_likes")))
+    .leftJoin(posts, and(eq(posts.id, notifications.targetId), inArray(notifications.type, [...POST_TYPES])))
     .where(and(...filters))
     .orderBy(desc(notifications.createdAt), desc(notifications.id))
     .limit(limit + 1);

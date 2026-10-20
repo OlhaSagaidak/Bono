@@ -18,8 +18,8 @@ export type NotificationRow = {
   eventTitle: string | null;
   eventStartsAt: Date | null;
   postBody: string | null;
-  /** post_likes: likes on the post since this batch started. */
-  likeCount: number;
+  /** Grouped notifications (likes, comments, reactions): how many since this batch started. */
+  batchCount: number;
   /** rsvp: the actor's current response, if they still have one. */
   rsvpStatus: "interested" | "going" | null;
 };
@@ -77,16 +77,22 @@ export function describe(row: NotificationRow): NotificationView {
     case "event_changed":
       text = `changed the time or place of ${event}.`;
       break;
-    case "post_likes": {
-      const others = Math.max(0, row.likeCount - 1);
+    case "post_likes":
+    case "post_comment":
+    case "comment_reactions": {
+      // "Maya liked your post", or "Maya and 3 others liked your post".
+      const others = Math.max(0, row.batchCount - 1);
+      const andOthers = others === 0 ? "" : `and ${others} ${others === 1 ? "other" : "others"} `;
       const post = row.postBody ? ` “${snippet(row.postBody)}”` : "";
-      text =
-        others === 0
-          ? `liked your post${post}.`
-          : `and ${others} ${others === 1 ? "other" : "others"} liked your post${post}.`;
+      const did = { post_likes: "liked your post", post_comment: "commented on your post", comment_reactions: "reacted to your comment on" }[row.type];
+      text = `${andOthers}${did}${row.type === "comment_reactions" && !post ? " a post" : ""}${post}.`;
       href = row.targetId ? `/posts/${row.targetId}` : "/feed";
       break;
     }
+    case "comment_reply":
+      text = `replied to your comment${row.postBody ? ` on “${snippet(row.postBody)}”` : ""}.`;
+      href = row.targetId ? `/posts/${row.targetId}` : "/feed";
+      break;
     case "story_new":
       text = "posted a new story.";
       // Opens that organization's stories (if they haven't expired yet).

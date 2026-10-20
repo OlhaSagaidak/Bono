@@ -391,3 +391,79 @@ export const reels: Record<string, { caption: string; hoursAgo: number }[]> = {
     { caption: "Volunteer interpreters at the Saturday clinic.", hoursAgo: 110 },
   ],
 };
+
+// Comments on demo posts: by login (firstname.lastname or an org slug), on
+// the n-th post (0-based) of a nonprofit, with replies and reactions.
+type DemoComment = {
+  by: string;
+  text: string;
+  hoursAgo: number;
+  reactions?: [string, "like" | "love" | "care" | "haha" | "wow" | "sad"][];
+  replies?: Omit<DemoComment, "replies">[];
+};
+export const comments: { org: string; post: number; comments: DemoComment[] }[] = [
+  {
+    org: "paws-haven",
+    post: 0,
+    comments: [
+      {
+        by: "maya.chen",
+        text: "This made my day. Is Biscuit still looking for a home?",
+        hoursAgo: 30,
+        reactions: [["sofia.rossi", "love"], ["ben.fischer", "like"], ["elena.petrova", "care"]],
+        replies: [
+          { by: "paws-haven", text: "He is! Come meet him on Saturday at Adoption Day 🐾", hoursAgo: 28, reactions: [["maya.chen", "love"]] },
+          { by: "sofia.rossi", text: "I'll be there too, let's go together!", hoursAgo: 26 },
+        ],
+      },
+      { by: "ben.fischer", text: "Our old beagle came from you eight years ago. Still the best decision we ever made.", hoursAgo: 20, reactions: [["paws-haven", "love"], ["ingrid.larsen", "like"]] },
+      { by: "elena.petrova", text: "Дякую за вашу роботу! Can I help with translation for adopters?", hoursAgo: 12 },
+    ],
+  },
+  {
+    org: "green-seattle",
+    post: 0,
+    comments: [
+      {
+        by: "theo.nguyen",
+        text: "Counted 14 new saplings on my bike ride this morning 🌱",
+        hoursAgo: 18,
+        reactions: [["grace.liu", "wow"], ["green-seattle", "love"]],
+        replies: [{ by: "green-seattle", text: "Thanks for keeping count, Theo! 300 more coming this fall.", hoursAgo: 16 }],
+      },
+      { by: "hana.sato", text: "Would love to paint a mural near the new grove. Who should I talk to?", hoursAgo: 9, reactions: [["theo.nguyen", "like"]] },
+    ],
+  },
+  {
+    org: "open-pantry",
+    post: 0,
+    comments: [
+      {
+        by: "daniel.ortiz",
+        text: "Saw the line on Thursday. It's longer every week. Thank you for being there.",
+        hoursAgo: 22,
+        reactions: [["kwame.mensah", "care"], ["aisha.rahman", "sad"], ["ruth.abrams", "like"]],
+        replies: [{ by: "kwame.mensah", text: "Friday kitchen is cooking extra this week to help.", hoursAgo: 21, reactions: [["daniel.ortiz", "love"]] }],
+      },
+      { by: "lucia.herrera", text: "¿Necesitan voluntarios que hablen español los sábados?", hoursAgo: 7 },
+    ],
+  },
+  {
+    org: "bright-futures",
+    post: 0,
+    comments: [{ by: "marcus.bell", text: "Six years mentoring and it's still the best hour of my week.", hoursAgo: 14, reactions: [["priya.raman", "love"], ["sam.okafor", "like"], ["bright-futures", "care"]] }],
+  },
+  {
+    org: "new-roots",
+    post: 0,
+    comments: [
+      {
+        by: "olek.kovalenko",
+        text: "The clinic helped my family two years ago. Now I volunteer there. Come say hi!",
+        hoursAgo: 11,
+        reactions: [["diego.morales", "love"], ["new-roots", "love"], ["ruth.abrams", "care"]],
+        replies: [{ by: "diego.morales", text: "Same story here. Proud to be part of it.", hoursAgo: 10 }],
+      },
+    ],
+  },
+];
