@@ -127,7 +127,8 @@ function NotificationsBell({ unread }: { unread: number }) {
 
   async function markAllRead() {
     if (recent.state === "ready") setRecent({ state: "ready", items: recent.items.map((i) => ({ ...i, unread: false })) });
-    await markAllNotificationsReadAction();
+    // If this doesn't reach the server, the next badge poll shows the real count again.
+    await markAllNotificationsReadAction().catch(() => {});
     window.dispatchEvent(new Event("bono:badges"));
   }
 
