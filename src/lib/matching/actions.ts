@@ -9,6 +9,7 @@ import { db } from "@/db";
 import { campaignNonprofits, campaigns, causes, nonprofitProfiles, sponsorProfiles } from "@/db/schema";
 import { formText, type FormState } from "@/lib/forms";
 import { captureOrder, createOrder, getOrderCapture, paymentStatusFrom, type CaptureDetails } from "@/lib/paypal/orders";
+import { paypalReturnUrls } from "@/lib/paypal/return-urls";
 import { platformPayeeEmail } from "@/lib/verification/config";
 import { campaignSchema } from "./validation";
 
@@ -90,7 +91,11 @@ async function ownCampaign(sponsorId: string, campaignId: string) {
   });
 }
 
-export async function createCampaignFundingOrderAction(campaignId: string): Promise<{ orderId: string } | { error: string }> {
+/** `redirect`: phones go to PayPal in the same tab and come back to /paypal/return. */
+export async function createCampaignFundingOrderAction(
+  campaignId: string,
+  options: { redirect?: boolean } = {},
+): Promise<{ orderId: string; approveUrl?: string } | { error: string }> {
   const sponsor = await currentSponsor();
   if (!sponsor) return { error: "Only sponsors can fund campaigns." };
   const campaign = await ownCampaign(sponsor.userId, campaignId);
@@ -105,10 +110,11 @@ export async function createCampaignFundingOrderAction(campaignId: string): Prom
     payeeEmail: platformPayeeEmail(),
     description: `Bono matching pool: ${campaign.name}`,
     customId: campaign.id,
+    ...(options.redirect ? { returnTo: await paypalReturnUrls("campaign", `/campaigns/${campaign.id}`) } : {}),
   });
   if (outcome.kind !== "created") return { error: TRY_AGAIN };
   await db.update(campaigns).set({ paypalOrderId: outcome.orderId }).where(eq(campaigns.id, campaign.id));
-  return { orderId: outcome.orderId };
+  return { orderId: outcome.orderId, ...(outcome.approveUrl ? { approveUrl: outcome.approveUrl } : {}) };
 }
 
 export async function captureCampaignFundingAction(orderId: string): Promise<{ funded: true } | { declined: true } | { error: string }> {

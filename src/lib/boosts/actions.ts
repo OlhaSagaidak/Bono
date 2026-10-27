@@ -7,6 +7,7 @@ import { auth } from "@/auth";
 import { db } from "@/db";
 import { boosts, nonprofitProfiles, posts } from "@/db/schema";
 import { captureOrder, createOrder, getOrderCapture, paymentStatusFrom, type CaptureDetails } from "@/lib/paypal/orders";
+import { paypalReturnUrls } from "@/lib/paypal/return-urls";
 import { platformPayeeEmail } from "@/lib/verification/config";
 import { boostTerms } from "./config";
 
@@ -21,7 +22,11 @@ async function sponsorId(): Promise<string | null> {
   return session?.user.role === "sponsor" ? session.user.id : null;
 }
 
-export async function createBoostOrderAction(postId: string): Promise<{ orderId: string } | { error: string }> {
+/** `redirect`: phones go to PayPal in the same tab and come back to /paypal/return. */
+export async function createBoostOrderAction(
+  postId: string,
+  options: { redirect?: boolean } = {},
+): Promise<{ orderId: string; approveUrl?: string } | { error: string }> {
   const sponsor = await sponsorId();
   if (!sponsor) return { error: "Only sponsors can boost posts." };
   if (!z.uuid().safeParse(postId).success) return { error: "That post doesn't exist." };
@@ -41,13 +46,14 @@ export async function createBoostOrderAction(postId: string): Promise<{ orderId:
     payeeEmail: platformPayeeEmail(),
     description: `Bono boost: a post by ${post.nonprofitName}, ${days} days`,
     customId: boost.id,
+    ...(options.redirect ? { returnTo: await paypalReturnUrls("boost", `/posts/${post.id}`) } : {}),
   });
   if (outcome.kind !== "created") {
     await db.delete(boosts).where(eq(boosts.id, boost.id));
     return { error: TRY_AGAIN };
   }
   await db.update(boosts).set({ paypalOrderId: outcome.orderId }).where(eq(boosts.id, boost.id));
-  return { orderId: outcome.orderId };
+  return { orderId: outcome.orderId, ...(outcome.approveUrl ? { approveUrl: outcome.approveUrl } : {}) };
 }
 
 export async function captureBoostAction(orderId: string): Promise<{ endsAt: string } | { declined: true } | { error: string }> {

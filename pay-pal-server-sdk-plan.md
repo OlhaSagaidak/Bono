@@ -367,3 +367,69 @@ batch `SUCCESS`, item `SUCCESS`, receiver = Paws Haven's sandbox account, 25.00 
 until the sponsor opened the campaign page, which ran the queue after the response and marked the match `paid`.
 Scripted (local, real sandbox payouts): one match per donation, concurrent donations never exceed the pool, repeated
 queue runs pay each match once.
+
+---
+
+# Slice 5 — phones: full-page redirect checkout (2026-10-27)
+
+## Problem
+
+On phones, `presentationMode: "auto"` opened PayPal in a new tab marked `appSwitchEligible=true`, and iOS handed it to
+the installed PayPal app (real accounts only) → sandbox payments failed. `"modal"` (iframe overlay) let the buyer
+approve, but `onApprove` never fired: order `4DN69924MG372022Y` is `APPROVED` and was never captured. PayPal's v6
+reference (developer.paypal.com/sdk/js/reference): modal is "Recommended only for WebView scenarios … limitations on
+cookies, which can affect user authentication"; redirect is "Full page redirect to PayPal. Recommended for mobile
+devices. Requires a return/cancel URL."
+
+## Decision
+
+Touch devices (`(pointer: coarse)`) skip the JS SDK session: the server creates the order **with return/cancel
+URLs**, the browser navigates the same tab to the order's `payer-action` link, and PayPal sends the buyer back to
+`/paypal/return`, where our existing capture actions run. Laptops keep the JS SDK popup (`"auto"`), unchanged.
+
+## Contract sheet (delta on `client.orders.createOrder`; everything above still holds)
+
+- **Signature** (map `map/operations/orders.md`): `createOrder(request: Orders.CreateOrderRequest, options?: RequestOptions): ApiPromise<Order, Orders.CreateOrderError>`
+  — unchanged; still `.asApiResult()` inside `try/catch`.
+- `body.paymentSource.paypal.experienceContext` (`PayPalWalletExperienceContext`,
+  `src/models/pay-pal-wallet-experience-context.ts`) gains, **only for the redirect flow**:
+  - `returnUrl?: string` (wire `return_url`) → `<origin>/paypal/return?kind=<kind>&back=<path>`
+  - `cancelUrl?: string` (wire `cancel_url`) → same, plus `&cancelled=1`
+  - optional members: omit the keys entirely for the popup flow (never assign `undefined`).
+  - **not sent**: `appSwitchContext?: AppSwitchContext` (wire `app_switch_context`,
+    `src/models/app-switch-context.ts`) — it only *facilitates* switching to the PayPal app; the SDK has no field that
+    disables app switch.
+- **Returns** `Order.links?: LinkDescription[]` (`src/models/order.ts`; `LinkDescription` in
+  `src/models/link-description.ts`: `href: string` **required**, `rel: string` **required**, `method?: LinkHttpMethod`).
+  The buyer goes to the link with `rel === "payer-action"` (fallback `rel === "approve"`). Missing → treat as failure.
+- **Smoke (sandbox, 2026-10-27)**: create with return/cancel URLs → 200, `status: PAYER_ACTION_REQUIRED`, links `self`
+  (GET `/v2/checkout/orders/{id}`) and `payer-action` (GET `https://www.sandbox.paypal.com/checkoutnow?token=<id>`). On an
+  emulated iPhone that page forwards to PayPal's web login (`/pay?…appSwitchEligible=true…`) with "Cancel and return to
+  Bono" — so app-switch eligibility is PayPal's own decision on mobile; only a real phone can confirm the app is not
+  opened.
+- **Return**: PayPal appends `token=<order id>` (and `PayerID` on approval) to the return/cancel URL. `/paypal/return`
+  validates `token` as `^[A-Z0-9]{1,64}$`, `kind` ∈ donation | fee | campaign | boost, and `back` as a same-site path
+  (starts with one `/`, not `//`), then calls that kind's existing capture action (each re-checks the signed-in owner
+  and is idempotent), from the browser after the page loads (a GET render never captures).
+- Error arms, failures outside the API arms, idempotency (`PayPal-Request-Id`): unchanged from slice 1.
+
+## Assumptions & blockers
+
+- Minor: PayPal keeps the buyer in the browser for a same-tab redirect; to be confirmed by Olya on her phone.
+- Minor: the origin for return URLs comes from the request (`x-forwarded-host`/`host`, `x-forwarded-proto`); a forged
+  header only affects the requester's own order.
+
+## REQUIRED READING
+
+| Step | Hazard | Skill |
+| --- | --- | --- |
+| createOrder error boundary (unchanged, re-checked) | two families, per-operation arm tags | **MUST load `typescript-error-handling`** |
+| Adding optional request members | omit vs `undefined` under strict options | **MUST load `typescript-models`** |
+
+## Slice 5 results (2026-10-27)
+
+Emulated iPhone (Playwright WebKit, local): the PayPal button sends the same tab to PayPal (`/pay?…`), no new tab;
+"Cancel and return to Bono" lands on `/paypal/return?…&cancelled=1` → "Payment cancelled. You weren't charged."
+`/paypal/return` with an unapproved order → capture refused by PayPal → "Payment not completed", donation `failed`;
+an off-site `back` is ignored (Continue → `/feed`); an unknown `kind` → a safe message. Laptop: popup unchanged.
+Not verifiable headlessly (PayPal rejects automated logins): approve → return → capture on a real phone.

@@ -8,6 +8,7 @@ import { db } from "@/db";
 import { nonprofitProfiles, verificationFees } from "@/db/schema";
 import { formText, type FormState } from "@/lib/forms";
 import { captureOrder, createOrder, getOrderCapture, type CaptureDetails } from "@/lib/paypal/orders";
+import { paypalReturnUrls } from "@/lib/paypal/return-urls";
 import { platformPayeeEmail, verificationFeeCents } from "./config";
 import { findEin, formatEin, namesMatch, normalizeEin } from "./ein";
 import { completeVerificationIfReady, getPaidFee } from "./queries";
@@ -77,7 +78,10 @@ export async function checkEinAction(_prev: FormState, formData: FormData): Prom
   return {};
 }
 
-export async function createVerificationFeeOrderAction(): Promise<{ orderId: string } | { error: string }> {
+/** `redirect`: phones go to PayPal in the same tab and come back to /paypal/return. */
+export async function createVerificationFeeOrderAction(
+  options: { redirect?: boolean } = {},
+): Promise<{ orderId: string; approveUrl?: string } | { error: string }> {
   const profile = await currentNonprofit();
   if (!profile) return { error: "Only nonprofits can be verified." };
   if (profile.verifiedAt) return { error: "Your nonprofit is already verified." };
@@ -97,13 +101,14 @@ export async function createVerificationFeeOrderAction(): Promise<{ orderId: str
     payeeEmail: platformPayeeEmail(),
     description: "Bono nonprofit verification fee",
     customId: fee.id,
+    ...(options.redirect ? { returnTo: await paypalReturnUrls("fee", "/verify") } : {}),
   });
   if (outcome.kind !== "created") {
     await db.update(verificationFees).set({ status: "failed" }).where(eq(verificationFees.id, fee.id));
     return { error: TRY_AGAIN };
   }
   await db.update(verificationFees).set({ paypalOrderId: outcome.orderId }).where(eq(verificationFees.id, fee.id));
-  return { orderId: outcome.orderId };
+  return { orderId: outcome.orderId, ...(outcome.approveUrl ? { approveUrl: outcome.approveUrl } : {}) };
 }
 
 export type CaptureFeeResult = { verified: boolean } | { declined: true } | { error: string };

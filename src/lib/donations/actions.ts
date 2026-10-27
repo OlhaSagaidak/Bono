@@ -6,6 +6,7 @@ import { auth } from "@/auth";
 import { db } from "@/db";
 import { donations, nonprofitProfiles, posts } from "@/db/schema";
 import { captureOrder, createOrder, getOrderCapture, type CaptureDetails } from "@/lib/paypal/orders";
+import { paypalReturnUrls } from "@/lib/paypal/return-urls";
 import { amountSchema } from "./amounts";
 import { settleDonation } from "./settle";
 import { matchDonation, type MatchInfo } from "@/lib/matching/matching";
@@ -17,25 +18,29 @@ import { matchDonation, type MatchInfo } from "@/lib/matching/matching";
 
 const TRY_AGAIN = "Something went wrong on our side. You weren't charged. Please try again.";
 
-export type CreateDonationResult = { orderId: string } | { error: string };
+/** approveUrl is set in the phone redirect flow: where to send the donor. */
+export type CreateDonationResult = { orderId: string; approveUrl?: string } | { error: string };
 
 const createInput = z.object({
   nonprofitId: z.uuid(),
   postId: z.uuid().nullable(),
   amount: amountSchema,
+  redirect: z.boolean().optional(),
 });
 
 export async function createDonationOrderAction(input: {
   nonprofitId: string;
   postId: string | null;
   amount: string;
+  /** Phones: PayPal in the same tab, then back to /paypal/return (see lib/paypal/return-urls.ts). */
+  redirect?: boolean;
 }): Promise<CreateDonationResult> {
   const session = await auth();
   if (!session) return { error: "Log in to donate." };
 
   const parsed = createInput.safeParse(input);
   if (!parsed.success) return { error: parsed.error.issues[0]?.message ?? TRY_AGAIN };
-  const { nonprofitId, postId, amount: amountCents } = parsed.data;
+  const { nonprofitId, postId, amount: amountCents, redirect } = parsed.data;
 
   if (nonprofitId === session.user.id) return { error: "You can't donate to your own organization." };
 
@@ -73,6 +78,7 @@ export async function createDonationOrderAction(input: {
     payeeEmail: nonprofit.paypalPayeeEmail,
     description: `Donation to ${nonprofit.name} via Bono`,
     customId: donation.id,
+    ...(redirect ? { returnTo: await paypalReturnUrls("donation", post ? `/posts/${post.id}` : `/nonprofits/${nonprofitId}`) } : {}),
   });
 
   if (outcome.kind !== "created") {
@@ -80,7 +86,7 @@ export async function createDonationOrderAction(input: {
     return { error: TRY_AGAIN };
   }
   await db.update(donations).set({ paypalOrderId: outcome.orderId }).where(eq(donations.id, donation.id));
-  return { orderId: outcome.orderId };
+  return { orderId: outcome.orderId, ...(outcome.approveUrl ? { approveUrl: outcome.approveUrl } : {}) };
 }
 
 export type CaptureDonationResult =

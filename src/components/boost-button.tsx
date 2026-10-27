@@ -72,7 +72,7 @@ export function BoostButton({
                 </p>
                 <PayPalCheckout
                   clientId={clientId}
-                  createOrder={() => createBoostOrderAction(postId)}
+                  createOrder={({ redirect }) => createBoostOrderAction(postId, { redirect })}
                   onApprove={async (orderId) => {
                     const result = await captureBoostAction(orderId);
                     if ("declined" in result) return "Your payment method was declined. Try another one.";

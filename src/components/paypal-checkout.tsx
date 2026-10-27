@@ -7,8 +7,12 @@ type Props = {
   clientId: string;
   /** Hide the button, e.g. while the chosen amount is invalid. */
   disabled?: boolean;
-  /** Creates the order on our server. Called inside the button click. */
-  createOrder: () => Promise<{ orderId: string } | { error: string }>;
+  /**
+   * Creates the order on our server. Called inside the button click. With
+   * `redirect` (phones), the server adds return URLs and answers with the
+   * PayPal page to send the buyer to (approveUrl).
+   */
+  createOrder: (options: { redirect: boolean }) => Promise<{ orderId: string; approveUrl?: string } | { error: string }>;
   /** Captures on our server after the payer approves. Returns a message to show, or null on success. */
   onApprove: (orderId: string) => Promise<string | null>;
 };
@@ -16,14 +20,15 @@ type Props = {
 const PAYPAL_PROBLEM = "PayPal ran into a problem. You weren't charged. Please try again.";
 
 /**
- * Where PayPal's checkout opens. On phones and tablets, "auto" opens a page
- * that offers to switch to the PayPal app, and iOS hands it straight to the
- * installed app, which only knows real (not sandbox) accounts, so the
- * payment fails. "modal" keeps checkout inside our page instead, the same
- * sandbox login as on a laptop. Laptops keep "auto" (PayPal's popup).
+ * How checkout opens. Laptops: PayPal's popup ("auto"), which reports back
+ * to this page. Phones and tablets: a full-page redirect in the same tab,
+ * PayPal's recommendation for mobile. The popup there opened as a new tab
+ * that iOS handed to the PayPal app (real accounts only, so sandbox payments
+ * failed), and the in-page "modal" never reported the approval back (PayPal
+ * documents it for app WebViews only). See pay-pal-server-sdk-plan.md, slice 5.
  */
-function checkoutMode(): "auto" | "modal" {
-  return window.matchMedia("(pointer: coarse)").matches ? "modal" : "auto";
+function usesRedirect(): boolean {
+  return window.matchMedia("(pointer: coarse)").matches;
 }
 
 // Thrown inside the order promise so PayPal's session rejects with our message.
@@ -77,13 +82,22 @@ export function PayPalCheckout({ clientId, disabled = false, createOrder, onAppr
     const session = sessionRef.current;
     if (!session || disabled) return;
     setMessage(null);
+    if (usesRedirect()) {
+      // The server makes the order with return URLs; /paypal/return captures it when PayPal sends the buyer back.
+      setMessage({ tone: "info", text: "Taking you to PayPal…" });
+      const result = await createOrder({ redirect: true }).catch(() => ({ error: PAYPAL_PROBLEM }));
+      if ("error" in result) return setMessage({ tone: "error", text: result.error });
+      if (!result.approveUrl) return setMessage({ tone: "error", text: PAYPAL_PROBLEM });
+      window.location.assign(result.approveUrl);
+      return;
+    }
     // Not awaited before start(): the PayPal window has to open inside this click.
-    const order = createOrder().then((result) => {
+    const order = createOrder({ redirect: false }).then((result) => {
       if ("error" in result) throw new OrderError(result.error);
       return { orderId: result.orderId };
     });
     try {
-      await session.start({ presentationMode: checkoutMode() }, order);
+      await session.start({ presentationMode: "auto" }, order);
     } catch {
       const reason = await order.then(
         () => null,

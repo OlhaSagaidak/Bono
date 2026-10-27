@@ -47,7 +47,8 @@ function logRefusal(operation: string, r: Refusal) {
 }
 
 export type CreateOrderOutcome =
-  | { kind: "created"; orderId: string }
+  /** approveUrl: where to send the buyer in the redirect flow (only when returnTo was given). */
+  | { kind: "created"; orderId: string; approveUrl?: string }
   | ({ kind: "refused" } & Refusal)
   | { kind: "unknown" };
 
@@ -55,6 +56,10 @@ export type CreateOrderOutcome =
  * Creates a CAPTURE order paying `payeeEmail`: the nonprofit for a donation
  * (so money goes straight to it), the platform for a fee. `requestId` makes
  * the call idempotent: PayPal returns the same order if it's replayed.
+ *
+ * `returnTo` is for phones (see pay-pal-server-sdk-plan.md, slice 5): the
+ * buyer leaves Bono for PayPal's page in the same tab and comes back to these
+ * URLs, so the outcome then carries the page to send them to.
  */
 export async function createOrder(input: {
   requestId: string;
@@ -62,6 +67,7 @@ export async function createOrder(input: {
   payeeEmail: string;
   description: string;
   customId: string;
+  returnTo?: { returnUrl: string; cancelUrl: string };
 }): Promise<CreateOrderOutcome> {
   try {
     const result = await getPayPalClient()
@@ -85,6 +91,8 @@ export async function createOrder(input: {
                 // A donation ships nothing, so don't ask for an address.
                 shippingPreference: PayPalWalletContextShippingPreference.NoShipping,
                 userAction: PayPalExperienceUserAction.PayNow,
+                // Only for the redirect flow; the popup reports back to the page itself.
+                ...(input.returnTo ? { returnUrl: input.returnTo.returnUrl, cancelUrl: input.returnTo.cancelUrl } : {}),
               },
             },
           },
@@ -102,7 +110,15 @@ export async function createOrder(input: {
       console.error("PayPal createOrder returned no order id");
       return { kind: "unknown" };
     }
-    return { kind: "created", orderId: result.value.id };
+    if (!input.returnTo) return { kind: "created", orderId: result.value.id };
+    // With a PayPal payment source the approval page is the "payer-action" link
+    // (older responses call it "approve"). Without one the buyer has nowhere to go.
+    const approveUrl = result.value.links?.find((l) => l.rel === "payer-action" || l.rel === "approve")?.href;
+    if (!approveUrl) {
+      console.error("PayPal createOrder returned no payer-action link");
+      return { kind: "unknown" };
+    }
+    return { kind: "created", orderId: result.value.id, approveUrl };
   } catch (err) {
     return noAnswer(err, "createOrder");
   }

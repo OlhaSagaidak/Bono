@@ -183,7 +183,7 @@ function DonateFlow({
       <PayPalCheckout
         clientId={clientId}
         disabled={!amount.success}
-        createOrder={() => createDonationOrderAction({ nonprofitId, postId: postId ?? null, amount: rawAmount })}
+        createOrder={({ redirect }) => createDonationOrderAction({ nonprofitId, postId: postId ?? null, amount: rawAmount, redirect })}
         onApprove={capture}
       />
     </div>
