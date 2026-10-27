@@ -42,7 +42,7 @@ import {
 } from "@/db/schema";
 import { embedCauses, embedPosts } from "@/lib/ai/embed-posts";
 import { fitImage, replaceImage, squarePhoto } from "@/lib/images";
-import { conversations as demoConversations, nonprofits, sponsors, supporters } from "./seed-data";
+import { conversations as demoConversations, nonprofits, postPhotoAlt, sponsors, supporters } from "./seed-data";
 import { seedComments } from "./seed-comments";
 import { seedReels } from "./seed-reels";
 import { seedStories } from "./seed-stories";
@@ -199,11 +199,22 @@ async function main() {
 
       for (const [i, post] of np.posts.entries()) {
         const postId = seededIds[i];
+        // An optional photo from seed-media/posts/<slug>-<n>.jpg, resized like uploads.
+        const photoKey = `${np.slug}-${i + 1}`;
+        const photoFile = ["jpg", "jpeg", "png", "webp"].map((ext) => `seed-media/posts/${photoKey}.${ext}`).find((f) => existsSync(f));
+        const currentPhoto = (await tx.select({ imageId: posts.imageId }).from(posts).where(eq(posts.id, postId)))[0]?.imageId ?? null;
+        const photo = photoFile
+          ? {
+              imageId: await replaceImage(tx, id, await fitImage({ kind: "ok", contentType: "image/jpeg", data: readFileSync(photoFile) }), currentPhoto),
+              imageAlt: postPhotoAlt[photoKey] ?? `Photo from ${np.name}`,
+            }
+          : {};
         const values = {
           nonprofitId: id,
           body: post.body,
           language: post.language ?? "en",
           createdAt: hoursAgo(post.hoursAgo),
+          ...photo,
         };
         await tx.insert(posts).values({ id: postId, ...values }).onConflictDoUpdate({ target: posts.id, set: values });
         await tx.delete(postCauses).where(eq(postCauses.postId, postId));
