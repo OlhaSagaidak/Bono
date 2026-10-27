@@ -44,10 +44,12 @@ export function ReelsFeed({ reels, viewerId, donateClientId }: { reels: ReelView
       aria-label="Reels. Scroll or use the arrow keys to move between them."
       className="h-[calc(100dvh-3.75rem)] snap-y snap-mandatory overflow-y-scroll bg-black focus:outline-none"
     >
-      {reels.map((reel) => (
+      {reels.map((reel, i) => (
         <Reel
           key={reel.id}
           reel={reel}
+          // Only the first two load ahead; the rest load when scrolled to (playing starts the load).
+          preload={i < 2 ? "metadata" : "none"}
           own={reel.nonprofit.id === viewerId}
           muted={muted}
           onToggleMute={() => setMuted((m) => !m)}
@@ -60,12 +62,14 @@ export function ReelsFeed({ reels, viewerId, donateClientId }: { reels: ReelView
 
 function Reel({
   reel,
+  preload,
   own,
   muted,
   onToggleMute,
   donateClientId,
 }: {
   reel: ReelView;
+  preload: "metadata" | "none";
   own: boolean;
   muted: boolean;
   onToggleMute: () => void;
@@ -127,7 +131,7 @@ function Reel({
           loop
           muted={muted}
           playsInline
-          preload="metadata"
+          preload={preload}
           aria-label={reel.caption || `Video from ${reel.nonprofit.name}`}
           onClick={(e) => (e.currentTarget.paused ? e.currentTarget.play().catch(() => {}) : e.currentTarget.pause())}
           className="h-full w-full cursor-pointer object-contain"
