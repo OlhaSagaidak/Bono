@@ -433,3 +433,5 @@ Emulated iPhone (Playwright WebKit, local): the PayPal button sends the same tab
 `/paypal/return` with an unapproved order → capture refused by PayPal → "Payment not completed", donation `failed`;
 an off-site `back` is ignored (Continue → `/feed`); an unknown `kind` → a safe message. Laptop: popup unchanged.
 Not verifiable headlessly (PayPal rejects automated logins): approve → return → capture on a real phone.
+Confirmed on a real phone (2026-10-27, by Olya, live site): $25 donation to Green Seattle → PayPal in the same tab →
+approved with the sandbox buyer → back on `/paypal/return` → donation `completed` with a capture id. No PayPal app.
