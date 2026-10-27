@@ -352,7 +352,7 @@ export const conversations: { between: [string, string]; messages: [0 | 1, strin
 // simple text card from `text`. Each organization's stories, oldest first.
 export const stories: Record<string, { text: string; caption?: string; sticker?: "donate" | "link"; hoursAgo: number }[]> = {
   "paws-haven": [
-    { text: "Biscuit, 11, is looking for a quiet home 🐾", caption: "Senior dogs make the best couch buddies.", sticker: "donate", hoursAgo: 5 },
+    { text: "Biscuit, 11, is looking for a quiet home 🐾", caption: "New arrivals this week: four puppies, all looking for homes.", sticker: "donate", hoursAgo: 5 },
     { text: "Adoption Day this Saturday", caption: "Meet 20 dogs and cats looking for families.", hoursAgo: 2 },
   ],
   "green-seattle": [{ text: "312 trees planted this month 🌳", caption: "Thank you, volunteers! Next stop: Rainier Beach.", hoursAgo: 7 }],
@@ -361,7 +361,7 @@ export const stories: Record<string, { text: string; caption?: string; sticker?:
   ],
   "open-pantry": [
     { text: "The shelves are full again 🥫", caption: "Your donations stocked the pantry for the week.", sticker: "donate", hoursAgo: 3 },
-    { text: "Mobile pantry: Thursday 10–2", hoursAgo: 1 },
+    { text: "Mobile pantry: Thursday 10–2", caption: "Loading the mobile pantry: Thursday, 10 to 2.", hoursAgo: 1 },
   ],
   "new-roots": [{ text: "Free legal clinic, Saturday 10–1", caption: "Asylum and work permit questions. No appointment needed.", hoursAgo: 6 }],
 };
@@ -370,25 +370,18 @@ export const stories: Record<string, { text: string; caption?: string; sticker?:
 // goes with file n). Without the video files, no demo reels are created.
 export const reels: Record<string, { caption: string; hoursAgo: number }[]> = {
   "paws-haven": [
-    { caption: "Morning zoomies at the shelter. Every one of these pups is up for adoption 🐶", hoursAgo: 20 },
-    { caption: "From scared stray to couch potato: six weeks with a foster family.", hoursAgo: 60 },
-    { caption: "Bath day! Volunteers make this place run.", hoursAgo: 120 },
+    { caption: "Take me home 🐶 Every dog in our care is waiting for a family. Adoption Day is this Saturday.", hoursAgo: 20 },
+    { caption: "From scared stray to boat captain: six weeks with a foster family.", hoursAgo: 60 },
+    { caption: "Kitten season: these four are ready for a foster home.", hoursAgo: 120 },
   ],
   "green-seattle": [
-    { caption: "One Saturday, 40 volunteers, 300 native trees.", hoursAgo: 30 },
-    { caption: "Why street trees matter on hot summer days.", hoursAgo: 90 },
-  ],
-  "bright-futures": [
-    { caption: "Mentors and mentees, one year in.", hoursAgo: 40 },
-    { caption: "What one hour a week can do.", hoursAgo: 100 },
+    { caption: "Healthy forests keep our creeks cool and clean. Help us plant 300 more trees this fall.", hoursAgo: 30 },
+    { caption: "A creek running clear again after our volunteer cleanup.", hoursAgo: 90 },
+    { caption: "Protecting habitat means protecting everyone who lives there.", hoursAgo: 140 },
   ],
   "open-pantry": [
-    { caption: "Sorting 2 tons of donated food in one afternoon.", hoursAgo: 15 },
-    { caption: "The mobile pantry on its Thursday route.", hoursAgo: 75 },
-  ],
-  "new-roots": [
-    { caption: "Welcome dinner for families who arrived this month.", hoursAgo: 25 },
-    { caption: "Volunteer interpreters at the Saturday clinic.", hoursAgo: 110 },
+    { caption: "Some neighbors can't make it to the pantry, so the pantry comes to them.", hoursAgo: 15 },
+    { caption: "Fresh bread from Friday's community kitchen.", hoursAgo: 75 },
   ],
 };
 
@@ -467,3 +460,12 @@ export const comments: { org: string; post: number; comments: DemoComment[] }[] 
     ],
   },
 ];
+
+// Photos for demo posts, from seed-media/posts/<slug>-<n>.jpg (n = the post's
+// position, from 1). Each needs a description for screen readers.
+export const postPhotoAlt: Record<string, string> = {
+  "bright-futures-3": "A circle of young people lying on the grass, heads together, laughing",
+  "bright-futures-5": "Four friends squeezing into a selfie",
+  "new-roots-1": "Families and neighbors dancing together in a park",
+  "new-roots-6": "Women in bright saris smiling and laughing at a gathering",
+};
