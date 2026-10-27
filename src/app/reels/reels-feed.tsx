@@ -181,7 +181,7 @@ function Reel({
             <Bookmark aria-hidden className={`size-7 ${saved ? "fill-white" : ""}`} />
             <span className="text-xs">{saved ? "Saved" : "Save"}</span>
           </button>
-          <button type="button" onClick={share} aria-label="Copy link" className={actionButton}>
+          <button type="button" onClick={share} aria-label="Share: copy link" className={actionButton}>
             <Link2 aria-hidden className="size-7" />
             <span className="text-xs">Share</span>
           </button>
