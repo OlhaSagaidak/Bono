@@ -15,6 +15,17 @@ type Props = {
 
 const PAYPAL_PROBLEM = "PayPal ran into a problem. You weren't charged. Please try again.";
 
+/**
+ * Where PayPal's checkout opens. On phones and tablets, "auto" opens a page
+ * that offers to switch to the PayPal app, and iOS hands it straight to the
+ * installed app, which only knows real (not sandbox) accounts, so the
+ * payment fails. "modal" keeps checkout inside our page instead, the same
+ * sandbox login as on a laptop. Laptops keep "auto" (PayPal's popup).
+ */
+function checkoutMode(): "auto" | "modal" {
+  return window.matchMedia("(pointer: coarse)").matches ? "modal" : "auto";
+}
+
 // Thrown inside the order promise so PayPal's session rejects with our message.
 class OrderError extends Error {}
 
@@ -72,7 +83,7 @@ export function PayPalCheckout({ clientId, disabled = false, createOrder, onAppr
       return { orderId: result.orderId };
     });
     try {
-      await session.start({ presentationMode: "auto" }, order);
+      await session.start({ presentationMode: checkoutMode() }, order);
     } catch {
       const reason = await order.then(
         () => null,
