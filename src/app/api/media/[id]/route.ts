@@ -8,7 +8,12 @@ import { media } from "@/db/schema";
 // with just the bytes asked for, read with substring() so the whole file
 // never has to leave the database for a small range.
 
-const MAX_CHUNK = 1024 * 1024; // answer open-ended ranges a megabyte at a time
+// At most a megabyte per answer, even when the browser asks for more: Safari
+// requests whole files ("bytes=0-10312079") for every video on a page at
+// once, and reading all of them from Postgres together runs a small server
+// out of memory. A shorter answer is allowed (Content-Range says what was
+// sent); the browser just asks for the next piece.
+const MAX_CHUNK = 1024 * 1024;
 
 export async function GET(request: Request, ctx: RouteContext<"/api/media/[id]">) {
   const { id } = await ctx.params;
@@ -33,12 +38,13 @@ export async function GET(request: Request, ctx: RouteContext<"/api/media/[id]">
   let start: number;
   let end: number;
   if (range[1] === "") {
-    // "bytes=-500": the last 500 bytes.
-    start = Math.max(0, info.size - Number(range[2]));
+    // "bytes=-500": the last 500 bytes (at most a chunk of them).
+    start = Math.max(0, info.size - Math.min(Number(range[2]), MAX_CHUNK));
     end = info.size - 1;
   } else {
     start = Number(range[1]);
-    end = range[2] === "" ? Math.min(info.size - 1, start + MAX_CHUNK - 1) : Math.min(info.size - 1, Number(range[2]));
+    const asked = range[2] === "" ? info.size - 1 : Number(range[2]);
+    end = Math.min(info.size - 1, asked, start + MAX_CHUNK - 1);
   }
   if (start > end || start >= info.size) {
     return new Response(null, { status: 416, headers: { ...headers, "Content-Range": `bytes */${info.size}` } });
