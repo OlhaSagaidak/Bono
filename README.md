@@ -4,6 +4,36 @@ A social media web app where **nonprofits are the influencers**. Scroll a feed o
 
 > Work in progress. Full pitch, demo link and architecture coming soon.
 
+## For judges
+
+### Verifying a nonprofit you sign up yourself
+
+Real nonprofits verify against IRS data. Every organization in this demo is fictional, so
+Bono also has a **clearly labeled demo registry** of fictional EINs. They start with `00`, a
+prefix the IRS never assigns, so they can never match a real organization. Ten of them are
+spare entries for judges:
+
+| EIN | Organization name to sign up with |
+| --- | --- |
+| 00-0000201 | Judge Test Nonprofit 1 |
+| 00-0000202 | Judge Test Nonprofit 2 |
+| 00-0000203 | Judge Test Nonprofit 3 |
+| 00-0000204 | Judge Test Nonprofit 4 |
+| 00-0000205 | Judge Test Nonprofit 5 |
+| 00-0000206 | Judge Test Nonprofit 6 |
+| 00-0000207 | Judge Test Nonprofit 7 |
+| 00-0000208 | Judge Test Nonprofit 8 |
+| 00-0000209 | Judge Test Nonprofit 9 |
+| 00-0000210 | Judge Test Nonprofit 10 |
+
+1. Sign up as a **Nonprofit** and use one of the names above as the organization name.
+   Each EIN can belong to one Bono account, so pick one nobody has taken yet.
+2. On **Get verified**, enter the matching EIN. The page says the match came from the demo
+   registry, not the IRS.
+3. Pay the $25 verification fee (PayPal sandbox) **from the sandbox Business account you
+   entered as your organization's PayPal email**. That is how Bono checks the account is
+   yours. Logging in to PayPal with a different account doesn't verify the nonprofit.
+
 ## Local setup (macOS)
 
 Requirements: Node 24, Homebrew.
