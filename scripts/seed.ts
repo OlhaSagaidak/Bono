@@ -42,7 +42,7 @@ import {
 } from "@/db/schema";
 import { embedCauses, embedPosts } from "@/lib/ai/embed-posts";
 import { fitImage, replaceImage, squarePhoto } from "@/lib/images";
-import { conversations as demoConversations, nonprofits, postPhotoAlt, sponsors, supporters } from "./seed-data";
+import { conversations as demoConversations, judgeEins, nonprofits, postPhotoAlt, sponsors, supporters } from "./seed-data";
 import { seedComments } from "./seed-comments";
 import { seedReels } from "./seed-reels";
 import { seedStories } from "./seed-stories";
@@ -120,10 +120,10 @@ async function main() {
   const hoursAgo = (h: number) => new Date(now - h * 3_600_000);
 
   const result = await db.transaction(async (tx) => {
-    // The labeled registry of fictional EINs the demo nonprofits verify against.
+    // The labeled registry of fictional EINs: the demo nonprofits, plus spares for judges.
     await tx
       .insert(demoEinRegistry)
-      .values(nonprofits.map((n) => ({ ein: n.ein, name: n.name })))
+      .values([...nonprofits.map((n) => ({ ein: n.ein, name: n.name })), ...judgeEins])
       .onConflictDoUpdate({ target: demoEinRegistry.ein, set: { name: sql`excluded.name` } });
 
     const removed = reset

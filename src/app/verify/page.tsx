@@ -82,7 +82,7 @@ async function Verify() {
         </p>
         <p className="text-sm text-zinc-600 dark:text-zinc-400">
           {profile.einSource === "demo"
-            ? "Found in Bono's demo registry: fictional EINs for the demo nonprofits, not IRS data."
+            ? "Found in Bono's demo registry: fictional EINs for the demo and test nonprofits (including the judge test entries), not IRS data."
             : "Found in the IRS list of tax-exempt organizations (Exempt Organizations Business Master File)."}
         </p>
       </section>

@@ -469,3 +469,12 @@ export const postPhotoAlt: Record<string, string> = {
   "new-roots-1": "Families and neighbors dancing together in a park",
   "new-roots-6": "Women in bright saris smiling and laughing at a gathering",
 };
+
+// Spare entries for judges (and anyone trying Bono) to verify a nonprofit they
+// sign up themselves: fictional, like the rest of the demo registry, with the
+// "00" prefix the IRS never assigns. One account per EIN, so there are ten.
+// Listed in the README's "For judges" section.
+export const judgeEins = Array.from({ length: 10 }, (_, i) => ({
+  ein: `0000002${String(i + 1).padStart(2, "0")}`,
+  name: `Judge Test Nonprofit ${i + 1}`,
+}));
