@@ -30,7 +30,7 @@ export function FeeCheckout({ clientId }: { clientId: string }) {
   return (
     <PayPalCheckout
       clientId={clientId}
-      createOrder={createVerificationFeeOrderAction}
+      createOrder={({ redirect }) => createVerificationFeeOrderAction({ redirect })}
       onApprove={async (orderId) => {
         const result = await captureVerificationFeeAction(orderId);
         if ("declined" in result) return "Your payment method was declined. Try another one.";

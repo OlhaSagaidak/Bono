@@ -9,7 +9,7 @@ export function FundCheckout({ campaignId, clientId }: { campaignId: string; cli
   return (
     <PayPalCheckout
       clientId={clientId}
-      createOrder={() => createCampaignFundingOrderAction(campaignId)}
+      createOrder={({ redirect }) => createCampaignFundingOrderAction(campaignId, { redirect })}
       onApprove={async (orderId) => {
         const result = await captureCampaignFundingAction(orderId);
         if ("declined" in result) return "Your payment method was declined. Try another one.";
