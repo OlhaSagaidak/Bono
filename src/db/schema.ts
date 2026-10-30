@@ -298,6 +298,10 @@ export const donations = pgTable(
     paypalCaptureId: text("paypal_capture_id").unique(),
     createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
     completedAt: timestamp("completed_at", { withTimezone: true }),
+    // Fictional history from `npm run seed` (no PayPal payment behind it), so the
+    // demo shows badges. Real sandbox donations are false; the seed only ever
+    // replaces rows marked true.
+    demoSeed: boolean("demo_seed").notNull().default(false),
   },
   (t) => [
     index("donations_nonprofit_idx").on(t.nonprofitId, t.createdAt.desc()),
@@ -421,6 +425,8 @@ export const boosts = pgTable(
     paypalCaptureId: text("paypal_capture_id").unique(),
     startsAt: timestamp("starts_at", { withTimezone: true }),
     endsAt: timestamp("ends_at", { withTimezone: true }),
+    // Fictional past boosts from `npm run seed` (ended, no PayPal payment), for sponsor badges.
+    demoSeed: boolean("demo_seed").notNull().default(false),
     createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
   },
   (t) => [index("boosts_post_idx").on(t.postId, t.endsAt), index("boosts_sponsor_idx").on(t.sponsorId)],

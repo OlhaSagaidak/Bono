@@ -28,7 +28,7 @@ const sponsoring = () => sql`(
     union all
     select b.sponsor_id, p.nonprofit_id, b.amount_cents
     from ${boosts} b join ${posts} p on p.id = b.post_id
-    where b.paypal_capture_id is not null and b.created_at > ${windowStart}
+    where (b.paypal_capture_id is not null or b.demo_seed) and b.created_at > ${windowStart}
   ) x group by sponsor_id, nonprofit_id
 )`;
 
