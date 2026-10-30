@@ -196,3 +196,12 @@ export async function saveSupporterProfileAction(_prev: FormState, formData: For
   refreshAllPages();
   redirect(`/users/${userId}`);
 }
+
+/** Shows or hides the signed-in account's supporter/partner badges for others. */
+export async function setShowBadgesAction(show: boolean): Promise<{ error?: string }> {
+  const session = await auth();
+  if (!session) return { error: "Log in first." };
+  if (typeof show !== "boolean") return { error: "Something went wrong. Please try again." };
+  await db.update(users).set({ showBadges: show }).where(eq(users.id, session.user.id));
+  return {};
+}

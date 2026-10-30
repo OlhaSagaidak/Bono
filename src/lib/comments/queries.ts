@@ -2,6 +2,7 @@ import "server-only";
 import { and, eq, sql } from "drizzle-orm";
 import { db } from "@/db";
 import { blocks, commentReactions, nonprofitProfiles, postComments, posts, sponsorProfiles, users, type Reaction, type Role } from "@/db/schema";
+import { backerTiersFor, type BackerTier } from "@/lib/badges/queries";
 import { profilePath } from "@/lib/profiles/paths";
 
 export type CommentView = {
@@ -13,6 +14,8 @@ export type CommentView = {
   createdAt: string; // ISO
   editedAt: string | null;
   author: { id: string; name: string; photoImageId: string | null; href: string };
+  /** The author's tier with this post's nonprofit, if they have one and show badges. */
+  badge: BackerTier | null;
   /** How many of each reaction, most used first. */
   reactions: { key: Reaction; count: number }[];
   viewerReaction: Reaction | null;
@@ -75,6 +78,7 @@ export async function getComments(postId: string, viewerId: string): Promise<Com
     .orderBy(postComments.createdAt)
     .limit(500);
 
+  const tiers = await backerTiersFor(post.nonprofitId, [...new Set(rows.map((r) => r.authorId))]);
   return rows.map((r) => ({
     id: r.id,
     parentId: r.parentId,
@@ -83,6 +87,7 @@ export async function getComments(postId: string, viewerId: string): Promise<Com
     createdAt: r.createdAt.toISOString(),
     editedAt: r.editedAt?.toISOString() ?? null,
     author: { id: r.authorId, name: r.authorName, photoImageId: r.authorPhoto, href: profilePath(r.authorRole as Role, r.authorId) },
+    badge: tiers.get(r.authorId) ?? null,
     reactions: r.reactions,
     viewerReaction: r.viewerReaction,
     canDelete: r.authorId === viewerId || post.nonprofitId === viewerId,

@@ -2,6 +2,7 @@ import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 import { Suspense } from "react";
 import { z } from "zod";
+import { BadgesSection } from "@/components/badges-section";
 import { MessageButton } from "@/components/message-button";
 import { Logo, ProfileHeader } from "@/components/profile-header";
 import { ProfileTabs } from "@/components/profile-tabs";
@@ -64,6 +65,7 @@ async function UserProfile({ params, searchParams }: Pick<PageProps<"/users/[id]
           Edit profile
         </Link>
       )}
+      {!savedTab && <BadgesSection userId={id} role="user" isOwner={isOwner} showBadges={account.showBadges} />}
       {isOwner && <ProfileTabs basePath={`/users/${id}`} first="Follows" savedActive={savedTab} />}
       {savedTab ? (
         <SavedPosts userId={id} basePath={`/users/${id}`} before={cursor.success ? cursor.data : undefined} />

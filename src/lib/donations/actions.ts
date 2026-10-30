@@ -6,6 +6,7 @@ import { auth } from "@/auth";
 import { db } from "@/db";
 import { donations, nonprofitProfiles, posts } from "@/db/schema";
 import { captureOrder, createOrder, getOrderCapture, type CaptureDetails } from "@/lib/paypal/orders";
+import { supporterTierAfterGift } from "@/lib/badges/queries";
 import { paypalReturnUrls } from "@/lib/paypal/return-urls";
 import { amountSchema } from "./amounts";
 import { settleDonation } from "./settle";
@@ -89,8 +90,11 @@ export async function createDonationOrderAction(input: {
   return { orderId: outcome.orderId, ...(outcome.approveUrl ? { approveUrl: outcome.approveUrl } : {}) };
 }
 
+/** tier: the donor's supporter badge with this nonprofit after a completed gift (isNew: it just went up). */
+export type DonationTier = { label: string; isNew: boolean } | null;
+
 export type CaptureDonationResult =
-  | { status: "completed" | "pending"; amountCents: number; match: MatchInfo | null }
+  | { status: "completed" | "pending"; amountCents: number; match: MatchInfo | null; tier: DonationTier }
   | { declined: true }
   | { error: string };
 
@@ -109,7 +113,12 @@ export async function captureDonationAction(orderId: string): Promise<CaptureDon
 
   // Already settled (a double click, or a retry after a lost response).
   if (donation.status === "completed" || donation.status === "pending") {
-    return { status: donation.status, amountCents: donation.amountCents, match: await matchDonation(donation.id) };
+    return {
+      status: donation.status,
+      amountCents: donation.amountCents,
+      match: await matchDonation(donation.id),
+      tier: donation.status === "completed" ? await tierFor(donation) : null,
+    };
   }
   if (donation.status === "failed") return { error: TRY_AGAIN };
 
@@ -117,7 +126,7 @@ export async function captureDonationAction(orderId: string): Promise<CaptureDon
 
   switch (outcome.kind) {
     case "captured":
-      return finish(donation.id, outcome);
+      return finish(donation, outcome);
 
     case "declined":
       // The order stays open, so the donor can choose another way to pay.
@@ -127,7 +136,7 @@ export async function captureDonationAction(orderId: string): Promise<CaptureDon
     case "unknown": {
       // We don't know (or don't remember) what happened: ask PayPal.
       const capture = await getOrderCapture(orderId);
-      if (capture && capture !== "unknown") return finish(donation.id, capture);
+      if (capture && capture !== "unknown") return finish(donation, capture);
       return {
         error:
           "We couldn't confirm your payment with PayPal yet. Please don't pay again; check your PayPal account or refresh in a minute.",
@@ -140,11 +149,24 @@ export async function captureDonationAction(orderId: string): Promise<CaptureDon
   }
 }
 
-async function finish(donationId: string, capture: CaptureDetails): Promise<CaptureDonationResult> {
-  const settled = await settleDonation(donationId, capture);
+type DonationRow = { id: string; donorId: string; nonprofitId: string; amountCents: number };
+
+async function finish(donation: DonationRow, capture: CaptureDetails): Promise<CaptureDonationResult> {
+  const settled = await settleDonation(donation.id, capture);
   if (!settled) return { error: TRY_AGAIN };
   if (settled.status === "completed" || settled.status === "pending") {
-    return { status: settled.status, amountCents: settled.amountCents, match: settled.match };
+    return {
+      status: settled.status,
+      amountCents: settled.amountCents,
+      match: settled.match,
+      tier: settled.status === "completed" ? await tierFor(donation) : null,
+    };
   }
   return { error: "PayPal couldn't complete this payment. Please try another way to pay." };
+}
+
+/** The badge line for the thank-you; a failure here never spoils a completed donation. */
+async function tierFor(donation: DonationRow): Promise<DonationTier> {
+  const result = await supporterTierAfterGift(donation.donorId, donation.nonprofitId, donation.amountCents).catch(() => null);
+  return result ? { label: result.label, isNew: result.isNew } : null;
 }

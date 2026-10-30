@@ -6,6 +6,7 @@ import { PostList } from "@/components/post-list";
 import { ProfileHeader } from "@/components/profile-header";
 import { ProfileTabs } from "@/components/profile-tabs";
 import { ReelThumbs } from "@/components/reel-thumbs";
+import { TopBackers } from "@/components/top-backers";
 import { SavedPosts } from "@/components/saved-posts";
 import { DonateButton } from "@/components/donate-button";
 import { EventCard } from "@/components/event-card";
@@ -115,6 +116,7 @@ async function NonprofitProfile({
           </li>
         ))}
       </ul>
+      {verified && <TopBackers nonprofitId={id} nonprofitName={profile.name} />}
       {upcoming.length > 0 && (
         <section aria-labelledby="events-heading" className="flex flex-col gap-3">
           <h2 id="events-heading" className="text-xl font-semibold">
