@@ -44,6 +44,8 @@ import { embedCauses, embedPosts } from "@/lib/ai/embed-posts";
 import { fitImage, replaceImage, squarePhoto } from "@/lib/images";
 import { conversations as demoConversations, judgeEins, nonprofits, youngJudgeEin, postPhotoAlt, sponsors, supporters } from "./seed-data";
 import { seedComments } from "./seed-comments";
+import { seedGivingHistory } from "./seed-history";
+import { boostTerms } from "@/lib/boosts/config";
 import { seedReels } from "./seed-reels";
 import { seedStories } from "./seed-stories";
 
@@ -389,6 +391,19 @@ async function main() {
       stableId,
     );
 
+    // Fictional giving history (marked demo_seed), so badges show in the demo.
+    const sponsorIds = (
+      await tx.select({ id: users.id }).from(users).where(inArray(users.email, sponsors.map((sp) => `${sp.slug}@${DEMO_DOMAIN}`)))
+    ).map((r) => r.id);
+    const history = await seedGivingHistory(
+      tx,
+      now,
+      supporterRows.map((r) => ({ id: r.id, name: r.email, interests: supporters.find((s) => loginEmail(s.name) === r.email)?.interests ?? [] })),
+      nonprofits.filter((n) => !n.unverified).map((n) => ({ slug: n.slug, id: nonprofitIds.get(n.slug)!, causes: n.causes })),
+      sponsorIds,
+      boostTerms().feeCents,
+    );
+
     // Comments, replies and reactions on a few demo posts.
     const commentCount = await seedComments(tx, now, DEMO_DOMAIN, (org, n) => stableId(`post:${org}:${n}`), stableId);
 
@@ -420,13 +435,13 @@ async function main() {
     const [{ kept: keptDonations }] = await tx
       .select({ kept: count() })
       .from(donations)
-      .where(inArray(donations.donorId, demoUsers));
+      .where(and(inArray(donations.donorId, demoUsers), eq(donations.demoSeed, false))); // real sandbox payments only
     const [{ kept: keptFees }] = await tx
       .select({ kept: count() })
       .from(verificationFees)
       .where(inArray(verificationFees.nonprofitId, demoUsers));
 
-    return { removed, posts: postCount, keptDonations, keptFees, seededPostIds, storyCount, reelCount, commentCount };
+    return { removed, posts: postCount, keptDonations, keptFees, seededPostIds, storyCount, reelCount, commentCount, history };
   });
 
   // Vectors for the AI feed. Seeded posts are re-embedded every run, since
@@ -438,6 +453,7 @@ async function main() {
     `Seeded ${nonprofits.length} nonprofits (${nonprofits.filter((n) => n.unverified).length} unverified), ` +
       `${sponsors.length} sponsors, ${supporters.length} supporters, ${result.posts} posts, ${result.storyCount} stories, ${result.reelCount} reels and ${result.commentCount} new comments.`,
   );
+  console.log(`Demo giving history (fictional, marked demo_seed): ${result.history.donations} donations, ${result.history.boosts} past boosts.`);
   console.log(
     reset
       ? `Reset: removed ${result.removed} demo accounts and their history first.`

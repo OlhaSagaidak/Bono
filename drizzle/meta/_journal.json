@@ -197,6 +197,13 @@
       "when": 1793337461938,
       "tag": "0027_show_badges",
       "breakpoints": true
+    },
+    {
+      "idx": 28,
+      "version": "7",
+      "when": 1793338311498,
+      "tag": "0028_demo_seed",
+      "breakpoints": true
     }
   ]
 }

@@ -63,6 +63,11 @@ it is invented. Five nonprofits start verified with fictional EINs from a clearl
 labeled demo registry (prefix `00`, which the IRS never assigns); **Canvas Commons
 starts unverified**, so the verification flow can be shown from the beginning.
 
+So the supporter badges have something to show, the seed also writes a **fictional
+giving history** for the demo supporters (and a few past boosts for the demo sponsors).
+Those rows are marked `demo_seed`, have no PayPal payment behind them, and are replaced on
+every run; donations made through PayPal sandbox are never touched.
+
 Demo accounts log in with emails on the reserved `bono.example` domain (e.g.
 `paws-haven@bono.example`, `acme@bono.example`, `maya.chen@bono.example`) and the
 `demoPassword` from your `seed.local.json`.
