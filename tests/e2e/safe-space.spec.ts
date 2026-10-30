@@ -1,24 +1,37 @@
 import { expect, test } from "@playwright/test";
 import { loginAs, main, q, userId } from "./helpers";
 
-// Unverified nonprofits are invisible to everyone but themselves.
-test("an unverified nonprofit's page is hidden from others but shown to itself", async ({ browser, page }) => {
+// Unverified nonprofits act like supporters (Oct 29 decision): visible and
+// labeled "Not verified yet", able to comment and message, but with no Donate
+// or Follow button, and no posts until verified.
+
+test.afterEach(async () => {
+  await q("delete from post_comments where body like 'E2E %'");
+});
+
+test("an unverified nonprofit's page is labeled, with Message but no Donate or Follow", async ({ browser }) => {
   const canvas = await userId("canvas-commons");
-  await page.goto(`/nonprofits/${canvas}`);
-  await expect(page.getByText("We couldn't find that page")).toBeVisible();
+  const [row] = await q<{ verified: boolean }>("select verified_at is not null as verified from nonprofit_profiles where user_id = $1", [canvas]);
+  test.skip(row.verified, "Canvas Commons is verified in this database; reset it to unverified to run this test.");
+
+  const visitor = await loginAs(browser, "maya.chen");
+  await visitor.goto(`/nonprofits/${canvas}`);
+  await expect(main(visitor).getByText("Not verified yet.")).toBeVisible();
+  await expect(main(visitor).getByRole("button", { name: "Message" })).toBeVisible();
+  await expect(main(visitor).getByRole("button", { name: "Donate" })).toHaveCount(0);
+  await expect(main(visitor).getByRole("button", { name: /^Follow/ })).toHaveCount(0);
 
   const owner = await loginAs(browser, "canvas-commons");
   await owner.goto(`/nonprofits/${canvas}`);
-  await expect(main(owner).getByText("Only you can see this page for now.")).toBeVisible();
+  await expect(main(owner).getByText("Your nonprofit isn't verified yet.")).toBeVisible();
 });
 
-test("an unverified nonprofit can't comment where others would see it", async ({ browser }) => {
+test("an unverified nonprofit can comment like a supporter", async ({ browser }) => {
   const [post] = await q<{ id: string }>("select post_id as id from post_comments where body like 'This made my day%'");
   const page = await loginAs(browser, "canvas-commons");
   await page.goto(`/posts/${post.id}`);
   const comments = main(page).getByRole("region", { name: "Comments" });
-  await comments.getByLabel("Write a comment…").fill("E2E should not post");
+  await comments.getByLabel("Write a comment…").fill("E2E from an unverified nonprofit");
   await comments.getByLabel("Write a comment…").press("Enter");
-  await expect(comments.getByRole("alert")).toHaveText("Your organization can do this once it's verified.");
-  expect((await q("select 1 from post_comments where body = 'E2E should not post'")).length).toBe(0);
+  await expect(comments.getByText("E2E from an unverified nonprofit")).toBeVisible();
 });

@@ -41,8 +41,9 @@ async function NonprofitProfile({
   if (!profile) notFound();
   const viewerId = session?.user.id ?? null;
   const isOwner = viewerId === id;
-  // Unverified nonprofits are invisible to everyone else, as if they didn't exist yet.
-  if (!profile.verifiedAt && !isOwner) notFound();
+  // Unverified nonprofits are visible like supporters (labeled "Not verified yet"),
+  // but have no posts, stories, reels or events, and can't receive donations.
+  const verified = Boolean(profile.verifiedAt);
 
   const { before, tab } = await searchParams;
   const cursor = z.uuid().safeParse(before);
@@ -56,20 +57,26 @@ async function NonprofitProfile({
 
   // Signed-in visitors may donate (never to their own organization); the
   // page is only visible to others once the nonprofit is verified.
-  const donateClientId = viewerId && !isOwner ? payPalClientId() : null;
+  const donateClientId = verified && viewerId && !isOwner ? payPalClientId() : null;
 
   // The PayPal payee email is deliberately not shown: it's only used server-side.
   return (
     <>
       <title>{`${profile.name} · Bono`}</title>
-      {!profile.verifiedAt && (
+      {!verified && isOwner && (
         <p className="rounded-lg bg-amber-50 px-4 py-3 text-sm text-amber-900 dark:bg-amber-950 dark:text-amber-100">
-          <strong>Only you can see this page for now.</strong> Bono shows supporters verified
-          nonprofits only. Once your EIN is checked and the verification fee is paid, your page goes
-          live and you can start posting.{" "}
+          <strong>Your nonprofit isn&apos;t verified yet.</strong> Until it is, you can follow, like, comment,
+          RSVP and message like any supporter, and others see your page marked &quot;Not verified yet&quot;.
+          Once your EIN is checked and the verification fee is paid, you can post and receive donations.{" "}
           <Link href="/verify" className="font-semibold underline">
             Get verified
           </Link>
+        </p>
+      )}
+      {!verified && !isOwner && (
+        <p className="rounded-lg bg-zinc-100 px-4 py-3 text-sm text-zinc-700 dark:bg-zinc-800 dark:text-zinc-300">
+          <strong>Not verified yet.</strong> Bono hasn&apos;t checked this organization&apos;s tax-exempt status,
+          so it can&apos;t post or receive donations here yet.
         </p>
       )}
       <ProfileHeader
@@ -83,14 +90,15 @@ async function NonprofitProfile({
       <p className="text-sm text-zinc-600 dark:text-zinc-400">
         <strong className="text-zinc-900 dark:text-zinc-100">{followers}</strong> {followers === 1 ? "follower" : "followers"}
       </p>
-      {donateClientId && viewerId && (
+      {viewerId && !isOwner && (
         <div className="flex flex-wrap gap-3">
-          <DonateButton nonprofitId={id} nonprofitName={profile.name} clientId={donateClientId} size="large" />
-          <FollowButton nonprofitId={id} following={await isFollowing(viewerId, id)} size="large" />
+          {/* Donating and following are for verified organizations; anyone can be messaged. */}
+          {donateClientId && <DonateButton nonprofitId={id} nonprofitName={profile.name} clientId={donateClientId} size="large" />}
+          {verified && <FollowButton nonprofitId={id} following={await isFollowing(viewerId, id)} size="large" />}
           <MessageButton userId={id} size="large" />
         </div>
       )}
-      {!viewerId && (
+      {!viewerId && verified && (
         <p>
           <Link href="/login" className="font-medium text-emerald-700 underline dark:text-emerald-400">
             Log in to donate

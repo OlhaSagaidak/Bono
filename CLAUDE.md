@@ -85,7 +85,7 @@ There is **no volunteer role**. Do not build volunteer features.
 - **Build this in week 4.** Olya starts the 45-day trial around **Nov 1** so the license covers judging. Don't install the trial before she says so.
 
 ### 9. Social layer (added Oct 19)
-All of it respects the safe-space rule: unverified nonprofits stay invisible, so they can't post stories, reels or events or be messaged.
+Unverified nonprofits (Oct 29 decision) act like supporters: visible, labeled "Not verified yet", and they can follow, like, comment, RSVP and message. Posts, stories, reels, events, Follow and Donate stay verified-only.
 - **Layout (signed in, desktop):** top bar (logo; Home, Reels, Messages with unread count, Following, Events, Notifications bell with dropdown; account menu on the right); center column = stories row + the existing ranked feed (unchanged); left sidebar = recent chats + followed organizations; right sidebar = your upcoming events. Below `lg`, sidebars hide and the top bar becomes a compact icon bar.
 - **Profiles for everyone:** photo + bio (max 300 characters, live counter) for supporters, nonprofits and sponsors (nonprofits and sponsors keep their logo as the photo). Upload through the `images` table, validated and resized/square-cropped on the server with sharp; default avatar. Supporter profile `/users/[id]`; nonprofit pages add bio, followers count, reels, upcoming events and a Message button. Owner-only edit, enforced in the Server Action.
 - **Following page** `/following`: followed organizations with unfollow and search, plus "Discover organizations" by cause.
