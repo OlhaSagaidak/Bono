@@ -435,3 +435,7 @@ an off-site `back` is ignored (Continue → `/feed`); an unknown `kind` → a sa
 Not verifiable headlessly (PayPal rejects automated logins): approve → return → capture on a real phone.
 Confirmed on a real phone (2026-10-27, by Olya, live site): $25 donation to Green Seattle → PayPal in the same tab →
 approved with the sandbox buyer → back on `/paypal/return` → donation `completed` with a capture id. No PayPal app.
+Also confirmed on a real phone (2026-10-29, by Olya, live site): Canvas Commons paid the $25 verification fee from its
+own sandbox Business account (newly created; the earlier email in seed.local.json had never existed in the sandbox,
+which made PayPal show its generic "head back to the merchant" page) → back on `/paypal/return` → verified, fee
+`completed` with a capture id.
