@@ -70,6 +70,7 @@ function DonateFlow({
     amountCents: number;
     pending: boolean;
     match: { sponsorName: string; amountCents: number } | null;
+    tier: { label: string; isNew: boolean } | null;
   } | null>(null);
   const [choice, setChoice] = useState<string>("25"); // a preset, or "other"
   const [custom, setCustom] = useState("");
@@ -81,7 +82,7 @@ function DonateFlow({
     const result = await captureDonationAction(orderId);
     if ("declined" in result) return "Your payment method was declined. Try another one.";
     if ("error" in result) return result.error;
-    setThanks({ amountCents: result.amountCents, pending: result.status === "pending", match: result.match });
+    setThanks({ amountCents: result.amountCents, pending: result.status === "pending", match: result.match, tier: result.tier });
     return null;
   }
 
@@ -96,6 +97,20 @@ function DonateFlow({
             ? `PayPal is still processing your ${formatCents(thanks.amountCents)} donation to ${nonprofitName}. It goes straight to them once it clears.`
             : `Your ${formatCents(thanks.amountCents)} donation went straight to ${nonprofitName}. PayPal will email you a receipt.`}
         </p>
+        {thanks.tier && (
+          <p className="rounded-lg bg-amber-50 px-4 py-3 text-amber-900 dark:bg-amber-950 dark:text-amber-100">
+            {thanks.tier.isNew ? (
+              <>
+                🎉 You&apos;re now {/^[AEIOU]/.test(thanks.tier.label) ? "an" : "a"} <strong>{thanks.tier.label}</strong> of {nonprofitName}!
+              </>
+            ) : (
+              <>
+                You&apos;re {/^[AEIOU]/.test(thanks.tier.label) ? "an" : "a"} <strong>{thanks.tier.label}</strong> of {nonprofitName}.
+              </>
+            )}{" "}
+            It shows on your profile.
+          </p>
+        )}
         {thanks.match && (
           <p className="rounded-lg bg-emerald-50 px-4 py-3 text-emerald-900 dark:bg-emerald-950 dark:text-emerald-100">
             <strong>{thanks.match.sponsorName} matched your gift</strong> with {formatCents(thanks.match.amountCents)} more,

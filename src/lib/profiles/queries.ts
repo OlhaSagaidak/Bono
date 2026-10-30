@@ -41,8 +41,8 @@ export async function getNonprofitProfile(userId: string) {
 export async function getSponsorProfile(userId: string) {
   const profile = await db.query.sponsorProfiles.findFirst({ where: eq(sponsorProfiles.userId, userId) });
   if (!profile) return null;
-  const bio = (await db.query.users.findFirst({ where: eq(users.id, userId), columns: { bio: true } }))?.bio ?? "";
-  return { ...profile, bio };
+  const account = await db.query.users.findFirst({ where: eq(users.id, userId), columns: { bio: true, showBadges: true } });
+  return { ...profile, bio: account?.bio ?? "", showBadges: account?.showBadges ?? true };
 }
 
 /** The bits of an account every profile shows: name, bio, photo. Photo: a supporter's own, else the logo. */
@@ -54,6 +54,7 @@ export async function getAccount(userId: string) {
       name: users.name,
       bio: users.bio,
       avatarImageId: users.avatarImageId,
+      showBadges: users.showBadges,
       nonprofitLogo: nonprofitProfiles.logoImageId,
       sponsorLogo: sponsorProfiles.logoImageId,
     })

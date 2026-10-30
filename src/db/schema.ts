@@ -1,5 +1,6 @@
 import {
   type AnyPgColumn,
+  boolean,
   customType,
   date,
   index,
@@ -42,6 +43,8 @@ export const users = pgTable("users", {
   bio: text("bio").notNull().default(""),
   // Supporters' photo. Nonprofits and sponsors use their logo instead.
   avatarImageId: uuid("avatar_image_id").references((): AnyPgColumn => images.id, { onDelete: "set null" }),
+  // Supporter and sponsor badges (lib/badges) show publicly unless turned off here.
+  showBadges: boolean("show_badges").notNull().default(true),
   // Null until the role-specific onboarding form is saved; the app sends
   // signed-in users back to /onboarding until then.
   onboardedAt: timestamp("onboarded_at", { withTimezone: true }),

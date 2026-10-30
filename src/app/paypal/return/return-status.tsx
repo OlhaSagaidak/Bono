@@ -78,7 +78,13 @@ async function confirm(kind: ReturnKind, orderId: string, nonprofitName: string 
           ? `PayPal is still processing your ${formatCents(r.amountCents)} donation to ${to}. It goes straight to them once it clears.`
           : `Your ${formatCents(r.amountCents)} donation went straight to ${to}. PayPal will email you a receipt.`;
       const match = r.match ? ` ${r.match.sponsorName} matched your gift with ${formatCents(r.match.amountCents)} more.` : "";
-      return { tone: "done", title: "Thank you!", text: text + match };
+      const article = (label: string) => (/^[AEIOU]/.test(label) ? "an" : "a");
+      const tier = r.tier
+        ? r.tier.isNew
+          ? ` 🎉 You're now ${article(r.tier.label)} ${r.tier.label} of ${to}!`
+          : ` You're ${article(r.tier.label)} ${r.tier.label} of ${to}.`
+        : "";
+      return { tone: "done", title: "Thank you!", text: text + match + tier };
     }
     case "fee": {
       const r = await captureVerificationFeeAction(orderId);

@@ -4,6 +4,12 @@ import { loginAs, main, q, userId } from "./helpers";
 test.afterEach(async () => {
   await q("delete from post_comments where body like 'E2E %'");
 });
+// Once more at the end: on a freshly started dev server a request can land
+// just after the per-test clean-up, while Next is still compiling.
+test.afterAll(async () => {
+  await new Promise((r) => setTimeout(r, 1500));
+  await q("delete from post_comments where body like 'E2E %'");
+});
 
 test("comment, react, reply and delete", async ({ browser }) => {
   const [post] = await q<{ id: string }>("select post_id as id from post_comments where body like 'This made my day%'");

@@ -1,6 +1,7 @@
 import { notFound } from "next/navigation";
 import { Suspense } from "react";
 import { z } from "zod";
+import { BadgesSection } from "@/components/badges-section";
 import { MessageButton } from "@/components/message-button";
 import { PoolMeter } from "@/components/pool-meter";
 import { ProfileTabs } from "@/components/profile-tabs";
@@ -42,6 +43,7 @@ async function SponsorProfile({ params, searchParams }: Pick<PageProps<"/sponsor
           <MessageButton userId={id} size="large" />
         </div>
       )}
+      {!savedTab && <BadgesSection userId={id} role="sponsor" isOwner={isOwner} showBadges={profile.showBadges} />}
       {isOwner && <ProfileTabs basePath={`/sponsors/${id}`} first="Campaigns" savedActive={savedTab} />}
       {savedTab ? (
         <SavedPosts userId={id} basePath={`/sponsors/${id}`} before={cursor.success ? cursor.data : undefined} />

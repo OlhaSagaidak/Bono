@@ -4,6 +4,7 @@ import { MessageCircle } from "lucide-react";
 import Link from "next/link";
 import { useCallback, useEffect, useId, useRef, useState, useTransition } from "react";
 import { Avatar } from "@/components/avatar";
+import { BackerBadge } from "@/components/backer-badge";
 import { TimeAgo } from "@/components/local-time";
 import type { Reaction } from "@/db/schema";
 import {
@@ -308,9 +309,12 @@ function Comment({
       </Link>
       <div className="flex min-w-0 flex-col gap-0.5">
         <div className="relative self-start rounded-2xl bg-zinc-100 px-3 py-2 dark:bg-zinc-800">
-          <Link href={comment.author.href} className="text-sm font-semibold hover:underline focus:outline-2 focus:outline-emerald-600">
-            {comment.author.name}
-          </Link>
+          <span className="flex flex-wrap items-center gap-x-1.5 gap-y-0.5">
+            <Link href={comment.author.href} className="text-sm font-semibold hover:underline focus:outline-2 focus:outline-emerald-600">
+              {comment.author.name}
+            </Link>
+            {comment.badge && <BackerBadge badge={comment.badge} size="xs" />}
+          </span>
           {mode === "edit" ? (
             <form
               onSubmit={(e) => {
