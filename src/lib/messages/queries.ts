@@ -19,8 +19,6 @@ async function person(userId: string) {
       role: users.role,
       name: sql<string>`coalesce(${nonprofitProfiles.name}, ${sponsorProfiles.name}, ${users.name})`,
       photoImageId: sql<string | null>`coalesce(${nonprofitProfiles.logoImageId}, ${sponsorProfiles.logoImageId}, ${users.avatarImageId})`,
-      // Only nonprofits can be unverified; everyone else counts as visible.
-      visible: sql<boolean>`(${users.role} <> 'nonprofit' or ${nonprofitProfiles.verifiedAt} is not null)`,
       onboarded: sql<boolean>`${users.onboardedAt} is not null`,
     })
     .from(users)
@@ -46,14 +44,14 @@ export async function blockState(viewerId: string, otherId: string) {
 
 /**
  * Whether the viewer may message this person, and if not, a reason to show.
- * Unverified nonprofits stay invisible (the safe-space rule), so they can
- * neither be messaged nor send messages.
+ * Anyone onboarded can message anyone, unverified nonprofits included (they
+ * act like supporters until verified), unless one blocked the other.
  */
 export async function messagingProblem(viewerId: string, otherId: string): Promise<{ other: Person | null; problem: string | null }> {
   if (viewerId === otherId) return { other: null, problem: "You can't message yourself." };
   const [me, other] = await Promise.all([person(viewerId), person(otherId)]);
-  if (!other || !other.visible || !other.onboarded) return { other: null, problem: "That person wasn't found." };
-  if (!me?.visible) return { other, problem: "Your organization can send messages once it's verified." };
+  if (!other || !other.onboarded) return { other: null, problem: "That person wasn't found." };
+  if (!me?.onboarded) return { other, problem: "Finish setting up your profile first." };
   const { iBlocked, theyBlocked } = await blockState(viewerId, otherId);
   if (iBlocked) return { other, problem: `You blocked ${other.name}. Unblock them to send messages.` };
   if (theyBlocked) return { other, problem: "You can't message this person." };
@@ -71,7 +69,7 @@ export async function getConversation(conversationId: string, viewerId: string) 
     .where(and(eq(conversations.id, conversationId), or(eq(conversations.userLow, viewerId), eq(conversations.userHigh, viewerId))));
   if (!row) return null;
   const { other, problem } = await messagingProblem(viewerId, row.otherId);
-  // A conversation with someone who has since become invisible isn't shown.
+  // A conversation with an account that no longer exists isn't shown.
   if (!other) return null;
   return { id: row.id, other, problem };
 }
@@ -128,7 +126,7 @@ export async function getInbox(viewerId: string, limit = 50) {
     .innerJoin(other, eq(other.id, otherOf(viewerId)))
     .leftJoin(nonprofitProfiles, eq(nonprofitProfiles.userId, other.id))
     .leftJoin(sponsorProfiles, eq(sponsorProfiles.userId, other.id))
-    .where(and(isNotNull(conversations.lastMessageAt), sql`(${other.role} <> 'nonprofit' or ${nonprofitProfiles.verifiedAt} is not null)`))
+    .where(isNotNull(conversations.lastMessageAt))
     .orderBy(desc(conversations.lastMessageAt))
     .limit(limit);
 }
