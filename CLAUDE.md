@@ -43,7 +43,8 @@ There is **no volunteer role**. Do not build volunteer features.
 
 ### 2. Nonprofit verification (PayPal fee)
 - The nonprofit enters its EIN. The server checks it against a tax-exempt lookup table:
-  - Real path: a table loaded from the IRS Exempt Organizations data (Pub 78 / EO BMF bulk file). Load only what's needed; don't commit huge files.
+  - Real path: looked up **on demand** when the nonprofit asks (Oct 29 decision), through ProPublica's free Nonprofit Explorer API (IRS EO BMF data, all states, no key; cite ProPublica, don't resell). Accept 501(c)(3), deductible, unconditionally exempt organizations whose name matches.
+  - **Minimum age:** only organizations tax-exempt for at least **6 months** (by the IRS ruling date) can be verified and receive donations.
   - Demo path: the fictional demo nonprofits use fictional EINs listed in a clearly labeled `demo_ein_registry` table, so the demo works. Label this honestly in the UI and README as demo data.
 - If the EIN matches and the name is consistent, the nonprofit pays a one-time **verification fee** (configurable, default $25) through the PayPal button. Orders v2: create the order server-side, buyer approves, capture server-side. The payee is the platform account.
 - On successful capture: set `verified = true` and show the badge. Store the order ID and capture ID.

@@ -11,7 +11,6 @@
     "db:migrate": "drizzle-kit migrate",
     "db:studio": "drizzle-kit studio",
     "seed": "tsx --conditions=react-server --env-file-if-exists=.env scripts/seed.ts",
-    "irs:load": "tsx --env-file-if-exists=.env scripts/load-irs.ts",
     "embed": "tsx --conditions=react-server --env-file-if-exists=.env scripts/embed.ts",
     "models:fetch": "tsx --conditions=react-server scripts/fetch-model.ts",
     "test": "node --import tsx --test tests/unit/*.test.ts",

@@ -6,7 +6,7 @@ import { formatCents } from "@/lib/donations/amounts";
 import { payPalClientId } from "@/lib/paypal/public-config";
 import { getNonprofitProfile } from "@/lib/profiles/queries";
 import { verificationFeeCents } from "@/lib/verification/config";
-import { findEin, formatEin } from "@/lib/verification/ein";
+import { formatEin } from "@/lib/verification/ein";
 import { getPaidFee } from "@/lib/verification/queries";
 import { EinForm, FeeCheckout } from "./verify-forms";
 
@@ -68,7 +68,7 @@ async function Verify() {
     );
   }
 
-  const record = await findEin(profile.ein);
+  // Shown from what was saved when the EIN passed; no new lookup on every visit.
   const fee = await getPaidFee(profile.userId);
 
   return (
@@ -77,13 +77,13 @@ async function Verify() {
       <section className="flex flex-col gap-1 rounded-lg border border-zinc-200 p-4 dark:border-zinc-800">
         <h2 className="font-semibold">Step 1 of 2: EIN checked ✓</h2>
         <p>
-          {formatEin(profile.ein)} · {record?.name ?? profile.name}
-          {record?.location && ` · ${record.location}`}
+          {formatEin(profile.ein)} · {profile.name}
+          {profile.einRulingDate && ` · tax-exempt since ${profile.einRulingDate.slice(0, 4)}`}
         </p>
         <p className="text-sm text-zinc-600 dark:text-zinc-400">
           {profile.einSource === "demo"
             ? "Found in Bono's demo registry: fictional EINs for the demo and test nonprofits (including the judge test entries), not IRS data."
-            : "Found in the IRS list of tax-exempt organizations (Exempt Organizations Business Master File)."}
+            : "Found in the IRS records of tax-exempt organizations (Exempt Organizations Business Master File), via ProPublica's Nonprofit Explorer."}
         </p>
       </section>
 

@@ -477,4 +477,9 @@ export const postPhotoAlt: Record<string, string> = {
 export const judgeEins = Array.from({ length: 10 }, (_, i) => ({
   ein: `0000002${String(i + 1).padStart(2, "0")}`,
   name: `Judge Test Nonprofit ${i + 1}`,
+  rulingDate: "2019-06-01",
 }));
+
+// One young organization, tax-exempt for only about two months whenever the
+// seed runs, to show the 6-month rule refusing verification.
+export const youngJudgeEin = { ein: "000000299", name: "Judge Test New Nonprofit", monthsAgo: 2 };

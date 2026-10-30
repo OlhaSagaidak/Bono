@@ -42,7 +42,7 @@ import {
 } from "@/db/schema";
 import { embedCauses, embedPosts } from "@/lib/ai/embed-posts";
 import { fitImage, replaceImage, squarePhoto } from "@/lib/images";
-import { conversations as demoConversations, judgeEins, nonprofits, postPhotoAlt, sponsors, supporters } from "./seed-data";
+import { conversations as demoConversations, judgeEins, nonprofits, youngJudgeEin, postPhotoAlt, sponsors, supporters } from "./seed-data";
 import { seedComments } from "./seed-comments";
 import { seedReels } from "./seed-reels";
 import { seedStories } from "./seed-stories";
@@ -70,6 +70,13 @@ function readLocalConfig() {
     if (!group[slug]) throw new Error(`seed.local.json is missing a sandbox email for "${slug}".`);
   }
   return config;
+}
+
+/** "YYYY-MM-DD", `months` before `now` (for dates that must stay recent on every run). */
+function monthsBefore(now: number, months: number): string {
+  const d = new Date(now);
+  d.setUTCMonth(d.getUTCMonth() - months);
+  return d.toISOString().slice(0, 10);
 }
 
 // "Lucía Herrera" -> "lucia.herrera@bono.example"
@@ -123,8 +130,13 @@ async function main() {
     // The labeled registry of fictional EINs: the demo nonprofits, plus spares for judges.
     await tx
       .insert(demoEinRegistry)
-      .values([...nonprofits.map((n) => ({ ein: n.ein, name: n.name })), ...judgeEins])
-      .onConflictDoUpdate({ target: demoEinRegistry.ein, set: { name: sql`excluded.name` } });
+      .values([
+        // The demo nonprofits have been tax-exempt for years (fictional dates).
+        ...nonprofits.map((n, i) => ({ ein: n.ein, name: n.name, rulingDate: `${2008 + i}-03-01` })),
+        ...judgeEins,
+        { ein: youngJudgeEin.ein, name: youngJudgeEin.name, rulingDate: monthsBefore(now, youngJudgeEin.monthsAgo) },
+      ])
+      .onConflictDoUpdate({ target: demoEinRegistry.ein, set: { name: sql`excluded.name`, rulingDate: sql`excluded.ruling_date` } });
 
     const removed = reset
       ? (await tx.delete(users).where(like(users.email, `%@${DEMO_DOMAIN}`)).returning({ id: users.id })).length

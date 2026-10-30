@@ -1,6 +1,7 @@
 import {
   type AnyPgColumn,
   customType,
+  date,
   index,
   integer,
   pgEnum,
@@ -81,22 +82,14 @@ export const images = pgTable("images", {
 // labeled registry of fictional EINs the demo nonprofits use.
 export const einSourceEnum = pgEnum("ein_source", ["irs", "demo"]);
 
-// Eligible rows from the IRS Exempt Organizations Business Master File (EO BMF),
-// loaded by `npm run irs:load` (not committed). Only 501(c)(3) organizations
-// with deductible contributions and unconditional exemption are kept.
-export const irsExemptOrgs = pgTable("irs_exempt_orgs", {
-  ein: text("ein").primaryKey(), // 9 digits, no dash
-  name: text("name").notNull(),
-  city: text("city").notNull(),
-  state: text("state").notNull(),
-  loadedAt: timestamp("loaded_at", { withTimezone: true }).notNull().defaultNow(),
-});
 
 // DEMO DATA: fictional EINs for the fictional demo nonprofits, so the demo can
 // pass the EIN check. Shown as "demo registry" in the UI, never as IRS data.
 export const demoEinRegistry = pgTable("demo_ein_registry", {
   ein: text("ein").primaryKey(),
   name: text("name").notNull(),
+  // Like the IRS ruling date: when the (fictional) organization became tax-exempt.
+  rulingDate: date("ruling_date").notNull().default("2015-01-01"),
 });
 
 export const nonprofitProfiles = pgTable("nonprofit_profiles", {
@@ -114,6 +107,8 @@ export const nonprofitProfiles = pgTable("nonprofit_profiles", {
   ein: text("ein").unique(),
   einSource: einSourceEnum("ein_source"),
   einCheckedAt: timestamp("ein_checked_at", { withTimezone: true }),
+  // The IRS ruling date (when it was recognized as tax-exempt), from the EIN check.
+  einRulingDate: date("ein_ruling_date"),
   ...timestamps,
 });
 
