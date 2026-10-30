@@ -25,11 +25,13 @@ spare entries for judges:
 | 00-0000208 | Judge Test Nonprofit 8 |
 | 00-0000209 | Judge Test Nonprofit 9 |
 | 00-0000210 | Judge Test Nonprofit 10 |
+| 00-0000299 | Judge Test New Nonprofit *(tax-exempt for only ~2 months, so it shows the 6-month rule refusing verification)* |
 
 1. Sign up as a **Nonprofit** and use one of the names above as the organization name.
    Each EIN can belong to one Bono account, so pick one nobody has taken yet.
 2. On **Get verified**, enter the matching EIN. The page says the match came from the demo
-   registry, not the IRS.
+   registry, not the IRS. Bono verifies organizations only after **6 months of tax-exempt
+   status**; the demo entries have old enough (fictional) dates, except 00-0000299.
 3. Pay the $25 verification fee (PayPal sandbox) **from the sandbox Business account you
    entered as your organization's PayPal email**. That is how Bono checks the account is
    yours. Logging in to PayPal with a different account doesn't verify the nonprofit.
@@ -70,12 +72,18 @@ history** (donations, verification fees). `npm run seed -- --reset` deletes the
 demo accounts and everything they did, for a clean start. Accounts on any other
 domain are never touched.
 
-### IRS data (optional)
+### How the EIN check works
 
-`npm run irs:load -- wa` loads Washington's tax-exempt 501(c)(3) organizations
-from the IRS Exempt Organizations Business Master File (public data from irs.gov),
-so real nonprofits can pass the EIN check too. Other states: pass their two-letter
-codes. The data is downloaded at load time and never committed.
+When a nonprofit asks to be verified, Bono looks its EIN up **on demand** in the IRS
+records of tax-exempt organizations (the Exempt Organizations Business Master File,
+which the IRS publishes monthly), through ProPublica's free
+[Nonprofit Explorer API](https://projects.propublica.org/nonprofits/api). Nothing is
+stored or reloaded, every check sees the latest published record, and every US state
+is covered. Bono accepts 501(c)(3) charities whose donations are tax-deductible, under
+a name consistent with the IRS record, and only once they have been **tax-exempt for
+at least 6 months** (by their IRS ruling date). The fictional demo nonprofits use the
+labeled demo registry instead (see *For judges*). Data: ProPublica Nonprofit Explorer
+and the IRS.
 
 ## How the AI feed works
 
