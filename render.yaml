@@ -1,7 +1,6 @@
 # Render Blueprint: the Bono web app and its Postgres database.
 # Create both from the Render Dashboard: New > Blueprint > this repo.
-# Both start on Render's free plans (decided 2026-10-13). A free database
-# expires 30 days after it's created; decide on upgrading before then.
+# The web service is on the free plan; the database is on the smallest paid one.
 
 services:
   - type: web
@@ -45,7 +44,8 @@ services:
 
 databases:
   - name: bono-db
-    plan: free
+    # Upgraded 2026-11-05 so the demo stays up through judging (Dec 1-15).
+    plan: basic-256mb
     region: oregon
     postgresMajorVersion: "17"
     databaseName: bono

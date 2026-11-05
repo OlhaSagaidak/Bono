@@ -1,7 +1,7 @@
 import { createHash } from "node:crypto";
 import { and, eq, inArray } from "drizzle-orm";
 import type { db as Db } from "@/db";
-import { boosts, donations, nonprofitProfiles, posts } from "@/db/schema";
+import { boosts, campaignNonprofits, campaigns, donations, matches, nonprofitProfiles, posts } from "@/db/schema";
 
 type Tx = Parameters<Parameters<typeof Db.transaction>[0]>[0];
 
@@ -11,7 +11,8 @@ type Tx = Parameters<Parameters<typeof Db.transaction>[0]>[0];
 // real sandbox donations and boosts are never touched.
 //
 // Supporters give to nonprofits that share their interests, in patterns that
-// land on every tier. Sponsors get a few past (already ended) boosts.
+// land on every tier. Sponsors get a few past (already ended) boosts, and one
+// past matching campaign each that matched seeded gifts until its pool ran out.
 
 const DAY = 86_400_000;
 // How much a supporter gives one nonprofit: [chance up to here, gifts min, gifts max].
@@ -30,7 +31,8 @@ export async function seedGivingHistory(
   orgs: { slug: string; id: string; causes: string[] }[],
   sponsorIds: string[],
   boostFeeCents: number,
-): Promise<{ donations: number; boosts: number }> {
+): Promise<{ donations: number; boosts: number; campaigns: number; matches: number }> {
+  await tx.delete(campaigns).where(eq(campaigns.demoSeed, true)); // takes its matches with it
   await tx.delete(donations).where(eq(donations.demoSeed, true));
   await tx.delete(boosts).where(eq(boosts.demoSeed, true));
 
@@ -66,7 +68,7 @@ export async function seedGivingHistory(
       }
     }
   }
-  if (rows.length) await tx.insert(donations).values(rows);
+  const seeded = rows.length ? await tx.insert(donations).values(rows).returning({ id: donations.id, nonprofitId: donations.nonprofitId, amountCents: donations.amountCents, completedAt: donations.completedAt }) : [];
 
   // Two or three past boosts per sponsor, on posts of different nonprofits; all ended long ago.
   const boostRows: (typeof boosts.$inferInsert)[] = [];
@@ -80,5 +82,48 @@ export async function seedGivingHistory(
     }
   }
   if (boostRows.length) await tx.insert(boosts).values(boostRows);
-  return { donations: rows.length, boosts: boostRows.length };
+
+  // One past 1:1 campaign per sponsor, over three nonprofits, ended two months ago.
+  let matchCount = 0;
+  const matched = new Set<string>(); // a donation is matched at most once, as in the app
+  for (const [i, sponsorId] of sponsorIds.entries()) {
+    const covered = [0, 1, 2].map((k) => orgs[(i * 3 + k) % orgs.length]);
+    const startsAt = new Date(now - (150 + 20 * i) * DAY);
+    const endsAt = new Date(now - (60 + 10 * i) * DAY);
+    const poolCents = i === 0 ? 100_000 : 75_000;
+    const capCents = 5_000;
+    const fits = seeded
+      .filter((d) => !matched.has(d.id) && covered.some((o) => o.id === d.nonprofitId) && d.completedAt! >= startsAt && d.completedAt! < endsAt)
+      .sort((a, b) => a.completedAt!.getTime() - b.completedAt!.getTime());
+    let reserved = 0;
+    const matchRows: (typeof matches.$inferInsert)[] = [];
+    for (const d of fits) {
+      const amount = Math.min(d.amountCents, capCents, poolCents - reserved);
+      if (amount <= 0) break;
+      reserved += amount;
+      matched.add(d.id);
+      matchRows.push({ donationId: d.id, nonprofitId: d.nonprofitId, amountCents: amount, receiverEmail: payees.get(d.nonprofitId) ?? "", status: "paid", createdAt: d.completedAt!, campaignId: "" });
+    }
+    const [campaign] = await tx
+      .insert(campaigns)
+      .values({
+        sponsorId,
+        name: i === 0 ? "Spring Giving Match" : "Summer Neighbors Match",
+        ratioPercent: 100,
+        capCents,
+        poolCents,
+        reservedCents: reserved,
+        startsAt,
+        endsAt,
+        status: "funded",
+        fundedAt: startsAt,
+        createdAt: startsAt,
+        demoSeed: true,
+      })
+      .returning({ id: campaigns.id });
+    await tx.insert(campaignNonprofits).values(covered.map((o) => ({ campaignId: campaign.id, nonprofitId: o.id })));
+    if (matchRows.length) await tx.insert(matches).values(matchRows.map((m) => ({ ...m, campaignId: campaign.id })));
+    matchCount += matchRows.length;
+  }
+  return { donations: rows.length, boosts: boostRows.length, campaigns: sponsorIds.length, matches: matchCount };
 }

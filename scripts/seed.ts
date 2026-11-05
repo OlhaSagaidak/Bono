@@ -453,7 +453,7 @@ async function main() {
     `Seeded ${nonprofits.length} nonprofits (${nonprofits.filter((n) => n.unverified).length} unverified), ` +
       `${sponsors.length} sponsors, ${supporters.length} supporters, ${result.posts} posts, ${result.storyCount} stories, ${result.reelCount} reels and ${result.commentCount} new comments.`,
   );
-  console.log(`Demo giving history (fictional, marked demo_seed): ${result.history.donations} donations, ${result.history.boosts} past boosts.`);
+  console.log(`Demo giving history (fictional, marked demo_seed): ${result.history.donations} donations, ${result.history.boosts} past boosts, ${result.history.campaigns} past matching campaigns with ${result.history.matches} matches.`);
   console.log(
     reset
       ? `Reset: removed ${result.removed} demo accounts and their history first.`

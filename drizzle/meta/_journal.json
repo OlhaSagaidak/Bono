@@ -211,6 +211,13 @@
       "when": 1793893661084,
       "tag": "0029_dashboard_ai",
       "breakpoints": true
+    },
+    {
+      "idx": 30,
+      "version": "7",
+      "when": 1793895862217,
+      "tag": "0030_demo_seed_campaigns",
+      "breakpoints": true
     }
   ]
 }

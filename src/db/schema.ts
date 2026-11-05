@@ -366,6 +366,9 @@ export const campaigns = pgTable("campaigns", {
   paypalOrderId: text("paypal_order_id").unique(),
   paypalCaptureId: text("paypal_capture_id").unique(),
   fundedAt: timestamp("funded_at", { withTimezone: true }),
+  // A fictional past campaign from `npm run seed` (ended, no PayPal payment;
+  // its matches are marked paid with no payout), so sponsor dashboards have history.
+  demoSeed: boolean("demo_seed").notNull().default(false),
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
 });
 

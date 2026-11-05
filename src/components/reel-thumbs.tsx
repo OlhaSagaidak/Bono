@@ -1,3 +1,4 @@
+import { Play } from "lucide-react";
 import Link from "next/link";
 import type { ReelView } from "@/lib/reels/queries";
 
@@ -10,10 +11,21 @@ export function ReelThumbs({ reels }: { reels: ReelView[] }) {
           <Link
             href={`/reels?start=${r.id}`}
             aria-label={`Reel from ${r.nonprofit.name}${r.caption ? `: ${r.caption}` : ""}`}
-            className="block w-28 overflow-hidden rounded-xl bg-black focus:outline-2 focus:outline-offset-2 focus:outline-emerald-600"
+            className="relative block w-28 overflow-hidden rounded-xl bg-zinc-800 focus:outline-2 focus:outline-offset-2 focus:outline-emerald-600"
           >
-            {/* "#t=0.1" makes browsers show a frame instead of a black box, without autoplaying. */}
+            {/* "#t=0.1" makes most browsers show a frame without autoplaying. iPhones load
+                nothing until play, so the icon and caption keep the tile from looking broken. */}
             <video src={`${r.src}#t=0.1`} muted playsInline preload="metadata" aria-hidden className="pointer-events-none aspect-[9/16] w-full object-cover" />
+            <span aria-hidden className="absolute inset-0 flex items-center justify-center">
+              <span className="flex size-9 items-center justify-center rounded-full bg-black/50">
+                <Play className="size-4 translate-x-px fill-white text-white" />
+              </span>
+            </span>
+            {r.caption && (
+              <span aria-hidden className="absolute inset-x-0 bottom-0 line-clamp-2 bg-gradient-to-t from-black/80 to-transparent px-2 pb-1.5 pt-4 text-[11px] leading-tight text-white">
+                {r.caption}
+              </span>
+            )}
           </Link>
         </li>
       ))}

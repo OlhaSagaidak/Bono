@@ -1,9 +1,9 @@
 "use client";
 
-import { Bookmark, Heart, Link2, Trash2, Volume2, VolumeX } from "lucide-react";
+import { Bookmark, Heart, Link2, Play, Trash2, Volume2, VolumeX } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useEffect, useRef, useState, useTransition } from "react";
+import { type RefObject, useEffect, useRef, useState, useTransition } from "react";
 import { Avatar } from "@/components/avatar";
 import { DonateButton } from "@/components/donate-button";
 import { deleteReelAction, toggleReelLikeAction, toggleReelSaveAction } from "@/lib/reels/actions";
@@ -20,23 +20,6 @@ export function ReelsFeed({ reels, viewerId, donateClientId }: { reels: ReelView
   const [muted, setMuted] = useState(true);
   const container = useRef<HTMLDivElement>(null);
 
-  // Play whichever reel is mostly on screen; pause the rest.
-  useEffect(() => {
-    const observer = new IntersectionObserver(
-      (entries) => {
-        for (const entry of entries) {
-          const video = entry.target.querySelector("video");
-          if (!video) continue;
-          if (entry.isIntersecting) video.play().catch(() => {});
-          else video.pause();
-        }
-      },
-      { root: container.current, threshold: 0.6 },
-    );
-    container.current?.querySelectorAll("[data-reel]").forEach((el) => observer.observe(el));
-    return () => observer.disconnect();
-  }, [reels]);
-
   return (
     <div
       ref={container}
@@ -50,6 +33,7 @@ export function ReelsFeed({ reels, viewerId, donateClientId }: { reels: ReelView
           reel={reel}
           // Only the first two load ahead; the rest load when scrolled to (playing starts the load).
           preload={i < 2 ? "metadata" : "none"}
+          scroller={container}
           own={reel.nonprofit.id === viewerId}
           muted={muted}
           onToggleMute={() => setMuted((m) => !m)}
@@ -63,6 +47,7 @@ export function ReelsFeed({ reels, viewerId, donateClientId }: { reels: ReelView
 function Reel({
   reel,
   preload,
+  scroller,
   own,
   muted,
   onToggleMute,
@@ -70,6 +55,7 @@ function Reel({
 }: {
   reel: ReelView;
   preload: "metadata" | "none";
+  scroller: RefObject<HTMLDivElement | null>;
   own: boolean;
   muted: boolean;
   onToggleMute: () => void;
@@ -81,6 +67,35 @@ function Reel({
   const [status, setStatus] = useState<string>();
   const [confirmDelete, setConfirmDelete] = useState(false);
   const [, startTransition] = useTransition();
+  const section = useRef<HTMLElement>(null);
+  const video = useRef<HTMLVideoElement>(null);
+  // What the viewer sees over the video, so a reel is never just a black box:
+  // a spinner while it loads, a play button when it's paused or the browser
+  // blocked autoplay (e.g. iPhone Low Power Mode), a message if it can't play.
+  const [onScreen, setOnScreen] = useState(false);
+  const [playback, setPlayback] = useState<"loading" | "playing" | "paused" | "failed">("loading");
+
+  // Play while mostly on screen; pause as soon as it scrolls away.
+  useEffect(() => {
+    const el = section.current;
+    if (!el) return;
+    const observer = new IntersectionObserver(([entry]) => setOnScreen(entry.isIntersecting), { root: scroller.current, threshold: 0.6 });
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, [scroller]);
+  useEffect(() => {
+    const v = video.current;
+    if (!v) return;
+    if (onScreen) v.play().catch(() => setPlayback((p) => (p === "failed" ? p : "paused")));
+    else v.pause();
+  }, [onScreen]);
+
+  function togglePlay() {
+    const v = video.current;
+    if (!v) return;
+    if (v.paused) v.play().catch(() => setPlayback("paused"));
+    else v.pause();
+  }
 
   // Both toggles flip at once and flip back if the server refuses.
   function toggleLike() {
@@ -120,22 +135,47 @@ function Reel({
 
   return (
     <section
-      data-reel
+      ref={section}
       aria-label={`Reel from ${reel.nonprofit.name}`}
       className="flex h-full snap-start snap-always items-center justify-center"
     >
       {/* A 9:16 frame, so captions and buttons sit on the video even on wide screens. */}
       <div className="relative aspect-[9/16] h-full max-w-full">
         <video
+          ref={video}
           src={reel.src}
           loop
           muted={muted}
           playsInline
           preload={preload}
           aria-label={reel.caption || `Video from ${reel.nonprofit.name}`}
-          onClick={(e) => (e.currentTarget.paused ? e.currentTarget.play().catch(() => {}) : e.currentTarget.pause())}
+          onClick={togglePlay}
+          onPlaying={() => setPlayback("playing")}
+          onWaiting={() => setPlayback("loading")}
+          onPause={() => setPlayback((p) => (p === "failed" ? p : "paused"))}
+          onError={() => setPlayback("failed")}
           className="h-full w-full cursor-pointer object-contain"
         />
+        {onScreen && playback === "loading" && (
+          <div role="status" aria-label="Loading video" className="pointer-events-none absolute inset-0 flex items-center justify-center">
+            <div className="size-12 animate-spin rounded-full border-4 border-white/30 border-t-white" />
+          </div>
+        )}
+        {onScreen && playback === "paused" && (
+          <button
+            type="button"
+            onClick={togglePlay}
+            aria-label="Play video"
+            className="absolute inset-0 m-auto flex size-20 items-center justify-center rounded-full bg-black/50 text-white focus:outline-2 focus:outline-white"
+          >
+            <Play aria-hidden className="size-10 translate-x-0.5 fill-white" />
+          </button>
+        )}
+        {playback === "failed" && (
+          <p className="absolute inset-x-6 top-1/3 rounded-lg bg-black/70 p-3 text-center text-sm text-white">
+            This video couldn&apos;t be played on this device.
+          </p>
+        )}
 
         {/* Text sits on a gradient so it stays readable over any video. */}
         <div className="pointer-events-none absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/80 to-transparent px-4 pb-5 pt-16 text-white">
