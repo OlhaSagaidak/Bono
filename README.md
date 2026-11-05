@@ -159,9 +159,27 @@ Sponsor tools: **PayPal** (payments), **APIMatic** (PayPal Server SDK + Context 
 
 ### Logins
 
-_Judge sandbox logins will be listed here before submission._ Every demo account is fictional
-and uses the reserved `bono.example` domain, for example `maya.chen@bono.example` (a supporter),
-`paws-haven@bono.example` (a nonprofit) and `acme@bono.example` (a sponsor).
+Everything runs in the **PayPal sandbox**: no real money moves. These accounts exist only for
+judging. The live site is on a free web plan, so the first page can take about 30 seconds to wake up.
+
+**Bono** (https://bono-h8b8.onrender.com/login), password `Judge-sdnrzffysq` for both:
+
+| Login | What to try |
+| --- | --- |
+| `judge.supporter@bono.example` | The AI feed (it starts from animals, climate and food security, and learns from what you like, donate to and linger on), Donate, translation, "Why am I seeing this?", reels, stories, events, messages |
+| `judge.sponsor@bono.example` | **Dashboard** (AG Studio: try "Customize & ask AI"), Campaigns & boosts: create and fund a matching campaign, boost a post |
+
+To see a nonprofit's side, sign up your own nonprofit (below).
+
+**PayPal sandbox**, for approving payments when PayPal opens:
+
+| Account | Email | Password | Use it to |
+| --- | --- | --- | --- |
+| Buyer (Personal) | `sb-5tuls53714143@personal.example.com` | `%h,<0&LN` | Pay: donations, campaign pools, boosts |
+| Nonprofit A (Business) | `sb-m0tgz53657033@business.example.com` | `}V!k8=>g` | The PayPal email of a nonprofit you sign up, and paying its verification fee |
+| Nonprofit B (Business) | `sb-s6rxp53657052@business.example.com` | `.X8i_S2'` | Same, for a second nonprofit |
+
+Every other demo account is fictional too and uses the reserved `bono.example` domain.
 
 ### Verifying a nonprofit you sign up yourself
 
@@ -190,7 +208,7 @@ spare entries for judges:
    registry, not the IRS. Bono verifies organizations only after **6 months of tax-exempt
    status**; the demo entries have old enough (fictional) dates, except 00-0000299.
 3. Pay the $25 verification fee (PayPal sandbox) **from the sandbox Business account you
-   entered as your organization's PayPal email**. That is how Bono checks the account is
+   entered as your organization's PayPal email** (Nonprofit A or B above). That is how Bono checks the account is
    yours. Logging in to PayPal with a different account doesn't verify the nonprofit.
 
 ### How the EIN check works

@@ -108,7 +108,7 @@ export async function seedGivingHistory(
       .insert(campaigns)
       .values({
         sponsorId,
-        name: i === 0 ? "Spring Giving Match" : "Summer Neighbors Match",
+        name: ["Spring Giving Match", "Summer Neighbors Match", "Fall Community Match"][i % 3],
         ratioPercent: 100,
         capCents,
         poolCents,

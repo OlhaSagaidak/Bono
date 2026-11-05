@@ -1,5 +1,6 @@
 {
   "demoPassword": "pick-a-password-for-all-demo-logins",
+  "judgePassword": "optional-public-password-for-the-judge-logins",
   "nonprofits": {
     "paws-haven": "paws-haven-sandbox@business.example.com",
     "green-seattle": "green-seattle-sandbox@business.example.com",

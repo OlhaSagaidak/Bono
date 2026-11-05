@@ -55,6 +55,9 @@ const DEMO_DOMAIN = "bono.example";
 
 const localSchema = z.object({
   demoPassword: z.string().min(8, "demoPassword must be at least 8 characters."),
+  // Optional: the public password for the judge-only logins (README "For judges").
+  // Separate from demoPassword, which stays private.
+  judgePassword: z.string().min(10, "judgePassword must be at least 10 characters.").optional(),
   nonprofits: z.record(z.string(), z.email()),
   sponsors: z.record(z.string(), z.email()),
 });
@@ -252,6 +255,38 @@ async function main() {
         .onConflictDoUpdate({ target: sponsorProfiles.userId, set: profile });
     }
 
+    // Judge-only logins (README "For judges"), with their own public password,
+    // so judges never need the private demo one. The supporter has no giving
+    // history yet; the sponsor gets a fictional past below, like the others.
+    const judges = config.judgePassword
+      ? await (async () => {
+          const judgeHash = await bcrypt.hash(config.judgePassword!, 10);
+          const upsertJudge = async (email: string, name: string, role: "user" | "sponsor") => {
+            const [row] = await tx
+              .insert(users)
+              .values({ email, name, role, passwordHash: judgeHash, onboardedAt: new Date(now) })
+              .onConflictDoUpdate({ target: users.email, set: { name, role, passwordHash: judgeHash } })
+              .returning({ id: users.id });
+            return row.id;
+          };
+          const supporterId = await upsertJudge(`judge.supporter@${DEMO_DOMAIN}`, "Judge Supporter", "user");
+          await tx.delete(userInterests).where(eq(userInterests.userId, supporterId));
+          await tx.insert(userInterests).values(["animals", "climate", "food-security"].map((causeSlug) => ({ userId: supporterId, causeSlug })));
+          // Following three organizations fills the stories row and the sidebars.
+          const followed = await tx
+            .select({ id: users.id })
+            .from(users)
+            .where(inArray(users.email, ["paws-haven", "green-seattle", "open-pantry"].map((slug) => `${slug}@${DEMO_DOMAIN}`)));
+          await tx.insert(follows).values(followed.map((o) => ({ followerId: supporterId, nonprofitId: o.id }))).onConflictDoNothing();
+          const sponsorId = await upsertJudge(`judge.sponsor@${DEMO_DOMAIN}`, "Judge Test Sponsor", "sponsor");
+          await tx
+            .insert(sponsorProfiles)
+            .values({ userId: sponsorId, name: "Judge Test Sponsor" })
+            .onConflictDoUpdate({ target: sponsorProfiles.userId, set: { name: "Judge Test Sponsor" } });
+          return { supporterId, sponsorId };
+        })()
+      : null;
+
     // Events: two upcoming per verified demo nonprofit, dated relative to today
     // (so they never go stale), with RSVPs from supporters who share a cause.
     const seededEvents: { id: string; causes: string[] }[] = [];
@@ -400,7 +435,7 @@ async function main() {
       now,
       supporterRows.map((r) => ({ id: r.id, name: r.email, interests: supporters.find((s) => loginEmail(s.name) === r.email)?.interests ?? [] })),
       nonprofits.filter((n) => !n.unverified).map((n) => ({ slug: n.slug, id: nonprofitIds.get(n.slug)!, causes: n.causes })),
-      sponsorIds,
+      [...sponsorIds, ...(judges ? [judges.sponsorId] : [])],
       boostTerms().feeCents,
     );
 
