@@ -19,6 +19,8 @@
   "dependencies": {
     "@anthropic-ai/sdk": "^0.129.0",
     "@huggingface/transformers": "^4.3.0",
+    "ag-studio": "3.1.0",
+    "ag-studio-react": "3.1.0",
     "bcryptjs": "^3.0.3",
     "drizzle-orm": "^0.45.4",
     "franc-min": "^6.2.0",

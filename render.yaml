@@ -33,6 +33,9 @@ services:
         sync: false
       - key: ANTHROPIC_API_KEY
         sync: false
+      # AG Studio licence. NEXT_PUBLIC_ values are built into the page, so it must be set before a build.
+      - key: NEXT_PUBLIC_AG_STUDIO_LICENSE_KEY
+        sync: false
       - key: VERIFICATION_FEE_CENTS
         value: "2500"
       - key: BOOST_FEE_CENTS

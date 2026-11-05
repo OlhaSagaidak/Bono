@@ -263,13 +263,15 @@ export const userVectors = pgTable("user_vectors", {
 // seeing this" lines both live here.
 export const aiTexts = pgTable("ai_texts", {
   inputHash: text("input_hash").primaryKey(), // sha256 of kind + model + prompt + input
-  kind: text("kind").notNull(), // "translation" | "why"
+  kind: text("kind").notNull(), // "translation" | "why" | "dashboard"
   model: text("model").notNull(),
   output: text("output").notNull(),
   inputTokens: integer("input_tokens").notNull(),
   outputTokens: integer("output_tokens").notNull(),
+  // Who asked, for dashboard assistant turns only: their daily limit counts these.
+  userId: uuid("user_id").references(() => users.id, { onDelete: "set null" }),
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
-});
+}, (t) => [index("ai_texts_user_idx").on(t.userId, t.createdAt)]);
 
 // Status of a payment (donations and verification fees).
 // created: order exists at PayPal, buyer hasn't paid yet (or was declined and may retry).

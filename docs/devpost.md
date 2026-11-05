@@ -28,6 +28,8 @@ Bono is a social media app where **nonprofits are the influencers**.
 - **Sponsors** (companies) fund matching campaigns ("Acme matches gifts to animal shelters
   1:1, up to $25 each") and boost posts. Matches are paid to the nonprofit automatically
   with PayPal Payouts, and boosted posts are always labeled "Boosted by …".
+- **Dashboards** show nonprofits where their money comes from and sponsors what their money did,
+  and anyone can ask them questions in plain English.
 
 ## How we built it
 
@@ -51,6 +53,11 @@ Bono is a social media app where **nonprofits are the influencers**.
 - **Claude Haiku** translates posts and comments (some demo nonprofits post in Ukrainian and
   Spanish) and writes a one-line "Why am I seeing this?" from the real ranking factors. Every
   result is cached, so the same input never reaches the API twice.
+- **AG Studio dashboards** for nonprofits and sponsors, themed like Bono, with a custom
+  matching-pool meter widget. People ask questions in plain English through the **Studio Agent
+  Framework**: a custom Bono agent answers from the data and hands "add a chart of…" requests to
+  Studio's built-in agents. All of them run on Claude Haiku through Bono's server, with cached turns
+  and a daily limit.
 - **Claude Code + the APIMatic PayPal Context Plugin**: every PayPal call was written from the
   plugin's SDK map (operations, request fields, error types), not from memory, with a
   contract sheet checked into the repo.
@@ -85,7 +92,6 @@ contract instead of guessing.
 
 ## What's next for Bono
 
-- Nonprofit and sponsor dashboards with AG Grid.
 - Onboarding real nonprofits with PayPal's partner onboarding instead of a pasted account email.
 - Recurring donations and year-end giving receipts.
 
@@ -93,7 +99,7 @@ contract instead of guessing.
 
 nextjs, typescript, react, tailwindcss, postgresql, pgvector, drizzle, auth.js, paypal,
 paypal-orders-v2, paypal-payouts, paypal-webhooks, apimatic, claude-code, anthropic,
-claude-haiku, transformers.js, render, playwright
+claude-haiku, transformers.js, ag-grid, ag-studio, render, playwright
 
 ## Testing instructions for judges
 

@@ -47,6 +47,30 @@ that moved you.
 **Stories and reels** from verified nonprofits, made for phones: 24-hour stories with a viewer,
 and a snap-scroll reels feed with muted autoplay and a Donate button on every video.
 
+## Dashboards (AG Studio)
+
+Nonprofits and sponsors get a **Dashboard** (account menu), built with
+[AG Studio](https://www.ag-grid.com/studio/):
+
+- **Nonprofit:** donations received, sponsor matches, gifts and donors, donations by month
+  (matched vs. direct), top donors, the matching pools that cover it, and every gift with filters.
+- **Sponsor:** pools funded, matched to nonprofits, nonprofits reached, pool used vs. remaining,
+  where the matches went, matches by month, and what each boost did.
+- **Bono theming** (emerald accent, the app's font, light and dark) and a **custom "Pool meter"
+  widget** that draws a matching pool like the rest of Bono and still follows Studio's filters
+  and cross-filtering ([`pool-meter-widget.tsx`](src/components/dashboard/pool-meter-widget.tsx)).
+- **Ask in plain English** with the **Studio Agent Framework**. A custom *Bono assistant* agent
+  fronts the chat: it answers questions itself (it reads the schema, runs a query, and can look up
+  Bono's rules with a custom `explain_bono_terms` tool), and delegates "add a chart of…" requests
+  to Studio's built-in lead, page and widget agents. Every agent runs on Claude Haiku through
+  Bono's own server route, so the API key never reaches the browser; identical turns are answered
+  from the database, and each account has a daily limit
+  ([`dashboard-agent.ts`](src/lib/ai/dashboard-agent.ts),
+  [`claude-adapter.ts`](src/components/dashboard/claude-adapter.ts)).
+
+Studio's data engine runs in the browser, over rows the server has already limited to the
+signed-in organization ([`queries.ts`](src/lib/dashboards/queries.ts)).
+
 ## How PayPal is used
 
 All PayPal calls run on the server through the [PayPal Server SDK](https://github.com/apimatic/paypal-typescript-sdk)
@@ -128,7 +152,8 @@ SDK operation, request field and error type in the SDK map instead of writing Pa
 memory, and kept a contract sheet in [`pay-pal-server-sdk-plan.md`](pay-pal-server-sdk-plan.md).
 
 Sponsor tools: **PayPal** (payments), **APIMatic** (PayPal Server SDK + Context Plugin),
-**Render** (hosting and Postgres), **Anthropic** (Claude Haiku, Claude Code).
+**AG Grid** (AG Studio dashboards and its Agent Framework), **Render** (hosting and Postgres),
+**Anthropic** (Claude Haiku, Claude Code).
 
 ## For judges
 

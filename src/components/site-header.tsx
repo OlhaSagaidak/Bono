@@ -69,6 +69,7 @@ async function Nav() {
         ]
       : []),
     ...(role === "sponsor" ? [{ href: "/campaigns", label: "Campaigns & boosts" }] : []),
+    ...(role === "nonprofit" || role === "sponsor" ? [{ href: "/dashboard", label: "Dashboard" }] : []),
     { href: profilePath(role, id), label: "Your profile" },
     { href: `${profilePath(role, id)}?tab=saved`, label: "Saved posts" },
     { href: "/profile/edit", label: "Edit profile" },
