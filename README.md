@@ -64,6 +64,8 @@ and a snap-scroll reels feed with muted autoplay and a Donate button on every vi
 Nonprofits and sponsors get a **Dashboard** (account menu), built with
 [AG Studio](https://www.ag-grid.com/studio/):
 
+![A sponsor's AG Studio dashboard: KPI tiles, a pool meter, where matches went and matches by month](docs/screenshots/dashboard.jpg)
+
 - **Nonprofit:** donations received, sponsor matches, gifts and donors, donations by month
   (matched vs. direct), top donors, the matching pools that cover it, and every gift with filters.
 - **Sponsor:** pools funded, matched to nonprofits, nonprofits reached, pool used vs. remaining,
