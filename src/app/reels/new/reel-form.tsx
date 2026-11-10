@@ -2,11 +2,12 @@
 
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
-import { ChipGroup, CountedTextArea, FormError, SubmitButton } from "@/components/form-fields";
+import { ChipGroup, CountedTextArea, FormError, SubmitButton, TextField } from "@/components/form-fields";
 import { megabytes, REEL_VIDEO } from "@/lib/media/limits";
 
 const VIDEO_TYPES = ["video/mp4", "video/quicktime"];
 const CAPTION_MAX = 300;
+const COVER_TEXT_MAX = 80;
 
 type Errors = Record<string, string[] | undefined>;
 
@@ -92,6 +93,13 @@ export function ReelForm({ causes }: { causes: { value: string; label: string }[
         )}
         {preview && <video src={preview} muted playsInline autoPlay loop aria-label="Preview" className="mt-2 aspect-[9/16] w-40 rounded-xl bg-black object-contain" />}
       </div>
+      <TextField
+        name="coverText"
+        label="Text on the video (optional)"
+        hint={`The reel's point in a few words, shown over the top of the video, like "Mobile pantry: every Thursday". Up to ${COVER_TEXT_MAX} characters.`}
+        required={false}
+        errors={errors.coverText}
+      />
       <CountedTextArea name="caption" label="Caption (optional)" maxLength={CAPTION_MAX} errors={errors.caption} />
       <ChipGroup
         name="causes"

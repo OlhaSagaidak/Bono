@@ -8,7 +8,7 @@ import { LIMITS, overLimit } from "@/lib/guards/rate-limit";
 import { fromOurOrigin } from "@/lib/guards/same-origin";
 import { checkUploadedVideo, storeVideo } from "@/lib/media/video";
 import { checkUploadedImage, fitImage, MAX_IMAGE_BYTES, storeImage } from "@/lib/images";
-import { REEL_CAPTION_MAX } from "@/lib/reels/queries";
+import { REEL_CAPTION_MAX, REEL_COVER_TEXT_MAX } from "@/lib/reels/queries";
 
 // Posting a reel: a vertical video up to REEL_VIDEO's limits, a caption and
 // the organization's own cause tags. A route rather than a Server Action
@@ -16,6 +16,7 @@ import { REEL_CAPTION_MAX } from "@/lib/reels/queries";
 
 const fieldsSchema = z.object({
   caption: z.string().trim().max(REEL_CAPTION_MAX, `Keep the caption under ${REEL_CAPTION_MAX} characters.`),
+  coverText: z.string().trim().max(REEL_COVER_TEXT_MAX, `Keep the text on the video under ${REEL_COVER_TEXT_MAX} characters.`),
   causes: z.array(z.string()).min(1, "Pick at least one cause."),
 });
 
@@ -50,7 +51,11 @@ export async function POST(request: Request) {
     return fail(400, { error: "That upload didn't arrive in one piece. Please try again." });
   }
 
-  const fields = fieldsSchema.safeParse({ caption: form.get("caption") ?? "", causes: form.getAll("causes").map(String) });
+  const fields = fieldsSchema.safeParse({
+    caption: form.get("caption") ?? "",
+    coverText: form.get("coverText") ?? "",
+    causes: form.getAll("causes").map(String),
+  });
   const fieldErrors: Errors = fields.success ? {} : (z.flattenError(fields.error).fieldErrors as Errors);
   const file = form.get("file");
   let video: Extract<Awaited<ReturnType<typeof checkUploadedVideo>>, { kind: "ok" }> | null = null;
@@ -75,7 +80,7 @@ export async function POST(request: Request) {
   const id = await db.transaction(async (tx) => {
     const mediaId = await storeVideo(tx, nonprofitId, video);
     const posterImageId = poster.kind === "ok" ? await storeImage(tx, nonprofitId, await fitImage(poster, 720)) : null;
-    const [reel] = await tx.insert(reels).values({ nonprofitId, mediaId, posterImageId, caption: fields.data.caption }).returning({ id: reels.id });
+    const [reel] = await tx.insert(reels).values({ nonprofitId, mediaId, posterImageId, coverText: fields.data.coverText || null, caption: fields.data.caption }).returning({ id: reels.id });
     await tx.insert(reelCauses).values(fields.data.causes.map((causeSlug) => ({ reelId: reel.id, causeSlug })));
     return reel.id;
   });

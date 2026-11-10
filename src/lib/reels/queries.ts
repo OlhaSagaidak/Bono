@@ -5,12 +5,14 @@ import { causes, nonprofitProfiles, reelCauses, reelLikes, reelSaves, reels } fr
 import { imageUrl, mediaUrl } from "@/lib/image-url";
 
 export const REEL_CAPTION_MAX = 300;
+export const REEL_COVER_TEXT_MAX = 80;
 const LIMIT = 30;
 
 const reelColumns = (viewerId: string | null) => ({
   id: reels.id,
   mediaId: reels.mediaId,
   posterImageId: reels.posterImageId,
+  coverText: reels.coverText,
   caption: reels.caption,
   createdAt: reels.createdAt,
   nonprofit: { id: nonprofitProfiles.userId, name: nonprofitProfiles.name, logoImageId: nonprofitProfiles.logoImageId },
@@ -23,6 +25,7 @@ export type ReelView = {
   id: string;
   src: string;
   poster: string | null; // first-frame image, when there is one
+  coverText: string | null; // headline over the top of the video
   caption: string;
   createdAt: string; // ISO
   nonprofit: { id: string; name: string; logoImageId: string | null };

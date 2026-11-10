@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { BoostButton } from "@/components/boost-button";
+import { CoverText } from "@/components/cover-text";
 import { DeletePostButton } from "@/components/delete-post-button";
 import { DonateButton } from "@/components/donate-button";
 import { FollowButton } from "@/components/follow-button";
@@ -104,13 +105,11 @@ export function PostCard({
       />
 
       {post.imageId && (
-        // eslint-disable-next-line @next/next/no-img-element -- served from our own API, no optimization needed
-        <img
-          src={imageUrl(post.imageId)}
-          alt={post.imageAlt ?? ""}
-          loading="lazy"
-          className="max-h-[32rem] w-full rounded-xl object-cover"
-        />
+        <div className="relative overflow-hidden rounded-xl">
+          {/* eslint-disable-next-line @next/next/no-img-element -- served from our own API, no optimization needed */}
+          <img src={imageUrl(post.imageId)} alt={post.imageAlt ?? ""} loading="lazy" className="max-h-[32rem] w-full object-cover" />
+          {post.coverText && <CoverText text={post.coverText} />}
+        </div>
       )}
 
       {post.causes.length > 0 && (

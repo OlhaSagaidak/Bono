@@ -12,7 +12,7 @@ import {
 } from "@/components/form-fields";
 import { listValue, textValue, type FormState } from "@/lib/forms";
 import { createPostAction } from "@/lib/posts/actions";
-import { ALT_MAX, BODY_MAX, LANGUAGES } from "@/lib/posts/validation";
+import { ALT_MAX, BODY_MAX, COVER_TEXT_MAX, LANGUAGES } from "@/lib/posts/validation";
 
 export function PostForm({ causes }: { causes: { value: string; label: string }[] }) {
   const [state, action, pending] = useActionState<FormState, FormData>(createPostAction, {});
@@ -60,6 +60,14 @@ export function PostForm({ causes }: { causes: { value: string; label: string }[
         required={false}
         defaultValue={textValue(state, "imageAlt")}
         errors={errors.imageAlt}
+      />
+      <TextField
+        name="coverText"
+        label="Text on the photo (optional)"
+        hint={`A few words shown over the top of the photo, like "42 kittens need fosters". Up to ${COVER_TEXT_MAX} characters.`}
+        required={false}
+        defaultValue={textValue(state, "coverText")}
+        errors={errors.coverText}
       />
       <SubmitButton pending={pending}>Publish</SubmitButton>
     </form>

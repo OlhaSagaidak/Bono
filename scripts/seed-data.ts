@@ -33,6 +33,10 @@ export type DemoPost = {
   language?: "en" | "es" | "uk";
   causes?: string[]; // defaults to all of the nonprofit's causes
   hoursAgo: number; // spreads posts over the last two weeks
+  // With a photo in seed-media/posts/<slug>-<n>.jpg: its description for screen
+  // readers, and an optional headline drawn over it.
+  alt?: string;
+  coverText?: string;
 };
 
 export const nonprofits: DemoNonprofit[] = [
@@ -347,6 +351,64 @@ export const conversations: { between: [string, string]; messages: [0 | 1, strin
   },
 ];
 
+// More photo posts, added after each nonprofit's posts above, so their photos
+// are seed-media/posts/<slug>-7.jpg to -14.jpg. All photos are public-domain or
+// CC0 (see docs/media-credits.md); people in photos about sensitive causes are
+// never identifiable.
+const morePosts: Record<string, DemoPost[]> = {
+  "paws-haven": [
+    { hoursAgo: 8, coverText: "Meet Pepper: 100% energy", alt: "A fawn and white corgi puppy standing up on its back legs, mouth open, in a sunny garden", body: "Pepper has two settings: zoom and nap. She's 4 months old, house-trained (mostly) and great with other dogs. Looking for a family that likes walks as much as she does." },
+    { hoursAgo: 26, coverText: "Fosters needed: 42 kittens", alt: "A tabby cat asleep on its back on a fluffy white blanket, paws curled", body: "This is what a foster home looks like from the inside. We have 42 kittens in care right now and only 19 foster families. A spare bathroom and some patience is all it takes; we cover food, litter and vet care." },
+    { hoursAgo: 50, alt: "A white and tabby cat sleeping in the sun on a wooden ledge, green leaves behind", body: "Sunbeam research, day 3. Mochi has concluded that the windowsill is the best spot in the shelter. Mochi is 7, calm, and would love a home with a big window." },
+    { hoursAgo: 74, coverText: "Senior cats make the best roommates", alt: "A grey Russian blue cat curled up asleep on white bedding", body: "Ash is 12. He sleeps 18 hours a day, purrs like a motor and has never knocked anything off a table. Senior cats are the quietest roommates you'll ever have, and adoption fees for seniors are waived all month." },
+    { hoursAgo: 98, alt: "Close-up of a striped tabby cat sleeping on a white blanket", body: "Tiger arrived as a stray in September with a cold and a very bad attitude. Six weeks of medicine and a lot of chin scratches later, he's a different cat." },
+    { hoursAgo: 140, coverText: "Your $25 = one week of meds", alt: "A small fluffy cream-colored dog held in a volunteer's arms", body: "Daisy came in with a skin infection that had gone untreated for months. Her medicine costs about $25 a week, and she's halfway through. Every gift to our medical fund goes straight to dogs like her." },
+    { hoursAgo: 190, alt: "A German shepherd mix resting on a sidewalk in a cone collar, against a teal wall", body: "Recovery mode. Rex had surgery on his back leg on Monday and is already asking for walks. Thank you to everyone who chipped in for his operation." },
+    { hoursAgo: 260, coverText: "Puppy class starts Saturday", alt: "A golden puppy with a red collar looking to the side, a blue water bowl behind", body: "Free puppy class for every dog adopted from Paws Haven this year: sit, stay, and not eating your shoes. Saturdays at 10, starting this week." },
+  ],
+  "green-seattle": [
+    { hoursAgo: 6, coverText: "This is what we're protecting", alt: "A forested mountain valley with a river running through it under a clear sky", body: "Every tree we plant in the city is part of a bigger watershed. What happens on our streets ends up in valleys like this one. That's why we plant, and that's why we clean up." },
+    { hoursAgo: 30, alt: "Morning sun shining low through the trunks of tall pine trees", body: "6:45 am, Seward Park. The best part of an early planting shift is this light. Coffee was provided; the view was free." },
+    { hoursAgo: 55, coverText: "New trail, built by 40 volunteers", alt: "A wooden plank footbridge on a narrow green forest trail", body: "Forty volunteers, two Saturdays, and one very muddy slope later: the new boardwalk at Longfellow Creek is open. It keeps hikers off the restored stream bank." },
+    { hoursAgo: 80, alt: "A creek running between snow-covered trees in a winter forest", body: "Winter is planting season in the Pacific Northwest. The ground is wet, the roots settle in, and by spring the new trees are ready to grow. Our winter planting calendar is out." },
+    { hoursAgo: 120, coverText: "Small fixes, big savings", alt: "A light bulb turned into a tiny terrarium with plants inside, hanging against a dark background", body: "Our free home energy check visited 85 households this fall. Average savings: $210 a year, mostly from fixes that cost under $50. Book a visit through the link in our profile." },
+    { hoursAgo: 170, alt: "A row of blue and green recycling bins beside a pale wall and a shuttered window", body: "Pop quiz: pizza boxes go in compost, not recycling (the grease ruins the paper). We'll be at the Rainier Beach farmers market on Sunday with a sorting game and prizes." },
+    { hoursAgo: 220, coverText: "Native plants, zero watering", alt: "A meadow full of purple wildflowers under a blue sky", body: "This meadow used to be a lawn. Native wildflowers need no watering after the first year, feed local bees and look like this in June. We're giving away 500 seed packets this weekend." },
+    { hoursAgo: 300, alt: "The sun setting over a meadow of white daisies and wild grasses", body: "That's a wrap on our fall season: 1,240 trees, 18 cleanups and more than 600 volunteers. Thank you for every hour you gave this year." },
+  ],
+  "bright-futures": [
+    { hoursAgo: 10, coverText: "Book drive: 1,000 books by December", alt: "An open book with a pen resting on it in front of a shelf of books", body: "Our winter book drive is on. Every mentee picks three books to keep, and we're 412 books in. New or gently used books for ages 8 to 16 can be dropped at our office, weekdays 9 to 5." },
+    { hoursAgo: 34, alt: "The pages of an open book fanned out, a blurred window behind", body: "Our mentee Jordan read his first chapter book cover to cover this month. He asked us to tell you it was about dragons and that the ending was \"actually good\"." },
+    { hoursAgo: 60, coverText: "Backpacks for 300 kids", alt: "School supplies laid out on a desk: a ruler, protractor, calculator, watercolors and pencils", body: "Everything a 6th grader needs for the year costs about $40. Thanks to you, 300 kids started school with a full backpack this fall." },
+    { hoursAgo: 90, alt: "An empty outdoor basketball court in a foggy autumn park", body: "Friday basketball is back at the community center. Mentors and mentees, 4 to 6 pm. No skill required; enthusiasm mandatory." },
+    { hoursAgo: 130, coverText: "Homework help, Tuesdays 4-6", alt: "A handwritten notebook lying open in dim light", body: "Homework club runs every Tuesday from 4 to 6 at our community room. Math, essays, science projects, or just a quiet place to work. Snacks included." },
+    { hoursAgo: 175, alt: "A hand writing with a pen on paper, a coffee mug on the desk", body: "College application season. Our volunteer mentors have read 64 personal essays this month, and we're so proud of every one of these students." },
+    { hoursAgo: 240, coverText: "Mentors needed: 1 hour a week", alt: "A soccer ball on a grass field at sunset with a goal in the background", body: "One hour a week. That's all it takes to be a mentor. Twenty-three kids are on our waiting list right now. Training is free and takes one Saturday morning." },
+    { hoursAgo: 320, alt: "Tall library shelves packed with colorful books and a wooden ladder", body: "Field trip! Our mentees toured the downtown library and every one of them left with a library card. Three of them asked if they could live there." },
+  ],
+  "open-pantry": [
+    { hoursAgo: 5, coverText: "Fresh food, every week", alt: "Close-up of fresh vegetables: green peas, radishes and zucchini", body: "Thanks to three partner farms, every family that visits the pantry this week goes home with fresh produce, not just cans. Peas, radishes and zucchini this week." },
+    { hoursAgo: 28, alt: "Carrots, onions and potatoes in bowls on a kitchen counter", body: "Today's community kitchen menu: roasted root vegetable soup, made from ingredients that would otherwise have gone to waste. 140 bowls served." },
+    { hoursAgo: 52, coverText: "Bakery leftovers, rescued", alt: "Wooden bakery shelves stacked with fresh loaves of bread", body: "Every evening, two neighborhood bakeries give us the bread they didn't sell. Every morning, it's on our shelves. That's about 300 loaves a week that feed people instead of a dumpster." },
+    { hoursAgo: 78, language: "es", alt: "A wooden crate full of fresh green zucchini", body: "¡Gracias a los voluntarios del jardín comunitario! Esta semana donaron más de 200 calabacines. Si necesitas comida fresca, la despensa abre los martes y jueves de 10 a 2. No se necesita identificación." },
+    { hoursAgo: 110, coverText: "$10 = fresh fruit for a week", alt: "Red apples in a wooden crate with one apple in the front", body: "Too many of our neighbors don't always know where their next meal is coming from. A $10 gift puts fresh fruit in front of a family for a week." },
+    { hoursAgo: 160, alt: "A crate full of red apples seen from above", body: "Gleaning day! Volunteers picked 1,800 pounds of apples from a local orchard that couldn't sell them. They'll be at the pantry and the mobile pantry all month." },
+    { hoursAgo: 210, coverText: "Our new mobile pantry stop", alt: "A market stall with boxes of green beans, cucumbers, tomatoes and peppers", body: "New mobile pantry stop: Thursdays, 3 to 5 pm, in White Center. Same fresh produce, no sign-up, no questions asked." },
+    { hoursAgo: 280, alt: "Leeks and carrots piled on a market table", body: "A thank-you to the farmers market vendors who send us their unsold produce every Saturday. You fed 90 families last month." },
+  ],
+  "new-roots": [
+    { hoursAgo: 7, coverText: "Keys to a new home", alt: "A hand holding a set of house keys with a green key tag, homes blurred in the background", body: "This week a family of five who arrived in March got the keys to their first apartment in Seattle. Our housing team helped with the application, the deposit and a lot of paperwork." },
+    { hoursAgo: 32, coverText: "Welcome dinner, Friday at 6", alt: "Plates of curry, flatbread and chutney on a wooden table, seen from above", body: "Friday welcome dinner: everyone brings a dish from home, everyone leaves full. New families, volunteers and neighbors are all invited. 6 pm at the community hall." },
+    { hoursAgo: 58, alt: "Close-up of a page in a dictionary", body: "Our English conversation circles are full, so we're adding two more: Monday evenings and Wednesday mornings. We need four more volunteer hosts. No teaching experience needed, just patience and a friendly face." },
+    { hoursAgo: 86, language: "uk", alt: "Colorful pins stuck into a map, lit by warm light", body: "Наші волонтери допомагають новим сім'ям знайти школи, лікарів і роботу поруч із домом. Цього місяця ми допомогли 23 родинам. Якщо вам потрібна допомога, напишіть нам." },
+    { hoursAgo: 125, coverText: "Grow your own food", alt: "A community garden with raised beds, flowers and a small glass greenhouse", body: "Twelve garden plots are now reserved for newly arrived families. Growing the vegetables you grew up with turns out to be one of the best cures for homesickness." },
+    { hoursAgo: 165, alt: "A hand holding a cup of ginger and lemon tea", body: "Tea and paperwork hour, every Thursday. Bring your forms, your questions and your appetite for cookies. Interpreters for Ukrainian, Dari, Spanish and Tigrinya are on site." },
+    { hoursAgo: 230, coverText: "Families from 31 countries", alt: "A map of the world showing the oceans and continents", body: "Since January, New Roots has welcomed families from 31 countries. Each one arrived with a story, and each one is now part of ours." },
+    { hoursAgo: 310, alt: "An autumn city street with yellow leaves, a sidewalk and a bus stop", body: "Learning the bus system is step one of a new life in a new city. Our volunteers ride along on the first trips to school, to work and to the clinic." },
+  ],
+};
+for (const np of nonprofits) np.posts.push(...(morePosts[np.slug] ?? []));
+
 // Stories (they expire after 24 hours, so each seed run posts fresh ones).
 // With no photo or video in seed-media/stories/<slug>-<n>.*, the seed draws a
 // simple text card from `text`. Each organization's stories, oldest first.
@@ -354,34 +416,64 @@ export const stories: Record<string, { text: string; caption?: string; sticker?:
   "paws-haven": [
     { text: "Biscuit, 11, is looking for a quiet home 🐾", caption: "New arrivals this week: four puppies, all looking for homes.", sticker: "donate", hoursAgo: 5 },
     { text: "Adoption Day this Saturday", caption: "Meet 20 dogs and cats looking for families.", hoursAgo: 2 },
+    { text: "Good boy alert", caption: "Scout passed his training test today. Adoption applications open!", sticker: "donate", hoursAgo: 4 },
+    { text: "Playtime at the shelter", caption: "Toy donations make days like this possible. Thank you!", hoursAgo: 1 },
   ],
-  "green-seattle": [{ text: "312 trees planted this month 🌳", caption: "Thank you, volunteers! Next stop: Rainier Beach.", hoursAgo: 7 }],
+  "green-seattle": [
+    { text: "312 trees planted this month 🌳", caption: "Thank you, volunteers! Next stop: Rainier Beach.", hoursAgo: 7 },
+    { text: "Morning light in the canopy", caption: "Saturday planting starts at 9. Gloves and coffee provided.", hoursAgo: 3 },
+    { text: "Where our creeks begin", caption: "Help protect the watershed: join a cleanup this month.", sticker: "donate", hoursAgo: 1 },
+  ],
   "bright-futures": [
     { text: "Mentors needed: 1 hour a week", caption: "Change a kid's year with one hour a week.", sticker: "link", hoursAgo: 9 },
+    { text: "Homework club tonight", caption: "Homework club tonight, 4 to 6. Snacks on us.", hoursAgo: 2 },
   ],
   "open-pantry": [
     { text: "The shelves are full again 🥫", caption: "Your donations stocked the pantry for the week.", sticker: "donate", hoursAgo: 3 },
     { text: "Mobile pantry: Thursday 10–2", caption: "Loading the mobile pantry: Thursday, 10 to 2.", hoursAgo: 1 },
+    { text: "1,800 pounds of apples", caption: "Gleaning day at the orchard: 1,800 pounds of apples for the pantry.", sticker: "donate", hoursAgo: 4 },
   ],
-  "new-roots": [{ text: "Free legal clinic, Saturday 10–1", caption: "Asylum and work permit questions. No appointment needed.", hoursAgo: 6 }],
+  "new-roots": [
+    { text: "Free legal clinic, Saturday 10–1", caption: "Asylum and work permit questions. No appointment needed.", hoursAgo: 6 },
+    { text: "Tea and paperwork hour", caption: "Tea and paperwork hour, Thursday at 2. Interpreters on site.", hoursAgo: 3 },
+  ],
 };
 
 // Captions for reels made from seed-media/reels/<slug>-<n>.mp4 (the n-th entry
 // goes with file n). Without the video files, no demo reels are created.
-export const reels: Record<string, { caption: string; hoursAgo: number }[]> = {
+export const reels: Record<string, { caption: string; coverText?: string; hoursAgo: number }[]> = {
   "paws-haven": [
     { caption: "Take me home 🐶 Every dog in our care is waiting for a family. Adoption Day is this Saturday.", hoursAgo: 20 },
     { caption: "From scared stray to boat captain: six weeks with a foster family.", hoursAgo: 60 },
     { caption: "Kitten season: these four are ready for a foster home.", hoursAgo: 120 },
+    { caption: "Frisbee, nap, repeat. Sunny is 2, fully vaccinated and looking for a family with a yard.", coverText: "Sunny wants to play", hoursAgo: 12 },
+    { caption: "Ginger spent her first week hiding under the bed. Now she runs to the door. That's what a foster home does.", coverText: "From scared to curious in 3 weeks", hoursAgo: 44 },
+    { caption: "Our volunteers spend an hour a day just petting the cats. It's on the schedule. It matters.", coverText: "The most important job here", hoursAgo: 96 },
   ],
   "green-seattle": [
     { caption: "Healthy forests keep our creeks cool and clean. Help us plant 300 more trees this fall.", hoursAgo: 30 },
     { caption: "A creek running clear again after our volunteer cleanup.", hoursAgo: 90 },
     { caption: "Protecting habitat means protecting everyone who lives there.", hoursAgo: 140 },
+    { caption: "Every tree we plant is a small piece of a forest like this one. Planting season runs through March.", coverText: "Plant a tree this winter", hoursAgo: 18 },
+    { caption: "Clean water starts upstream. Our creek teams clear trash and invasive ivy every second Saturday.", coverText: "Clean creeks, every month", hoursAgo: 66 },
+    { caption: "Mornings like this are why we do it. Thank you to the 600 volunteers who gave their weekends this year.", coverText: "600 volunteers this year", hoursAgo: 110 },
   ],
   "open-pantry": [
     { caption: "Some neighbors can't make it to the pantry, so the pantry comes to them.", hoursAgo: 15 },
     { caption: "Fresh bread from Friday's community kitchen.", hoursAgo: 75 },
+    { caption: "Three partner farms, one goal: fresh food for every family that walks in. Produce days are Tuesdays and Thursdays.", coverText: "Fresh produce, not just cans", hoursAgo: 22 },
+    { caption: "Every evening, bakeries and orchards send us what they couldn't sell. Every morning, it feeds our neighbors.", coverText: "Rescued food, every day", hoursAgo: 58 },
+    { caption: "Nothing goes to waste in our community kitchen. Today's soup: roasted roots, 140 bowls.", coverText: "Today's soup: 140 bowls", hoursAgo: 100 },
+  ],
+  "bright-futures": [
+    { caption: "Our winter book drive: every mentee picks three books to keep. 412 books in, 588 to go.", coverText: "1,000 books by December", hoursAgo: 16 },
+    { caption: "Homework club, Tuesdays 4 to 6 at our community room. Math, essays, science projects, snacks.", coverText: "Homework help, every Tuesday", hoursAgo: 52 },
+    { caption: "Basketball on Fridays, soccer on Saturdays. Mentoring doesn't always happen at a desk.", coverText: "Mentoring, on and off the court", hoursAgo: 88 },
+  ],
+  "new-roots": [
+    { caption: "From the first night in a new city to the keys to a first home. This is what your support makes possible.", coverText: "A new home, step by step", hoursAgo: 14 },
+    { caption: "Friday welcome dinners: every family brings a dish from home, and nobody leaves hungry.", coverText: "Welcome dinner, every Friday", hoursAgo: 48 },
+    { caption: "English circles, school enrollment, bus routes, job applications. Our volunteers help with all of it.", coverText: "Families from 31 countries", hoursAgo: 92 },
   ],
 };
 

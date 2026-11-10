@@ -2,6 +2,7 @@ import { z } from "zod";
 
 export const BODY_MAX = 2000;
 export const ALT_MAX = 300;
+export const COVER_TEXT_MAX = 80;
 
 // The languages the demo posts in. Adding one here is all the form needs.
 export const LANGUAGES = [
@@ -27,4 +28,5 @@ export const postSchema = z.object({
     .min(1, "Tag at least one cause.")
     .transform((slugs) => [...new Set(slugs)]),
   imageAlt: z.string().trim().max(ALT_MAX, `Keep the description under ${ALT_MAX} characters.`),
+  coverText: z.string().trim().max(COVER_TEXT_MAX, `Keep the text on the photo under ${COVER_TEXT_MAX} characters.`),
 });

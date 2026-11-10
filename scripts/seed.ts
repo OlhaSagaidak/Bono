@@ -223,13 +223,14 @@ async function main() {
         const photo = photoFile
           ? {
               imageId: await replaceImage(tx, id, await fitImage({ kind: "ok", contentType: "image/jpeg", data: readFileSync(photoFile) }), currentPhoto),
-              imageAlt: postPhotoAlt[photoKey] ?? `Photo from ${np.name}`,
+              imageAlt: post.alt ?? postPhotoAlt[photoKey] ?? `Photo from ${np.name}`,
             }
           : {};
         const values = {
           nonprofitId: id,
           body: post.body,
           language: post.language ?? "en",
+          coverText: photoFile ? (post.coverText ?? null) : null,
           createdAt: hoursAgo(post.hoursAgo),
           ...photo,
         };

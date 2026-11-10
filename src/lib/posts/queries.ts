@@ -15,6 +15,7 @@ const postColumns = {
   language: posts.language,
   imageId: posts.imageId,
   imageAlt: posts.imageAlt,
+  coverText: posts.coverText,
   createdAt: posts.createdAt,
   nonprofit: {
     id: nonprofitProfiles.userId,
