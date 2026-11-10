@@ -135,7 +135,11 @@ Slideshow reels for Bright Futures, Open Pantry and New Roots are made from the 
 | profiles/ruth.abrams.jpg | A classroom in Cameroon | Peace Corps | CC0 | https://www.rawpixel.com/image/3387969/free-photo-image-class-desk-school-table-africa |
 | profiles/judge.supporter.jpg | (Openverse search "mushroom forest") |  | CC0 or PDM | source link to be added |
 
-Organization logos (seed-media/profiles/<org>.png) are original drawings made for Bono from open-source Lucide icons (ISC license).
+Organization profile photos (seed-media/profiles/<org>.jpg) are square crops of photos listed above
+(Paws Haven: the chocolate lab puppy; Green Seattle: the pine forest at sunrise; Bright Futures: the
+box of chalk; Open Pantry: the peas and radishes; New Roots: the house keys; Canvas Commons: the
+paintbrushes) or stills from Mixkit Free License clips (Acme: https://mixkit.co/free-stock-video/side-by-side-aerial-view-of-a-city-at-night-49846/;
+Northwind: https://mixkit.co/free-stock-video/serving-juice-in-a-glass-with-some-oranges-on-a-10428/; Judge Test Sponsor: https://mixkit.co/free-stock-video/cars-on-the-street-1599/).
 
 ## Videos (Mixkit, Stock Video Free License)
 
