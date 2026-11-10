@@ -19,7 +19,7 @@ export async function TopBackers({ nonprofitId, nonprofitName }: { nonprofitId: 
           <li key={b.id}>
             <Link
               href={profilePath(b.role, b.id)}
-              className="flex items-center gap-2 rounded-2xl border border-zinc-200 p-2.5 hover:border-emerald-600 focus:outline-2 focus:outline-offset-2 focus:outline-emerald-600 dark:border-zinc-800"
+              className="flex items-center gap-2 rounded-2xl border border-zinc-200 p-2.5 hover:border-zinc-900 dark:hover:border-white focus:outline-2 focus:outline-offset-2 focus:outline-zinc-900 dark:focus:outline-white dark:border-zinc-800"
             >
               <Avatar name={b.name} imageId={b.photoImageId} className="size-9 text-sm" />
               <span className="flex min-w-0 flex-col gap-0.5">

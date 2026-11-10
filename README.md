@@ -56,7 +56,7 @@ Nonprofits and sponsors get a **Dashboard** (account menu), built with
   (matched vs. direct), top donors, the matching pools that cover it, and every gift with filters.
 - **Sponsor:** pools funded, matched to nonprofits, nonprofits reached, pool used vs. remaining,
   where the matches went, matches by month, and what each boost did.
-- **Bono theming** (emerald accent, the app's font, light and dark) and a **custom "Pool meter"
+- **Bono theming** (black and white like the app, its font, light and dark) and a **custom "Pool meter"
   widget** that draws a matching pool like the rest of Bono and still follows Studio's filters
   and cross-filtering ([`pool-meter-widget.tsx`](src/components/dashboard/pool-meter-widget.tsx)).
 - **Ask in plain English** with the **Studio Agent Framework**. A custom *Bono assistant* agent

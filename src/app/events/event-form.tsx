@@ -43,7 +43,7 @@ export function EventForm({ initial, causes }: { initial: Initial; causes: { val
           { value: "online", label: "Online" },
         ].map((o) => (
           <label key={o.value} className="flex items-center gap-2">
-            <input type="radio" name="locationType" value={o.value} checked={location === o.value} onChange={() => setLocation(o.value as Initial["locationType"])} className="accent-emerald-700" />
+            <input type="radio" name="locationType" value={o.value} checked={location === o.value} onChange={() => setLocation(o.value as Initial["locationType"])} className="accent-zinc-900 dark:accent-white" />
             {o.label}
           </label>
         ))}

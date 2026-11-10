@@ -8,7 +8,7 @@ import { Avatar } from "@/components/avatar";
 import { signOutAction } from "@/lib/auth/actions";
 
 const item =
-  "block w-full rounded-lg px-3 py-2 text-left text-sm hover:bg-zinc-100 focus:outline-2 focus:outline-offset-[-2px] focus:outline-emerald-600 dark:hover:bg-zinc-800";
+  "block w-full rounded-lg px-3 py-2 text-left text-sm hover:bg-zinc-100 focus:outline-2 focus:outline-offset-[-2px] focus:outline-zinc-900 dark:focus:outline-white dark:hover:bg-zinc-800";
 
 /**
  * The less-used account links behind one button, so the header fits on a
@@ -65,7 +65,7 @@ export function AccountMenu({
           setOpenedAt(pathname);
         }}
         aria-label="Account"
-        className="relative ml-1 rounded-full focus:outline-2 focus:outline-offset-2 focus:outline-emerald-600"
+        className="relative ml-1 rounded-full focus:outline-2 focus:outline-offset-2 focus:outline-zinc-900 dark:focus:outline-white"
       >
         <Avatar name={name || "?"} imageId={photoImageId} className="size-10 text-base hover:brightness-95" />
         {/* The little chevron badge says "this opens a menu". */}

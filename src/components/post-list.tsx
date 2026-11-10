@@ -68,7 +68,7 @@ export function PostList({
       {nextHref && (
         <Link
           href={nextHref}
-          className="self-center rounded-lg border border-zinc-300 px-4 py-2 font-medium hover:bg-zinc-100 focus:outline-2 focus:outline-offset-2 focus:outline-emerald-600 dark:border-zinc-700 dark:hover:bg-zinc-800"
+          className="self-center rounded-lg border border-zinc-300 px-4 py-2 font-medium hover:bg-zinc-100 focus:outline-2 focus:outline-offset-2 focus:outline-zinc-900 dark:focus:outline-white dark:border-zinc-700 dark:hover:bg-zinc-800"
         >
           {nextLabel}
         </Link>

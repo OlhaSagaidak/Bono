@@ -12,17 +12,21 @@ type Props = {
   clientId: string;
   /** "small" sits in a post's footer; "large" on the nonprofit's profile. */
   size?: "small" | "large";
+  /** Sits on a photo or video (reels, stories): always white, so it shows on dark footage. */
+  onMedia?: boolean;
 };
 
-export function DonateButton({ nonprofitId, nonprofitName, postId, clientId, size = "small" }: Props) {
+export function DonateButton({ nonprofitId, nonprofitName, postId, clientId, size = "small", onMedia = false }: Props) {
   const dialogRef = useRef<HTMLDialogElement>(null);
   const titleId = useId();
   const [opened, setOpened] = useState(false);
 
   const trigger =
     size === "large"
-      ? "rounded-lg bg-emerald-700 px-5 py-2.5 font-semibold text-white hover:bg-emerald-800"
-      : "rounded-lg bg-emerald-700 px-3 py-1 text-sm font-semibold text-white hover:bg-emerald-800";
+      ? "rounded-lg bg-zinc-900 dark:bg-white px-5 py-2.5 font-semibold text-white dark:text-zinc-900 hover:bg-zinc-700 dark:hover:bg-zinc-200"
+      : onMedia
+        ? "rounded-lg bg-white px-3 py-1 text-sm font-semibold text-zinc-900 hover:bg-zinc-200"
+        : "rounded-lg bg-zinc-900 dark:bg-white px-3 py-1 text-sm font-semibold text-white dark:text-zinc-900 hover:bg-zinc-700 dark:hover:bg-zinc-200";
 
   return (
     <>
@@ -32,7 +36,7 @@ export function DonateButton({ nonprofitId, nonprofitName, postId, clientId, siz
           setOpened(true);
           dialogRef.current?.showModal();
         }}
-        className={`${trigger} focus:outline-2 focus:outline-offset-2 focus:outline-emerald-600`}
+        className={`${trigger} focus:outline-2 focus:outline-offset-2 ${onMedia ? "focus:outline-white" : "focus:outline-zinc-900 dark:focus:outline-white"}`}
       >
         Donate
       </button>
@@ -112,7 +116,7 @@ function DonateFlow({
           </p>
         )}
         {thanks.match && (
-          <p className="rounded-lg bg-emerald-50 px-4 py-3 text-emerald-900 dark:bg-emerald-950 dark:text-emerald-100">
+          <p className="rounded-lg bg-zinc-100 px-4 py-3 text-zinc-900 dark:text-zinc-100 dark:bg-zinc-800">
             <strong>{thanks.match.sponsorName} matched your gift</strong> with {formatCents(thanks.match.amountCents)} more,
             so {nonprofitName} gets {formatCents(thanks.amountCents + thanks.match.amountCents)} in total.
           </p>
@@ -120,7 +124,7 @@ function DonateFlow({
         <button
           type="button"
           onClick={onClose}
-          className="self-end rounded-lg bg-emerald-700 px-4 py-2 font-semibold text-white hover:bg-emerald-800 focus:outline-2 focus:outline-offset-2 focus:outline-emerald-600"
+          className="self-end rounded-lg bg-zinc-900 dark:bg-white px-4 py-2 font-semibold text-white dark:text-zinc-900 hover:bg-zinc-700 dark:hover:bg-zinc-200 focus:outline-2 focus:outline-offset-2 focus:outline-zinc-900 dark:focus:outline-white"
         >
           Done
         </button>
@@ -140,7 +144,7 @@ function DonateFlow({
           type="button"
           onClick={onClose}
           aria-label="Close"
-          className="-m-2 rounded-lg p-2 text-zinc-600 hover:bg-zinc-100 focus:outline-2 focus:outline-emerald-600 dark:text-zinc-400 dark:hover:bg-zinc-800"
+          className="-m-2 rounded-lg p-2 text-zinc-600 hover:bg-zinc-100 focus:outline-2 focus:outline-zinc-900 dark:focus:outline-white dark:text-zinc-400 dark:hover:bg-zinc-800"
         >
           ✕
         </button>
@@ -152,7 +156,7 @@ function DonateFlow({
           {[...PRESET_DOLLARS.map(String), "other"].map((value) => (
             <label
               key={value}
-              className="cursor-pointer rounded-full border border-zinc-300 px-4 py-2 text-sm has-[:checked]:border-emerald-700 has-[:checked]:bg-emerald-700 has-[:checked]:text-white has-[:focus-visible]:outline-2 has-[:focus-visible]:outline-offset-2 has-[:focus-visible]:outline-emerald-600 dark:border-zinc-700"
+              className="cursor-pointer rounded-full border border-zinc-300 px-4 py-2 text-sm has-[:checked]:border-zinc-900 dark:has-[:checked]:border-white has-[:checked]:bg-zinc-900 dark:has-[:checked]:bg-white has-[:checked]:text-white dark:has-[:checked]:text-zinc-900 has-[:focus-visible]:outline-2 has-[:focus-visible]:outline-offset-2 has-[:focus-visible]:outline-zinc-900 dark:has-[:focus-visible]:outline-white dark:border-zinc-700"
             >
               <input
                 type="radio"
@@ -180,7 +184,7 @@ function DonateFlow({
               placeholder="e.g. 15"
               aria-invalid={amountError ? true : undefined}
               aria-describedby={amountError ? "custom-amount-error" : undefined}
-              className="rounded-lg border border-zinc-300 bg-white px-3 py-2 focus:outline-2 focus:outline-offset-2 focus:outline-emerald-600 dark:border-zinc-700 dark:bg-zinc-900"
+              className="rounded-lg border border-zinc-300 bg-white px-3 py-2 focus:outline-2 focus:outline-offset-2 focus:outline-zinc-900 dark:focus:outline-white dark:border-zinc-700 dark:bg-zinc-900"
             />
             {amountError && (
               <p id="custom-amount-error" className="text-sm text-red-700 dark:text-red-400">

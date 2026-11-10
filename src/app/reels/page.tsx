@@ -41,7 +41,7 @@ async function Reels({ searchParams }: { searchParams: PageProps<"/reels">["sear
       {canPost && (
         <Link
           href="/reels/new"
-          className="fixed bottom-5 left-1/2 z-10 -translate-x-1/2 rounded-full bg-emerald-700 px-5 py-2.5 font-semibold text-white shadow-lg hover:bg-emerald-800 focus:outline-2 focus:outline-offset-2 focus:outline-emerald-600"
+          className="fixed bottom-5 left-1/2 z-10 -translate-x-1/2 rounded-full bg-zinc-900 dark:bg-white px-5 py-2.5 font-semibold text-white dark:text-zinc-900 shadow-lg hover:bg-zinc-700 dark:hover:bg-zinc-200 focus:outline-2 focus:outline-offset-2 focus:outline-zinc-900 dark:focus:outline-white"
         >
           New reel
         </Link>

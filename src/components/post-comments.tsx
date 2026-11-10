@@ -84,7 +84,7 @@ export function PostActions({
                 if (!open && comments === null) void load();
                 setOpen(!open);
               }}
-              className="flex items-center gap-1.5 rounded-lg px-2 py-1 text-sm text-zinc-700 hover:bg-zinc-100 focus:outline-2 focus:outline-offset-2 focus:outline-emerald-600 dark:text-zinc-300 dark:hover:bg-zinc-800"
+              className="flex items-center gap-1.5 rounded-lg px-2 py-1 text-sm text-zinc-700 hover:bg-zinc-100 focus:outline-2 focus:outline-offset-2 focus:outline-zinc-900 dark:focus:outline-white dark:text-zinc-300 dark:hover:bg-zinc-800"
             >
               <MessageCircle aria-hidden className="size-5" />
               Comment{shownCount > 0 && <span className="text-zinc-500 dark:text-zinc-400"> · {shownCount}</span>}
@@ -104,7 +104,7 @@ export function PostActions({
           {loadError ? (
             <p role="alert" className="text-sm text-zinc-600 dark:text-zinc-400">
               Couldn&apos;t load the comments.{" "}
-              <button type="button" onClick={load} className="font-medium text-emerald-700 underline dark:text-emerald-400">
+              <button type="button" onClick={load} className="font-medium text-zinc-900 dark:text-zinc-100 underline">
                 Try again
               </button>
             </p>
@@ -191,7 +191,7 @@ function TopComment({
         <button
           type="button"
           onClick={() => setShowReplies(true)}
-          className="ml-12 self-start rounded text-sm font-medium text-zinc-700 hover:underline focus:outline-2 focus:outline-emerald-600 dark:text-zinc-300"
+          className="ml-12 self-start rounded text-sm font-medium text-zinc-700 hover:underline focus:outline-2 focus:outline-zinc-900 dark:focus:outline-white dark:text-zinc-300"
         >
           View {replies.length} {replies.length === 1 ? "reply" : "replies"}
         </button>
@@ -310,7 +310,7 @@ function Comment({
       <div className="flex min-w-0 flex-col gap-0.5">
         <div className="relative self-start rounded-2xl bg-zinc-100 px-3 py-2 dark:bg-zinc-800">
           <span className="flex flex-wrap items-center gap-x-1.5 gap-y-0.5">
-            <Link href={comment.author.href} className="text-sm font-semibold hover:underline focus:outline-2 focus:outline-emerald-600">
+            <Link href={comment.author.href} className="text-sm font-semibold hover:underline focus:outline-2 focus:outline-zinc-900 dark:focus:outline-white">
               {comment.author.name}
             </Link>
             {comment.badge && <BackerBadge badge={comment.badge} size="xs" />}
@@ -340,10 +340,10 @@ function Comment({
                     saveEdit();
                   }
                 }}
-                className="w-72 max-w-full rounded-lg border border-zinc-300 bg-white px-2 py-1 text-sm focus:outline-2 focus:outline-emerald-600 dark:border-zinc-700 dark:bg-zinc-900"
+                className="w-72 max-w-full rounded-lg border border-zinc-300 bg-white px-2 py-1 text-sm focus:outline-2 focus:outline-zinc-900 dark:focus:outline-white dark:border-zinc-700 dark:bg-zinc-900"
               />
               <span className="flex gap-2 text-xs">
-                <button type="submit" disabled={saving || !draft.trim()} className="font-semibold text-emerald-700 hover:underline disabled:opacity-50 dark:text-emerald-400">
+                <button type="submit" disabled={saving || !draft.trim()} className="font-semibold text-zinc-900 dark:text-zinc-100 hover:underline disabled:opacity-50">
                   {saving ? "Saving…" : "Save"}
                 </button>
                 <button type="button" onClick={() => setMode("view")} className="font-semibold hover:underline">
@@ -372,7 +372,7 @@ function Comment({
           <TimeAgo iso={comment.createdAt} />
           {comment.editedAt && <span title="This comment was changed after it was posted">Edited</span>}
           <ReactionControl comment={comment} onUpdate={onUpdate} onError={setError} />
-          <button type="button" onClick={onReply} className="font-semibold hover:underline focus:outline-2 focus:outline-emerald-600">
+          <button type="button" onClick={onReply} className="font-semibold hover:underline focus:outline-2 focus:outline-zinc-900 dark:focus:outline-white">
             Reply
           </button>
           {canTranslate && (
@@ -380,7 +380,7 @@ function Comment({
               type="button"
               onClick={toggleTranslation}
               disabled={translating}
-              className="font-semibold text-emerald-700 hover:underline focus:outline-2 focus:outline-emerald-600 disabled:opacity-60 dark:text-emerald-400"
+              className="font-semibold text-zinc-900 dark:text-zinc-100 hover:underline focus:outline-2 focus:outline-zinc-900 dark:focus:outline-white disabled:opacity-60"
             >
               {translating ? "Translating…" : shown ? "See original" : "See translation"}
             </button>
@@ -393,7 +393,7 @@ function Comment({
                 setDraft(comment.body);
                 setMode("edit");
               }}
-              className="font-semibold hover:underline focus:outline-2 focus:outline-emerald-600"
+              className="font-semibold hover:underline focus:outline-2 focus:outline-zinc-900 dark:focus:outline-white"
             >
               Edit
             </button>
@@ -405,7 +405,7 @@ function Comment({
                 setDraft("");
                 setMode("report");
               }}
-              className="font-semibold hover:underline focus:outline-2 focus:outline-emerald-600"
+              className="font-semibold hover:underline focus:outline-2 focus:outline-zinc-900 dark:focus:outline-white"
             >
               Report
             </button>
@@ -432,7 +432,7 @@ function Comment({
                 </button>
               </span>
             ) : (
-              <button type="button" onClick={() => setConfirming(true)} className="font-semibold hover:underline focus:outline-2 focus:outline-emerald-600">
+              <button type="button" onClick={() => setConfirming(true)} className="font-semibold hover:underline focus:outline-2 focus:outline-zinc-900 dark:focus:outline-white">
                 Delete
               </button>
             ))}
@@ -453,9 +453,9 @@ function Comment({
               maxLength={500}
               onChange={(e) => setDraft(e.target.value)}
               onKeyDown={(e) => e.key === "Escape" && setMode("view")}
-              className="min-w-40 flex-1 rounded-lg border border-zinc-300 bg-white px-2 py-1 text-sm focus:outline-2 focus:outline-emerald-600 dark:border-zinc-700 dark:bg-zinc-900"
+              className="min-w-40 flex-1 rounded-lg border border-zinc-300 bg-white px-2 py-1 text-sm focus:outline-2 focus:outline-zinc-900 dark:focus:outline-white dark:border-zinc-700 dark:bg-zinc-900"
             />
-            <button type="submit" disabled={saving || !draft.trim()} className="font-semibold text-emerald-700 hover:underline disabled:opacity-50 dark:text-emerald-400">
+            <button type="submit" disabled={saving || !draft.trim()} className="font-semibold text-zinc-900 dark:text-zinc-100 hover:underline disabled:opacity-50">
               Send report
             </button>
             <button type="button" onClick={() => setMode("view")} className="font-semibold hover:underline">
@@ -530,7 +530,7 @@ function ReactionControl({
         type="button"
         onClick={() => react(current ? null : "like")}
         aria-pressed={Boolean(current)}
-        className={`font-semibold hover:underline focus:outline-2 focus:outline-emerald-600 ${current ? "text-emerald-700 dark:text-emerald-400" : ""}`}
+        className={`font-semibold hover:underline focus:outline-2 focus:outline-zinc-900 dark:focus:outline-white ${current ? "text-zinc-900 dark:text-zinc-100 dark:text-zinc-100" : ""}`}
       >
         {current ? `${current.emoji} ${current.label}` : "Like"}
       </button>
@@ -540,7 +540,7 @@ function ReactionControl({
         aria-expanded={picker}
         aria-controls={pickerId}
         aria-label="Choose a reaction"
-        className="ml-0.5 rounded px-0.5 hover:bg-zinc-100 focus:outline-2 focus:outline-emerald-600 dark:hover:bg-zinc-800"
+        className="ml-0.5 rounded px-0.5 hover:bg-zinc-100 focus:outline-2 focus:outline-zinc-900 dark:focus:outline-white dark:hover:bg-zinc-800"
       >
         ▾
       </button>
@@ -559,7 +559,7 @@ function ReactionControl({
               aria-label={r.label}
               aria-pressed={comment.viewerReaction === r.key}
               title={r.label}
-              className="rounded-full p-1 text-xl leading-none transition-transform hover:scale-125 focus:scale-125 focus:outline-2 focus:outline-emerald-600 aria-pressed:bg-emerald-100 dark:aria-pressed:bg-emerald-900"
+              className="rounded-full p-1 text-xl leading-none transition-transform hover:scale-125 focus:scale-125 focus:outline-2 focus:outline-zinc-900 dark:focus:outline-white aria-pressed:bg-zinc-200 dark:aria-pressed:bg-zinc-700"
             >
               {r.emoji}
             </button>
@@ -630,12 +630,12 @@ function Composer({
           }}
           placeholder={placeholder}
           aria-describedby={error ? `${id}-error` : undefined}
-          className="max-h-32 min-h-9 flex-1 resize-y rounded-2xl border border-zinc-300 bg-white px-3 py-1.5 text-sm focus:outline-2 focus:outline-offset-2 focus:outline-emerald-600 dark:border-zinc-700 dark:bg-zinc-900"
+          className="max-h-32 min-h-9 flex-1 resize-y rounded-2xl border border-zinc-300 bg-white px-3 py-1.5 text-sm focus:outline-2 focus:outline-offset-2 focus:outline-zinc-900 dark:focus:outline-white dark:border-zinc-700 dark:bg-zinc-900"
         />
         <button
           type="submit"
           disabled={!draft.trim() || pending}
-          className="rounded-lg bg-emerald-700 px-3 py-1.5 text-sm font-semibold text-white hover:bg-emerald-800 focus:outline-2 focus:outline-offset-2 focus:outline-emerald-600 disabled:opacity-50"
+          className="rounded-lg bg-zinc-900 dark:bg-white px-3 py-1.5 text-sm font-semibold text-white dark:text-zinc-900 hover:bg-zinc-700 dark:hover:bg-zinc-200 focus:outline-2 focus:outline-offset-2 focus:outline-zinc-900 dark:focus:outline-white disabled:opacity-50"
         >
           {pending ? "Posting…" : "Post"}
         </button>

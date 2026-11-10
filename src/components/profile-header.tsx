@@ -11,7 +11,7 @@ export function Logo({ name, imageId, size = "size-20 text-2xl" }: { name: strin
   return (
     <div
       aria-hidden
-      className={`${size} flex shrink-0 items-center justify-center rounded-full bg-emerald-100 font-bold text-emerald-800 dark:bg-emerald-900 dark:text-emerald-100`}
+      className={`${size} flex shrink-0 items-center justify-center rounded-full bg-zinc-200 font-bold text-zinc-900 dark:text-zinc-100 dark:bg-zinc-700`}
     >
       {name.trim().charAt(0).toUpperCase()}
     </div>
@@ -33,7 +33,7 @@ export function ProfileHeader({
     <header className="flex items-center gap-4">
       <Logo name={name} imageId={imageId} />
       <div>
-        <p className="text-sm font-medium uppercase tracking-wide text-emerald-700 dark:text-emerald-400">{kicker}</p>
+        <p className="text-sm font-medium uppercase tracking-wide text-zinc-900 dark:text-zinc-100">{kicker}</p>
         <h1 className="text-2xl font-bold">{name}</h1>
         {verified && <VerifiedBadge />}
       </div>
@@ -43,7 +43,7 @@ export function ProfileHeader({
 
 export function VerifiedBadge() {
   return (
-    <span className="mt-1 inline-flex items-center gap-1 rounded-full bg-emerald-50 px-2 py-0.5 text-xs font-medium text-emerald-800 dark:bg-emerald-950 dark:text-emerald-200">
+    <span className="mt-1 inline-flex items-center gap-1 rounded-full bg-zinc-100 px-2 py-0.5 text-xs font-medium text-zinc-900 dark:text-zinc-100 dark:bg-zinc-800 dark:text-zinc-200">
       <svg aria-hidden viewBox="0 0 20 20" fill="currentColor" className="size-3.5">
         <path
           fillRule="evenodd"

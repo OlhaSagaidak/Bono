@@ -34,7 +34,7 @@ export function BoostButton({
           setOpen(true);
           dialogRef.current?.showModal();
         }}
-        className="rounded-lg border border-zinc-300 px-3 py-1 text-sm font-medium hover:bg-zinc-100 focus:outline-2 focus:outline-offset-2 focus:outline-emerald-600 dark:border-zinc-700 dark:hover:bg-zinc-800"
+        className="rounded-lg border border-zinc-300 px-3 py-1 text-sm font-medium hover:bg-zinc-100 focus:outline-2 focus:outline-offset-2 focus:outline-zinc-900 dark:focus:outline-white dark:border-zinc-700 dark:hover:bg-zinc-800"
       >
         Boost
       </button>
@@ -54,7 +54,7 @@ export function BoostButton({
                 type="button"
                 onClick={() => dialogRef.current?.close()}
                 aria-label="Close"
-                className="-m-2 rounded-lg p-2 text-zinc-600 hover:bg-zinc-100 focus:outline-2 focus:outline-emerald-600 dark:text-zinc-400 dark:hover:bg-zinc-800"
+                className="-m-2 rounded-lg p-2 text-zinc-600 hover:bg-zinc-100 focus:outline-2 focus:outline-zinc-900 dark:focus:outline-white dark:text-zinc-400 dark:hover:bg-zinc-800"
               >
                 ✕
               </button>

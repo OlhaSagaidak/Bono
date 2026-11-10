@@ -24,7 +24,7 @@ const MATCH_STATUS: Record<string, string> = {
 export default function CampaignPage({ params }: PageProps<"/campaigns/[id]">) {
   return (
     <main className="mx-auto flex w-full max-w-2xl flex-1 flex-col gap-6 px-4 py-8">
-      <Link href="/campaigns" className="text-sm font-medium text-emerald-700 underline dark:text-emerald-400">
+      <Link href="/campaigns" className="text-sm font-medium text-zinc-900 dark:text-zinc-100 underline">
         ← All campaigns
       </Link>
       <Suspense fallback={<p className="text-zinc-600 dark:text-zinc-400">Loading…</p>}>

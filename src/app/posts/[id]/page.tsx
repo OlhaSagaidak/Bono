@@ -42,7 +42,7 @@ async function Post({ params }: Pick<PageProps<"/posts/[id]">, "params">) {
   return (
     <>
       <title>{`Post by ${owner.name} · Bono`}</title>
-      <Link href={`/nonprofits/${owner.nonprofitId}`} className="self-start text-sm font-medium text-emerald-700 underline dark:text-emerald-400">
+      <Link href={`/nonprofits/${owner.nonprofitId}`} className="self-start text-sm font-medium text-zinc-900 dark:text-zinc-100 underline">
         More from {owner.name}
       </Link>
       <PostList

@@ -37,7 +37,7 @@ export async function BadgesSection({
         {isOwner && (
           <span className="text-sm text-zinc-600 dark:text-zinc-400">
             {showBadges ? "Shown on your profile and comments." : "Hidden from others."}{" "}
-            <Link href="/profile/edit" className="font-medium text-emerald-700 underline dark:text-emerald-400">
+            <Link href="/profile/edit" className="font-medium text-zinc-900 dark:text-zinc-100 underline">
               Change
             </Link>
           </span>

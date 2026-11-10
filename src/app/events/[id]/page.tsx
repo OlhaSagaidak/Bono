@@ -17,7 +17,7 @@ export const metadata = { title: "Event · Bono" };
 export default function EventPage({ params }: PageProps<"/events/[id]">) {
   return (
     <main className="mx-auto flex w-full max-w-2xl flex-1 flex-col gap-5 px-4 py-8">
-      <Link href="/events" className="text-sm font-medium text-emerald-700 underline dark:text-emerald-400">
+      <Link href="/events" className="text-sm font-medium text-zinc-900 dark:text-zinc-100 underline">
         ← Events
       </Link>
       <Suspense fallback={<p className="text-zinc-600 dark:text-zinc-400">Loading…</p>}>
@@ -53,7 +53,7 @@ async function Event({ params }: { params: PageProps<"/events/[id]">["params"] }
         </p>
       )}
       <div className="flex flex-col gap-1">
-        <p className="font-medium text-emerald-800 dark:text-emerald-300">
+        <p className="font-medium text-zinc-900 dark:text-zinc-100">
           <LocalTimeRange startIso={e.startsAt.toISOString()} endIso={e.endsAt.toISOString()} />
         </p>
         <h1 className={`text-2xl font-bold ${cancelled ? "line-through" : ""}`}>{e.title}</h1>
@@ -68,7 +68,7 @@ async function Event({ params }: { params: PageProps<"/events/[id]">["params"] }
           <>
             Online:{" "}
             {e.onlineUrl && (
-              <a href={e.onlineUrl} target="_blank" rel="noopener noreferrer" className="font-medium text-emerald-700 underline dark:text-emerald-400">
+              <a href={e.onlineUrl} target="_blank" rel="noopener noreferrer" className="font-medium text-zinc-900 dark:text-zinc-100 underline">
                 join link
               </a>
             )}
@@ -89,7 +89,7 @@ async function Event({ params }: { params: PageProps<"/events/[id]">["params"] }
           <RsvpButtons eventId={e.id} status={e.viewerStatus} disabled={cancelled} />
         )}
         {!viewerId && (
-          <Link href="/login" className="font-medium text-emerald-700 underline dark:text-emerald-400">
+          <Link href="/login" className="font-medium text-zinc-900 dark:text-zinc-100 underline">
             Log in to respond
           </Link>
         )}
@@ -98,7 +98,7 @@ async function Event({ params }: { params: PageProps<"/events/[id]">["params"] }
         )}
         {e.isOrganizer && !cancelled && (
           <>
-            <Link href={`/events/${e.id}/edit`} className="rounded-lg border border-zinc-300 px-4 py-2 font-medium hover:bg-zinc-100 focus:outline-2 focus:outline-offset-2 focus:outline-emerald-600 dark:border-zinc-700 dark:hover:bg-zinc-800">
+            <Link href={`/events/${e.id}/edit`} className="rounded-lg border border-zinc-300 px-4 py-2 font-medium hover:bg-zinc-100 focus:outline-2 focus:outline-offset-2 focus:outline-zinc-900 dark:focus:outline-white dark:border-zinc-700 dark:hover:bg-zinc-800">
               Edit
             </Link>
             <CancelEventButton eventId={e.id} />

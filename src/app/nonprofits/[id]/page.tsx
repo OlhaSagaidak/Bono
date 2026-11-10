@@ -101,7 +101,7 @@ async function NonprofitProfile({
       )}
       {!viewerId && verified && (
         <p>
-          <Link href="/login" className="font-medium text-emerald-700 underline dark:text-emerald-400">
+          <Link href="/login" className="font-medium text-zinc-900 dark:text-zinc-100 underline">
             Log in to donate
           </Link>
         </p>

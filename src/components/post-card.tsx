@@ -127,7 +127,7 @@ export function PostCard({
       )}
 
       {post.matchedBy && (
-        <p className="rounded-lg bg-emerald-50 px-3 py-2 text-sm text-emerald-900 dark:bg-emerald-950 dark:text-emerald-100">
+        <p className="rounded-lg bg-zinc-100 px-3 py-2 text-sm text-zinc-900 dark:text-zinc-100 dark:bg-zinc-800">
           <strong>{post.matchedBy.sponsorName}</strong> matches donations to {post.nonprofit.name}{" "}
           {post.matchedBy.ratioPercent / 100}:1 right now.
         </p>

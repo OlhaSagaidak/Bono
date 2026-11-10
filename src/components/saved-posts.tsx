@@ -34,7 +34,7 @@ export async function SavedPosts({ userId, basePath, before }: { userId: string;
         empty={
           <>
             No saved posts yet. Tap <strong>Save</strong> on a post or a reel to keep it here.{" "}
-            <Link href="/feed" className="font-medium text-emerald-700 underline dark:text-emerald-400">
+            <Link href="/feed" className="font-medium text-zinc-900 dark:text-zinc-100 underline">
               Go to your feed
             </Link>
           </>

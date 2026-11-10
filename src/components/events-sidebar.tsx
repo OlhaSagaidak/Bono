@@ -11,7 +11,7 @@ export async function EventsSidebar({ userId }: { userId: string }) {
       {list.length === 0 ? (
         <SidebarEmpty>
           Mark events Interested or Going and they&apos;ll show here.{" "}
-          <Link href="/events" className="font-medium text-emerald-700 underline dark:text-emerald-400">
+          <Link href="/events" className="font-medium text-zinc-900 dark:text-zinc-100 underline">
             Find events
           </Link>
         </SidebarEmpty>
@@ -19,8 +19,8 @@ export async function EventsSidebar({ userId }: { userId: string }) {
         <ul className="flex flex-col gap-1">
           {list.map((e) => (
             <li key={e.id}>
-              <Link href={`/events/${e.id}`} className="flex flex-col rounded-lg p-1.5 hover:bg-zinc-100 focus:outline-2 focus:outline-emerald-600 dark:hover:bg-zinc-800">
-                <span className="text-xs font-medium text-emerald-800 dark:text-emerald-300">
+              <Link href={`/events/${e.id}`} className="flex flex-col rounded-lg p-1.5 hover:bg-zinc-100 focus:outline-2 focus:outline-zinc-900 dark:focus:outline-white dark:hover:bg-zinc-800">
+                <span className="text-xs font-medium text-zinc-900 dark:text-zinc-100">
                   <LocalTime iso={e.startsAt.toISOString()} />
                 </span>
                 <span className="text-sm font-semibold">{e.title}</span>

@@ -17,7 +17,7 @@ const ITEMS: { href: string; label: string; Icon: LucideIcon; badge?: "messages"
 ];
 
 const itemClass =
-  "relative flex flex-col items-center gap-0.5 rounded-lg px-2 py-1.5 text-xs font-medium text-zinc-700 hover:bg-zinc-100 focus:outline-2 focus:outline-offset-2 focus:outline-emerald-600 aria-[current=page]:text-emerald-800 dark:text-zinc-300 dark:hover:bg-zinc-800 dark:aria-[current=page]:text-emerald-300 lg:px-3";
+  "relative flex flex-col items-center gap-0.5 rounded-lg px-2 py-1.5 text-xs font-medium text-zinc-700 hover:bg-zinc-100 focus:outline-2 focus:outline-offset-2 focus:outline-zinc-900 dark:focus:outline-white aria-[current=page]:text-zinc-900 dark:aria-[current=page]:text-zinc-100 dark:text-zinc-300 dark:hover:bg-zinc-800 lg:px-3";
 
 // The label and the count are real text (the label only visually hidden on
 // phones), so the accessible name is what people see: "Notifications 4
@@ -182,7 +182,7 @@ function NotificationsBell({ unread }: { unread: number }) {
               <button
                 type="button"
                 onClick={markAllRead}
-                className="rounded-lg px-2 py-1 text-xs font-medium text-emerald-700 hover:bg-zinc-100 focus:outline-2 focus:outline-emerald-600 dark:text-emerald-400 dark:hover:bg-zinc-800"
+                className="rounded-lg px-2 py-1 text-xs font-medium text-zinc-900 dark:text-zinc-100 hover:bg-zinc-100 focus:outline-2 focus:outline-zinc-900 dark:focus:outline-white dark:hover:bg-zinc-800"
               >
                 Mark all as read
               </button>
@@ -194,7 +194,7 @@ function NotificationsBell({ unread }: { unread: number }) {
           {recent.state === "error" && (
             <p role="alert" className="px-2 py-6 text-center text-sm text-zinc-600 dark:text-zinc-400">
               Couldn&apos;t load notifications.{" "}
-              <button type="button" onClick={load} className="font-medium text-emerald-700 underline dark:text-emerald-400">
+              <button type="button" onClick={load} className="font-medium text-zinc-900 dark:text-zinc-100 underline">
                 Try again
               </button>
             </p>
@@ -212,7 +212,7 @@ function NotificationsBell({ unread }: { unread: number }) {
           <Link
             href="/notifications"
             onClick={() => setOpen(false)}
-            className="block rounded-lg px-2 py-2 text-center text-sm font-medium text-emerald-700 hover:bg-zinc-100 focus:outline-2 focus:outline-emerald-600 dark:text-emerald-400 dark:hover:bg-zinc-800"
+            className="block rounded-lg px-2 py-2 text-center text-sm font-medium text-zinc-900 dark:text-zinc-100 hover:bg-zinc-100 focus:outline-2 focus:outline-zinc-900 dark:focus:outline-white dark:hover:bg-zinc-800"
           >
             See all
           </Link>

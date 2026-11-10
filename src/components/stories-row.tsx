@@ -81,11 +81,11 @@ export function StoriesRow({
                   // eslint-disable-next-line @next/next/no-img-element -- served from our own API
                   <img src={imageUrl(viewerPhotoId)} alt="" className="size-full object-cover transition-transform group-hover:scale-105" />
                 ) : (
-                  <span className="block size-full bg-emerald-100 dark:bg-emerald-950" />
+                  <span className="block size-full bg-zinc-200 dark:bg-zinc-800" />
                 )}
               </span>
               <span className="relative flex flex-1 items-end justify-center pb-2 text-xs font-semibold">
-                <span className="absolute -top-5 flex size-10 items-center justify-center rounded-full border-4 border-white bg-emerald-700 text-white dark:border-zinc-900">
+                <span className="absolute -top-5 flex size-10 items-center justify-center rounded-full border-4 border-white bg-zinc-900 dark:bg-white text-white dark:text-zinc-900 dark:border-zinc-900">
                   <Plus aria-hidden className="size-5" />
                 </span>
                 Create story
@@ -112,7 +112,7 @@ export function StoriesRow({
                 )}
                 <span aria-hidden className="absolute inset-0 bg-gradient-to-b from-black/25 via-transparent to-black/70" />
                 <span
-                  className={`absolute left-2 top-2 rounded-full p-0.5 ${org.allSeen ? "bg-zinc-300" : "bg-gradient-to-tr from-emerald-500 to-lime-300"}`}
+                  className={`absolute left-2 top-2 rounded-full p-0.5 ${org.allSeen ? "bg-zinc-300 dark:bg-zinc-700" : "bg-zinc-900 dark:bg-white"}`}
                 >
                   <span className="block rounded-full bg-zinc-900 p-0.5">
                     <Avatar name={org.name} imageId={org.logoImageId} className="size-8 text-sm" />
@@ -155,6 +155,6 @@ export function StoriesRow({
 }
 
 const card =
-  "group relative block h-48 w-28 overflow-hidden rounded-xl border border-zinc-200 shadow-sm focus:outline-2 focus:outline-offset-2 focus:outline-emerald-600 dark:border-zinc-800";
+  "group relative block h-48 w-28 overflow-hidden rounded-xl border border-zinc-200 shadow-sm focus:outline-2 focus:outline-offset-2 focus:outline-zinc-900 dark:focus:outline-white dark:border-zinc-800";
 const arrow =
-  "absolute top-1/2 flex size-9 -translate-y-1/2 items-center justify-center rounded-full bg-white text-zinc-800 shadow-md hover:bg-zinc-100 focus:outline-2 focus:outline-emerald-600 dark:bg-zinc-800 dark:text-zinc-100";
+  "absolute top-1/2 flex size-9 -translate-y-1/2 items-center justify-center rounded-full bg-white text-zinc-800 shadow-md hover:bg-zinc-100 focus:outline-2 focus:outline-zinc-900 dark:focus:outline-white dark:bg-zinc-800 dark:text-zinc-100";

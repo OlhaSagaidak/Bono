@@ -35,7 +35,7 @@ async function Return({ searchParams }: { searchParams: PageProps<"/paypal/retur
       <>
         <h1 className="text-2xl font-bold">Something went wrong</h1>
         <p>We couldn&apos;t tell which payment this was. If PayPal charged you, it shows in your PayPal account.</p>
-        <Link href={backPath} className="self-start rounded-lg bg-emerald-700 px-4 py-2 font-semibold text-white focus:outline-2 focus:outline-offset-2 focus:outline-emerald-600">
+        <Link href={backPath} className="self-start rounded-lg bg-zinc-900 dark:bg-white px-4 py-2 font-semibold text-white dark:text-zinc-900 focus:outline-2 focus:outline-offset-2 focus:outline-zinc-900 dark:focus:outline-white">
           Continue
         </Link>
       </>

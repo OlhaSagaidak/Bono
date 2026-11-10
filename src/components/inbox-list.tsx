@@ -12,7 +12,7 @@ export function InboxList({ items, selectedId, compact = false }: { items: Inbox
           <Link
             href={`/messages/${c.id}`}
             aria-current={c.id === selectedId ? "page" : undefined}
-            className={`flex items-center gap-3 rounded-lg ${compact ? "p-1.5" : "p-2"} hover:bg-zinc-100 focus:outline-2 focus:outline-emerald-600 aria-[current=page]:bg-emerald-50 dark:hover:bg-zinc-800 dark:aria-[current=page]:bg-emerald-950/60`}
+            className={`flex items-center gap-3 rounded-lg ${compact ? "p-1.5" : "p-2"} hover:bg-zinc-100 focus:outline-2 focus:outline-zinc-900 dark:focus:outline-white aria-[current=page]:bg-zinc-100 dark:hover:bg-zinc-800 dark:aria-[current=page]:bg-zinc-800/60`}
           >
             <Avatar name={c.other.name} imageId={c.other.photoImageId} className={compact ? "size-8 text-sm" : "size-11"} />
             <span className="flex min-w-0 flex-1 flex-col">
@@ -31,7 +31,7 @@ export function InboxList({ items, selectedId, compact = false }: { items: Inbox
             </span>
             {c.unread && (
               <>
-                <span aria-hidden className="size-2.5 shrink-0 rounded-full bg-emerald-600" />
+                <span aria-hidden className="size-2.5 shrink-0 rounded-full bg-zinc-900 dark:bg-white" />
                 <span className="sr-only">(unread)</span>
               </>
             )}

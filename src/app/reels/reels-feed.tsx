@@ -18,6 +18,7 @@ const OFFLINE = { error: "Couldn't reach Bono. Check your connection and try aga
  */
 export function ReelsFeed({ reels, viewerId, donateClientId }: { reels: ReelView[]; viewerId: string; donateClientId: string }) {
   const [muted, setMuted] = useState(true);
+  const [current, setCurrent] = useState(0);
   const container = useRef<HTMLDivElement>(null);
 
   return (
@@ -31,9 +32,11 @@ export function ReelsFeed({ reels, viewerId, donateClientId }: { reels: ReelView
         <Reel
           key={reel.id}
           reel={reel}
-          // Only the first two load ahead; the rest load when scrolled to (playing starts the load).
-          preload={i < 2 ? "metadata" : "none"}
+          // The next reel loads in full while this one plays, so swiping on is
+          // instant; the rest load when scrolled to (their posters show at once).
+          preload={i === current + 1 ? "auto" : i < 2 ? "metadata" : "none"}
           scroller={container}
+          onShown={() => setCurrent(i)}
           own={reel.nonprofit.id === viewerId}
           muted={muted}
           onToggleMute={() => setMuted((m) => !m)}
@@ -48,14 +51,16 @@ function Reel({
   reel,
   preload,
   scroller,
+  onShown,
   own,
   muted,
   onToggleMute,
   donateClientId,
 }: {
   reel: ReelView;
-  preload: "metadata" | "none";
+  preload: "auto" | "metadata" | "none";
   scroller: RefObject<HTMLDivElement | null>;
+  onShown: () => void;
   own: boolean;
   muted: boolean;
   onToggleMute: () => void;
@@ -75,11 +80,23 @@ function Reel({
   const [onScreen, setOnScreen] = useState(false);
   const [playback, setPlayback] = useState<"loading" | "playing" | "paused" | "failed">("loading");
 
+  // Kept in a ref so a new callback each render doesn't re-create the observer.
+  const shown = useRef(onShown);
+  useEffect(() => {
+    shown.current = onShown;
+  }, [onShown]);
+
   // Play while mostly on screen; pause as soon as it scrolls away.
   useEffect(() => {
     const el = section.current;
     if (!el) return;
-    const observer = new IntersectionObserver(([entry]) => setOnScreen(entry.isIntersecting), { root: scroller.current, threshold: 0.6 });
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        setOnScreen(entry.isIntersecting);
+        if (entry.isIntersecting) shown.current();
+      },
+      { root: scroller.current, threshold: 0.6 },
+    );
     observer.observe(el);
     return () => observer.disconnect();
   }, [scroller]);
@@ -144,6 +161,7 @@ function Reel({
         <video
           ref={video}
           src={reel.src}
+          poster={reel.poster ?? undefined}
           loop
           muted={muted}
           playsInline
@@ -199,7 +217,7 @@ function Reel({
             )}
             {!own && (
               <div className="self-start">
-                <DonateButton nonprofitId={reel.nonprofit.id} nonprofitName={reel.nonprofit.name} clientId={donateClientId} />
+                <DonateButton nonprofitId={reel.nonprofit.id} nonprofitName={reel.nonprofit.name} clientId={donateClientId} onMedia />
               </div>
             )}
             <p role="status" className="min-h-5 text-sm text-white/85">

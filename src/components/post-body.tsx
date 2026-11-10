@@ -50,7 +50,7 @@ export function PostBody({
             type="button"
             onClick={toggle}
             disabled={pending}
-            className="font-medium text-emerald-700 hover:underline focus:outline-2 focus:outline-offset-2 focus:outline-emerald-600 disabled:opacity-60 dark:text-emerald-400"
+            className="font-medium text-zinc-900 dark:text-zinc-100 hover:underline focus:outline-2 focus:outline-offset-2 focus:outline-zinc-900 dark:focus:outline-white disabled:opacity-60"
           >
             {pending
               ? "Translating…"

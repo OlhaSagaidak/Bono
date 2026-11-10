@@ -31,9 +31,9 @@ export function RsvpButtons({ eventId, status, disabled = false }: { eventId: st
         aria-pressed={active}
         disabled={disabled || pending}
         onClick={() => choose(active ? null : value)}
-        className={`rounded-lg border px-4 py-2 font-semibold focus:outline-2 focus:outline-offset-2 focus:outline-emerald-600 disabled:opacity-60 ${
+        className={`rounded-lg border px-4 py-2 font-semibold focus:outline-2 focus:outline-offset-2 focus:outline-zinc-900 dark:focus:outline-white disabled:opacity-60 ${
           active
-            ? "border-emerald-700 bg-emerald-700 text-white hover:bg-emerald-800"
+            ? "border-zinc-900 dark:border-white bg-zinc-900 dark:bg-white text-white dark:text-zinc-900 hover:bg-zinc-700 dark:hover:bg-zinc-200"
             : "border-zinc-300 bg-white text-zinc-800 hover:bg-zinc-100 dark:border-zinc-600 dark:bg-zinc-900 dark:text-zinc-100 dark:hover:bg-zinc-800"
         }`}
       >

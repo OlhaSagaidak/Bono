@@ -48,7 +48,7 @@ async function Following({ searchParams }: { searchParams: PageProps<"/following
     discoverOrgs(session.user.id, causeSlug),
   ]);
 
-  const chip = "rounded-full border px-3 py-1 text-sm focus:outline-2 focus:outline-offset-2 focus:outline-emerald-600";
+  const chip = "rounded-full border px-3 py-1 text-sm focus:outline-2 focus:outline-offset-2 focus:outline-zinc-900 dark:focus:outline-white";
   return (
     <>
       <section aria-labelledby="following-heading" className="flex flex-col gap-4">
@@ -66,10 +66,10 @@ async function Following({ searchParams }: { searchParams: PageProps<"/following
             type="search"
             defaultValue={search}
             placeholder="Search organizations you follow"
-            className="min-w-0 flex-1 rounded-lg border border-zinc-300 bg-white px-3 py-2 focus:outline-2 focus:outline-offset-2 focus:outline-emerald-600 dark:border-zinc-700 dark:bg-zinc-900"
+            className="min-w-0 flex-1 rounded-lg border border-zinc-300 bg-white px-3 py-2 focus:outline-2 focus:outline-offset-2 focus:outline-zinc-900 dark:focus:outline-white dark:border-zinc-700 dark:bg-zinc-900"
           />
           {causeSlug && <input type="hidden" name="cause" value={causeSlug} />}
-          <button type="submit" className="rounded-lg border border-zinc-300 px-4 py-2 font-medium hover:bg-zinc-100 focus:outline-2 focus:outline-offset-2 focus:outline-emerald-600 dark:border-zinc-700 dark:hover:bg-zinc-800">
+          <button type="submit" className="rounded-lg border border-zinc-300 px-4 py-2 font-medium hover:bg-zinc-100 focus:outline-2 focus:outline-offset-2 focus:outline-zinc-900 dark:focus:outline-white dark:border-zinc-700 dark:hover:bg-zinc-800">
             Search
           </button>
         </form>
@@ -94,7 +94,7 @@ async function Following({ searchParams }: { searchParams: PageProps<"/following
           <Link
             href={search ? `/following?q=${encodeURIComponent(search)}` : "/following"}
             aria-current={!causeSlug ? "page" : undefined}
-            className={`${chip} border-zinc-300 aria-[current=page]:border-emerald-700 aria-[current=page]:bg-emerald-700 aria-[current=page]:text-white dark:border-zinc-700`}
+            className={`${chip} border-zinc-300 aria-[current=page]:border-zinc-900 dark:aria-[current=page]:border-white aria-[current=page]:bg-zinc-900 dark:aria-[current=page]:bg-white aria-[current=page]:text-white dark:aria-[current=page]:text-zinc-900 dark:border-zinc-700`}
           >
             All causes
           </Link>
@@ -103,7 +103,7 @@ async function Following({ searchParams }: { searchParams: PageProps<"/following
               key={c.slug}
               href={`/following?${new URLSearchParams({ ...(search && { q: search }), cause: c.slug })}`}
               aria-current={causeSlug === c.slug ? "page" : undefined}
-              className={`${chip} border-zinc-300 aria-[current=page]:border-emerald-700 aria-[current=page]:bg-emerald-700 aria-[current=page]:text-white dark:border-zinc-700`}
+              className={`${chip} border-zinc-300 aria-[current=page]:border-zinc-900 dark:aria-[current=page]:border-white aria-[current=page]:bg-zinc-900 dark:aria-[current=page]:bg-white aria-[current=page]:text-white dark:aria-[current=page]:text-zinc-900 dark:border-zinc-700`}
             >
               {c.label}
             </Link>

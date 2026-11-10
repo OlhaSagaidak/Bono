@@ -18,6 +18,7 @@ type Errors = Record<string, string[] | undefined>;
 export function ReelForm({ causes }: { causes: { value: string; label: string }[] }) {
   const router = useRouter();
   const [preview, setPreview] = useState<string | null>(null);
+  const [poster, setPoster] = useState<Blob | null>(null);
   const [errors, setErrors] = useState<Errors>({});
   const [formError, setFormError] = useState<string>();
   const [pending, setPending] = useState(false);
@@ -28,6 +29,7 @@ export function ReelForm({ causes }: { causes: { value: string; label: string }[
     const file = e.target.files?.[0];
     setErrors((all) => ({ ...all, file: undefined }));
     setPreview(null);
+    setPoster(null);
     if (!file) return;
     const problem = await checkVideo(file);
     if (problem) {
@@ -36,6 +38,7 @@ export function ReelForm({ causes }: { causes: { value: string; label: string }[
       return;
     }
     setPreview(URL.createObjectURL(file));
+    setPoster(await firstFrame(file));
   }
 
   async function submit(e: React.FormEvent<HTMLFormElement>) {
@@ -43,7 +46,9 @@ export function ReelForm({ causes }: { causes: { value: string; label: string }[
     setFormError(undefined);
     setPending(true);
     try {
-      const res = await fetch("/api/reels", { method: "POST", body: new FormData(e.currentTarget) });
+      const upload = new FormData(e.currentTarget);
+      if (poster) upload.set("poster", poster, "poster.jpg");
+      const res = await fetch("/api/reels", { method: "POST", body: upload });
       if (res.ok) {
         const { id } = (await res.json()) as { id: string };
         router.push(`/reels?start=${id}`);
@@ -125,6 +130,38 @@ function videoMeta(file: File): Promise<{ seconds: number; width: number; height
       URL.revokeObjectURL(url);
       resolve(null);
     };
+    video.src = url;
+  });
+}
+
+/**
+ * The video's first frame as a JPEG, shown while the reel loads. Optional:
+ * if the browser can't decode the file here, the reel is posted without one.
+ */
+function firstFrame(file: File): Promise<Blob | null> {
+  return new Promise((resolve) => {
+    const url = URL.createObjectURL(file);
+    const video = document.createElement("video");
+    const done = (blob: Blob | null) => {
+      URL.revokeObjectURL(url);
+      resolve(blob);
+    };
+    video.muted = true;
+    video.playsInline = true;
+    video.preload = "auto";
+    video.onloadeddata = () => {
+      video.currentTime = Math.min(0.1, video.duration || 0);
+    };
+    video.onseeked = () => {
+      const scale = Math.min(1, 720 / video.videoWidth);
+      const canvas = document.createElement("canvas");
+      canvas.width = Math.round(video.videoWidth * scale);
+      canvas.height = Math.round(video.videoHeight * scale);
+      canvas.getContext("2d")?.drawImage(video, 0, 0, canvas.width, canvas.height);
+      canvas.toBlob(done, "image/jpeg", 0.82);
+    };
+    video.onerror = () => done(null);
+    setTimeout(() => done(null), 8000);
     video.src = url;
   });
 }

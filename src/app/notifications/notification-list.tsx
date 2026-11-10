@@ -23,7 +23,7 @@ export function NotificationList({ items: initial }: { items: NotificationView[]
               window.dispatchEvent(new Event("bono:badges"));
             })
           }
-          className="self-end rounded-lg px-3 py-1.5 text-sm font-medium text-emerald-700 hover:bg-zinc-100 focus:outline-2 focus:outline-emerald-600 disabled:opacity-60 dark:text-emerald-400 dark:hover:bg-zinc-800"
+          className="self-end rounded-lg px-3 py-1.5 text-sm font-medium text-zinc-900 dark:text-zinc-100 hover:bg-zinc-100 focus:outline-2 focus:outline-zinc-900 dark:focus:outline-white disabled:opacity-60 dark:hover:bg-zinc-800"
         >
           Mark all as read
         </button>

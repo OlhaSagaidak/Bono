@@ -33,7 +33,7 @@ export function DateTimeField({ name, label, defaultIso, errors }: { name: strin
           onChange={(e) => setIso(e.target.value ? new Date(e.target.value).toISOString() : "")}
           aria-invalid={errors ? true : undefined}
           aria-describedby={errors ? errorId : undefined}
-          className="rounded-lg border border-zinc-300 bg-white px-3 py-2 text-zinc-900 focus:outline-2 focus:outline-offset-2 focus:outline-emerald-600 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-100"
+          className="rounded-lg border border-zinc-300 bg-white px-3 py-2 text-zinc-900 focus:outline-2 focus:outline-offset-2 focus:outline-zinc-900 dark:focus:outline-white dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-100"
         />
       ) : (
         <div className="h-10 rounded-lg border border-zinc-300 dark:border-zinc-700" aria-hidden />

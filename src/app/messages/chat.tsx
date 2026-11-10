@@ -149,7 +149,7 @@ export function Chat({
                         href={m.imageId ? imageUrl(m.imageId) : undefined}
                         target="_blank"
                         rel="noopener"
-                        className={`mb-1 block overflow-hidden rounded-2xl focus:outline-2 focus:outline-emerald-600 ${m.pending ? "opacity-70" : ""}`}
+                        className={`mb-1 block overflow-hidden rounded-2xl focus:outline-2 focus:outline-zinc-900 dark:focus:outline-white ${m.pending ? "opacity-70" : ""}`}
                       >
                         {/* eslint-disable-next-line @next/next/no-img-element -- private photos come from our own API */}
                         <img
@@ -162,7 +162,7 @@ export function Chat({
                     {m.body && (
                       <p
                         className={`max-w-[80%] whitespace-pre-wrap break-words rounded-2xl px-3 py-2 text-sm ${
-                          mine ? "bg-emerald-700 text-white" : "bg-zinc-100 text-zinc-900 dark:bg-zinc-800 dark:text-zinc-100"
+                          mine ? "bg-zinc-900 dark:bg-white text-white dark:text-zinc-900" : "bg-zinc-100 text-zinc-900 dark:bg-zinc-800 dark:text-zinc-100"
                         } ${m.pending ? "opacity-70" : ""}`}
                       >
                         {m.body}
@@ -200,7 +200,7 @@ export function Chat({
                   setPhoto(null);
                 }}
                 aria-label="Remove the photo"
-                className="absolute -right-2 -top-2 rounded-full bg-zinc-800 p-0.5 text-white focus:outline-2 focus:outline-emerald-600"
+                className="absolute -right-2 -top-2 rounded-full bg-zinc-800 p-0.5 text-white focus:outline-2 focus:outline-zinc-900 dark:focus:outline-white"
               >
                 <X aria-hidden className="size-4" />
               </button>
@@ -220,7 +220,7 @@ export function Chat({
               type="button"
               onClick={() => photoInput.current?.click()}
               aria-label="Add a photo"
-              className="rounded-lg p-2 text-zinc-700 hover:bg-zinc-100 focus:outline-2 focus:outline-offset-2 focus:outline-emerald-600 dark:text-zinc-300 dark:hover:bg-zinc-800"
+              className="rounded-lg p-2 text-zinc-700 hover:bg-zinc-100 focus:outline-2 focus:outline-offset-2 focus:outline-zinc-900 dark:focus:outline-white dark:text-zinc-300 dark:hover:bg-zinc-800"
             >
               <ImagePlus aria-hidden className="size-5" />
             </button>
@@ -242,12 +242,12 @@ export function Chat({
               }}
               placeholder="Write a message…"
               aria-describedby={error ? "message-error" : undefined}
-              className="max-h-40 min-h-10 flex-1 resize-y rounded-lg border border-zinc-300 bg-white px-3 py-2 text-sm focus:outline-2 focus:outline-offset-2 focus:outline-emerald-600 dark:border-zinc-700 dark:bg-zinc-900"
+              className="max-h-40 min-h-10 flex-1 resize-y rounded-lg border border-zinc-300 bg-white px-3 py-2 text-sm focus:outline-2 focus:outline-offset-2 focus:outline-zinc-900 dark:focus:outline-white dark:border-zinc-700 dark:bg-zinc-900"
             />
             <button
               type="submit"
               disabled={!draft.trim() && !photo}
-              className="rounded-lg bg-emerald-700 px-4 py-2 text-sm font-semibold text-white hover:bg-emerald-800 focus:outline-2 focus:outline-offset-2 focus:outline-emerald-600 disabled:opacity-50"
+              className="rounded-lg bg-zinc-900 dark:bg-white px-4 py-2 text-sm font-semibold text-white dark:text-zinc-900 hover:bg-zinc-700 dark:hover:bg-zinc-200 focus:outline-2 focus:outline-offset-2 focus:outline-zinc-900 dark:focus:outline-white disabled:opacity-50"
             >
               Send
             </button>

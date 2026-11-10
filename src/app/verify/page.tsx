@@ -12,7 +12,7 @@ import { EinForm, FeeCheckout } from "./verify-forms";
 
 export const metadata = { title: "Get verified · Bono" };
 
-const link = "font-medium text-emerald-700 underline dark:text-emerald-400";
+const link = "font-medium text-zinc-900 dark:text-zinc-100 underline";
 
 export default function VerifyPage() {
   return (
@@ -36,7 +36,7 @@ async function Verify() {
   if (profile.verifiedAt) {
     return (
       <div className="flex flex-col gap-4">
-        <p className="rounded-lg bg-emerald-50 px-4 py-3 text-emerald-900 dark:bg-emerald-950 dark:text-emerald-100">
+        <p className="rounded-lg bg-zinc-100 px-4 py-3 text-zinc-900 dark:text-zinc-100 dark:bg-zinc-800">
           <strong>You&apos;re verified.</strong> Your page is live and supporters can donate to you.
         </p>
         <p className="flex gap-4">

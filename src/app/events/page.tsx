@@ -19,9 +19,9 @@ export default function EventsPage({ searchParams }: PageProps<"/events">) {
 }
 
 const tabClass =
-  "rounded-lg px-3 py-2 text-sm font-medium hover:bg-zinc-100 focus:outline-2 focus:outline-offset-2 focus:outline-emerald-600 aria-[current=page]:bg-emerald-700 aria-[current=page]:text-white dark:hover:bg-zinc-800";
+  "rounded-lg px-3 py-2 text-sm font-medium hover:bg-zinc-100 focus:outline-2 focus:outline-offset-2 focus:outline-zinc-900 dark:focus:outline-white aria-[current=page]:bg-zinc-900 dark:aria-[current=page]:bg-white aria-[current=page]:text-white dark:aria-[current=page]:text-zinc-900 dark:hover:bg-zinc-800";
 const chip =
-  "rounded-full border border-zinc-300 px-3 py-1 text-sm focus:outline-2 focus:outline-offset-2 focus:outline-emerald-600 aria-[current=page]:border-emerald-700 aria-[current=page]:bg-emerald-700 aria-[current=page]:text-white dark:border-zinc-700";
+  "rounded-full border border-zinc-300 px-3 py-1 text-sm focus:outline-2 focus:outline-offset-2 focus:outline-zinc-900 dark:focus:outline-white aria-[current=page]:border-zinc-900 dark:aria-[current=page]:border-white aria-[current=page]:bg-zinc-900 dark:aria-[current=page]:bg-white aria-[current=page]:text-white dark:aria-[current=page]:text-zinc-900 dark:border-zinc-700";
 
 async function Events({ searchParams }: { searchParams: PageProps<"/events">["searchParams"] }) {
   const session = await getSession();
@@ -53,7 +53,7 @@ async function Events({ searchParams }: { searchParams: PageProps<"/events">["se
       <div className="flex flex-wrap items-center justify-between gap-3">
         <h1 className="text-2xl font-bold">Events</h1>
         {role === "nonprofit" && (
-          <Link href="/events/new" className="rounded-lg bg-emerald-700 px-4 py-2 font-semibold text-white hover:bg-emerald-800 focus:outline-2 focus:outline-offset-2 focus:outline-emerald-600">
+          <Link href="/events/new" className="rounded-lg bg-zinc-900 dark:bg-white px-4 py-2 font-semibold text-white dark:text-zinc-900 hover:bg-zinc-700 dark:hover:bg-zinc-200 focus:outline-2 focus:outline-offset-2 focus:outline-zinc-900 dark:focus:outline-white">
             New event
           </Link>
         )}

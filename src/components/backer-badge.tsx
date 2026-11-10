@@ -5,14 +5,20 @@ import { sponsorTierLabel, supporterTierLabel } from "@/lib/badges/tiers";
 // A small pill: "Emerging supporter", "Partner". Tiers only, never amounts.
 // Works in server and client components (no hooks).
 
+// Black and white like the rest of Bono: the higher the tier, the darker the pill
+// (inverted in dark mode), with the icon telling tiers apart at a glance.
+const LIGHT = "bg-zinc-100 text-zinc-700 ring-1 ring-inset ring-zinc-300 dark:bg-zinc-900 dark:text-zinc-300 dark:ring-zinc-700";
+const MID = "bg-zinc-200 text-zinc-900 dark:bg-zinc-700 dark:text-zinc-100";
+const DARK = "bg-zinc-700 text-white dark:bg-zinc-300 dark:text-zinc-900";
+const TOP = "bg-zinc-950 text-white dark:bg-white dark:text-zinc-950";
 const STYLE = {
-  rising: { Icon: Sprout, className: "bg-lime-100 text-lime-900 dark:bg-lime-950 dark:text-lime-200" },
-  emerging: { Icon: Leaf, className: "bg-emerald-100 text-emerald-900 dark:bg-emerald-950 dark:text-emerald-200" },
-  established: { Icon: TreeDeciduous, className: "bg-teal-100 text-teal-900 dark:bg-teal-950 dark:text-teal-200" },
-  champion: { Icon: Crown, className: "bg-amber-100 text-amber-900 dark:bg-amber-950 dark:text-amber-200" },
-  supporter: { Icon: Handshake, className: "bg-sky-100 text-sky-900 dark:bg-sky-950 dark:text-sky-200" },
-  partner: { Icon: Handshake, className: "bg-indigo-100 text-indigo-900 dark:bg-indigo-950 dark:text-indigo-200" },
-  "champion-partner": { Icon: Award, className: "bg-amber-100 text-amber-900 dark:bg-amber-950 dark:text-amber-200" },
+  rising: { Icon: Sprout, className: LIGHT },
+  emerging: { Icon: Leaf, className: MID },
+  established: { Icon: TreeDeciduous, className: DARK },
+  champion: { Icon: Crown, className: TOP },
+  supporter: { Icon: Handshake, className: LIGHT },
+  partner: { Icon: Handshake, className: DARK },
+  "champion-partner": { Icon: Award, className: TOP },
 } as const;
 
 export function badgeText(badge: BackerTier): string {

@@ -7,6 +7,7 @@ import { REEL_VIDEO } from "@/lib/media/limits";
 import { LIMITS, overLimit } from "@/lib/guards/rate-limit";
 import { fromOurOrigin } from "@/lib/guards/same-origin";
 import { checkUploadedVideo, storeVideo } from "@/lib/media/video";
+import { checkUploadedImage, fitImage, MAX_IMAGE_BYTES, storeImage } from "@/lib/images";
 import { REEL_CAPTION_MAX } from "@/lib/reels/queries";
 
 // Posting a reel: a vertical video up to REEL_VIDEO's limits, a caption and
@@ -40,7 +41,8 @@ export async function POST(request: Request) {
   // size; without it the whole body would have to be read to find out.
   const size = Number(request.headers.get("content-length"));
   if (!size) return fail(411, { error: "That upload didn't say how large it is. Please try again." });
-  if (size > REEL_VIDEO.maxBytes + 64 * 1024) return fail(413, { fieldErrors: { file: ["That video is too large."] } });
+  // The video, plus an optional poster frame the browser captured from it.
+  if (size > REEL_VIDEO.maxBytes + MAX_IMAGE_BYTES + 64 * 1024) return fail(413, { fieldErrors: { file: ["That video is too large."] } });
   let form: FormData;
   try {
     form = await request.formData();
@@ -67,9 +69,13 @@ export async function POST(request: Request) {
   );
   if (fields.data.causes.some((c) => !own.has(c))) return fail(400, { fieldErrors: { causes: ["Tag the reel with your organization's own causes."] } });
 
+  // The poster is a convenience: one that isn't a real image is simply left out.
+  const poster = await checkUploadedImage(form.get("poster"));
+
   const id = await db.transaction(async (tx) => {
     const mediaId = await storeVideo(tx, nonprofitId, video);
-    const [reel] = await tx.insert(reels).values({ nonprofitId, mediaId, caption: fields.data.caption }).returning({ id: reels.id });
+    const posterImageId = poster.kind === "ok" ? await storeImage(tx, nonprofitId, await fitImage(poster, 720)) : null;
+    const [reel] = await tx.insert(reels).values({ nonprofitId, mediaId, posterImageId, caption: fields.data.caption }).returning({ id: reels.id });
     await tx.insert(reelCauses).values(fields.data.causes.map((causeSlug) => ({ reelId: reel.id, causeSlug })));
     return reel.id;
   });

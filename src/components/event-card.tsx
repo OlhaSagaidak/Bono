@@ -12,18 +12,18 @@ export function EventCard({ event }: { event: EventCardData }) {
     <li>
       <Link
         href={`/events/${event.id}`}
-        className="flex gap-3 rounded-2xl border border-zinc-200 p-3 hover:border-emerald-600 focus:outline-2 focus:outline-offset-2 focus:outline-emerald-600 dark:border-zinc-800"
+        className="flex gap-3 rounded-2xl border border-zinc-200 p-3 hover:border-zinc-900 dark:hover:border-white focus:outline-2 focus:outline-offset-2 focus:outline-zinc-900 dark:focus:outline-white dark:border-zinc-800"
       >
         {event.coverImageId ? (
           // eslint-disable-next-line @next/next/no-img-element -- served from our own API
           <img src={imageUrl(event.coverImageId)} alt="" className="size-20 shrink-0 rounded-xl object-cover" />
         ) : (
-          <div aria-hidden className="flex size-20 shrink-0 items-center justify-center rounded-xl bg-emerald-50 text-sm font-semibold text-emerald-800 dark:bg-emerald-950 dark:text-emerald-200">
+          <div aria-hidden className="flex size-20 shrink-0 items-center justify-center rounded-xl bg-zinc-100 text-sm font-semibold text-zinc-900 dark:text-zinc-100 dark:bg-zinc-800 dark:text-zinc-200">
             <LocalTime iso={event.startsAt.toISOString()} format="date" />
           </div>
         )}
         <div className="flex min-w-0 flex-col gap-0.5">
-          <span className="text-sm text-emerald-800 dark:text-emerald-300">
+          <span className="text-sm text-zinc-900 dark:text-zinc-100">
             <LocalTime iso={event.startsAt.toISOString()} />
           </span>
           <span className={`font-semibold ${cancelled ? "line-through" : ""}`}>{event.title}</span>

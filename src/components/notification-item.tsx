@@ -20,8 +20,8 @@ export function NotificationItem({ item, onOpen }: { item: NotificationView; onO
               .catch(() => {});
           onOpen?.();
         }}
-        className={`flex gap-3 rounded-lg px-2 py-2 text-sm hover:bg-zinc-100 focus:outline-2 focus:outline-emerald-600 dark:hover:bg-zinc-800 ${
-          item.unread ? "bg-emerald-50 dark:bg-emerald-950/60" : ""
+        className={`flex gap-3 rounded-lg px-2 py-2 text-sm hover:bg-zinc-100 focus:outline-2 focus:outline-zinc-900 dark:focus:outline-white dark:hover:bg-zinc-800 ${
+          item.unread ? "bg-zinc-100 dark:bg-zinc-800/60" : ""
         }`}
       >
         <Avatar name={item.actor?.name ?? "Bono"} imageId={item.actor?.photoImageId ?? null} />
@@ -43,7 +43,7 @@ export function NotificationItem({ item, onOpen }: { item: NotificationView; onO
             <TimeAgo iso={item.createdAt} />
           </span>
         </span>
-        {item.unread && <span aria-hidden className="mt-1.5 size-2 shrink-0 rounded-full bg-emerald-600" />}
+        {item.unread && <span aria-hidden className="mt-1.5 size-2 shrink-0 rounded-full bg-zinc-900 dark:bg-white" />}
       </Link>
     </li>
   );

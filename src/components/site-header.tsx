@@ -12,13 +12,13 @@ import { profilePath } from "@/lib/profiles/paths";
 import { getAccount } from "@/lib/profiles/queries";
 
 const navLink =
-  "rounded-lg px-3 py-2 text-sm font-medium hover:bg-zinc-100 focus:outline-2 focus:outline-offset-2 focus:outline-emerald-600 dark:hover:bg-zinc-800";
+  "rounded-lg px-3 py-2 text-sm font-medium hover:bg-zinc-100 focus:outline-2 focus:outline-offset-2 focus:outline-zinc-900 dark:focus:outline-white dark:hover:bg-zinc-800";
 
 export function SiteHeader() {
   return (
     <header className="border-b border-zinc-200 dark:border-zinc-800">
       <div className="mx-auto flex w-full max-w-7xl items-center justify-between gap-2 px-4 py-1.5">
-        <Link href="/" className="rounded-lg px-1 text-xl font-bold tracking-tight focus:outline-2 focus:outline-emerald-600">
+        <Link href="/" className="rounded-lg px-1 text-xl font-bold tracking-tight focus:outline-2 focus:outline-zinc-900 dark:focus:outline-white">
           Bono
         </Link>
         {/* The logo is static; only the links that depend on who's signed in wait for the request. */}

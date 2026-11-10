@@ -60,7 +60,7 @@ async function UserProfile({ params, searchParams }: Pick<PageProps<"/users/[id]
       {isOwner && (
         <Link
           href="/profile/edit"
-          className="self-start rounded-lg border border-zinc-300 px-4 py-2 font-medium hover:bg-zinc-100 focus:outline-2 focus:outline-offset-2 focus:outline-emerald-600 dark:border-zinc-700 dark:hover:bg-zinc-800"
+          className="self-start rounded-lg border border-zinc-300 px-4 py-2 font-medium hover:bg-zinc-100 focus:outline-2 focus:outline-offset-2 focus:outline-zinc-900 dark:focus:outline-white dark:border-zinc-700 dark:hover:bg-zinc-800"
         >
           Edit profile
         </Link>
@@ -82,7 +82,7 @@ async function UserProfile({ params, searchParams }: Pick<PageProps<"/users/[id]
                 <li key={o.id}>
                   <Link
                     href={`/nonprofits/${o.id}`}
-                    className="flex items-center gap-3 rounded-2xl border border-zinc-200 p-3 hover:border-emerald-600 focus:outline-2 focus:outline-offset-2 focus:outline-emerald-600 dark:border-zinc-800"
+                    className="flex items-center gap-3 rounded-2xl border border-zinc-200 p-3 hover:border-zinc-900 dark:hover:border-white focus:outline-2 focus:outline-offset-2 focus:outline-zinc-900 dark:focus:outline-white dark:border-zinc-800"
                   >
                     <Logo name={o.name} imageId={o.logoImageId} size="size-10 text-base" />
                     <span className="truncate font-medium">{o.name}</span>

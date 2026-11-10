@@ -27,9 +27,9 @@ export function SignupForm() {
         {ROLES.map((r) => (
           <label
             key={r.value}
-            className="flex cursor-pointer gap-3 rounded-lg border border-zinc-300 p-3 has-[:checked]:border-emerald-700 has-[:checked]:bg-emerald-50 dark:border-zinc-700 dark:has-[:checked]:bg-emerald-950"
+            className="flex cursor-pointer gap-3 rounded-lg border border-zinc-300 p-3 has-[:checked]:border-zinc-900 dark:has-[:checked]:border-white has-[:checked]:bg-zinc-100 dark:border-zinc-700 dark:has-[:checked]:bg-zinc-800"
           >
-            <input type="radio" name="role" value={r.value} defaultChecked={(textValue(state, "role") ?? "user") === r.value} className="mt-1 accent-emerald-700" />
+            <input type="radio" name="role" value={r.value} defaultChecked={(textValue(state, "role") ?? "user") === r.value} className="mt-1 accent-zinc-900 dark:accent-white" />
             <span>
               <span className="block font-medium">{r.label}</span>
               <span className="block text-sm text-zinc-600 dark:text-zinc-400">{r.hint}</span>

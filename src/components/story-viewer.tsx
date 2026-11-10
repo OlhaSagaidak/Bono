@@ -221,7 +221,7 @@ export function StoryViewer({
           {/* Stickers pause the story, so it doesn't move on while someone donates. */}
           <div className="flex flex-wrap items-center gap-2" onClickCapture={() => setPaused(true)}>
             {sticker === "donate" && (
-              <DonateButton nonprofitId={org.id} nonprofitName={org.name} clientId={donateClientId} />
+              <DonateButton nonprofitId={org.id} nonprofitName={org.name} clientId={donateClientId} onMedia />
             )}
             {sticker === "link" && story.linkUrl && (
               <a

@@ -47,18 +47,35 @@ const STARTERS: Record<DashboardData["kind"], AgAiPromptStarter[]> = {
   ],
 };
 
-// Bono's look: emerald accent, the app's own font, and a calm chart palette.
-const theme = studioTheme.withParams({
-  accentColor: "#047857",
-  fontFamily: "inherit",
-  borderRadius: 8,
-  chartPaletteFills1Color: "#059669",
-  chartPaletteFills2Color: "#f59e0b",
-  chartPaletteFills3Color: "#0284c7",
-  chartPaletteFills4Color: "#db2777",
-  chartPaletteFills5Color: "#7c3aed",
-  chartPaletteFills6Color: "#64748b",
-});
+// Bono's look: black and white like the rest of the app, its own font, and a
+// monochrome chart palette (inverted in dark mode) so charts stay calm.
+const theme = studioTheme
+  .withParams(
+    {
+      accentColor: "#18181b",
+      fontFamily: "inherit",
+      borderRadius: 8,
+      chartPaletteFills1Color: "#18181b",
+      chartPaletteFills2Color: "#71717a",
+      chartPaletteFills3Color: "#a1a1aa",
+      chartPaletteFills4Color: "#3f3f46",
+      chartPaletteFills5Color: "#d4d4d8",
+      chartPaletteFills6Color: "#52525b",
+    },
+    "light",
+  )
+  .withParams(
+    {
+      accentColor: "#fafafa",
+      chartPaletteFills1Color: "#fafafa",
+      chartPaletteFills2Color: "#a1a1aa",
+      chartPaletteFills3Color: "#71717a",
+      chartPaletteFills4Color: "#d4d4d8",
+      chartPaletteFills5Color: "#52525b",
+      chartPaletteFills6Color: "#e4e4e7",
+    },
+    "dark",
+  );
 
 // The glossary the Bono agent can look things up in, so answers use Bono's real rules.
 const GLOSSARY = {
@@ -166,7 +183,7 @@ export default function StudioDashboard({ data, licenseKey }: { data: DashboardD
               role="tab"
               aria-selected={page === p.id}
               onClick={() => showPage(p.id)}
-              className={`rounded-md px-3 py-1.5 text-sm font-medium focus:outline-2 focus:outline-emerald-600 ${
+              className={`rounded-md px-3 py-1.5 text-sm font-medium focus:outline-2 focus:outline-zinc-900 dark:focus:outline-white ${
                 page === p.id ? "bg-white text-zinc-900 shadow-sm dark:bg-zinc-950 dark:text-zinc-100" : "text-zinc-700 hover:text-zinc-900 dark:text-zinc-300"
               }`}
             >
@@ -177,7 +194,7 @@ export default function StudioDashboard({ data, licenseKey }: { data: DashboardD
         <button
           onClick={() => setMode(mode === "view" ? "edit" : "view")}
           aria-pressed={mode === "edit"}
-          className="rounded-lg border border-zinc-300 px-4 py-2 text-sm font-semibold hover:bg-zinc-50 focus:outline-2 focus:outline-offset-2 focus:outline-emerald-600 dark:border-zinc-700 dark:hover:bg-zinc-900"
+          className="rounded-lg border border-zinc-300 px-4 py-2 text-sm font-semibold hover:bg-zinc-50 focus:outline-2 focus:outline-offset-2 focus:outline-zinc-900 dark:focus:outline-white dark:border-zinc-700 dark:hover:bg-zinc-900"
         >
           {mode === "view" ? "Customize & ask AI" : "Done"}
         </button>

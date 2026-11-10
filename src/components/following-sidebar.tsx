@@ -13,7 +13,7 @@ export async function FollowingSidebar({ userId }: { userId: string }) {
       {orgs.length === 0 ? (
         <SidebarEmpty>
           You don&apos;t follow any organizations yet.{" "}
-          <Link href="/following" className="font-medium text-emerald-700 underline dark:text-emerald-400">
+          <Link href="/following" className="font-medium text-zinc-900 dark:text-zinc-100 underline">
             Discover some
           </Link>
         </SidebarEmpty>
@@ -23,7 +23,7 @@ export async function FollowingSidebar({ userId }: { userId: string }) {
             <li key={o.id}>
               <Link
                 href={`/nonprofits/${o.id}`}
-                className="flex items-center gap-2 rounded-lg p-1.5 hover:bg-zinc-100 focus:outline-2 focus:outline-emerald-600 dark:hover:bg-zinc-800"
+                className="flex items-center gap-2 rounded-lg p-1.5 hover:bg-zinc-100 focus:outline-2 focus:outline-zinc-900 dark:focus:outline-white dark:hover:bg-zinc-800"
               >
                 <Logo name={o.name} imageId={o.logoImageId} size="size-8 text-sm" />
                 <span className="truncate text-sm font-medium">{o.name}</span>

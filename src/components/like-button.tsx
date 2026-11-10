@@ -32,7 +32,7 @@ export function LikeButton({ postId, liked, likes, disabled = false }: { postId:
       disabled={disabled || pending}
       aria-pressed={state.liked}
       title={error}
-      className="flex items-center gap-1.5 rounded-lg px-2 py-1 text-sm text-zinc-700 hover:bg-zinc-100 focus:outline-2 focus:outline-offset-2 focus:outline-emerald-600 disabled:cursor-default disabled:hover:bg-transparent dark:text-zinc-300 dark:hover:bg-zinc-800"
+      className="flex items-center gap-1.5 rounded-lg px-2 py-1 text-sm text-zinc-700 hover:bg-zinc-100 focus:outline-2 focus:outline-offset-2 focus:outline-zinc-900 dark:focus:outline-white disabled:cursor-default disabled:hover:bg-transparent dark:text-zinc-300 dark:hover:bg-zinc-800"
     >
       <svg aria-hidden viewBox="0 0 24 24" className={`size-5 ${state.liked ? "fill-rose-600 stroke-rose-600" : "fill-none stroke-current"}`} strokeWidth="2">
         <path d="M12 21s-7.5-4.6-9.5-9.2C1.2 8.6 3.3 5 6.9 5c2 0 3.4 1.1 5.1 3 1.7-1.9 3.1-3 5.1-3 3.6 0 5.7 3.6 4.4 6.8C19.5 16.4 12 21 12 21Z" />

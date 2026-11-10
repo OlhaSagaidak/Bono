@@ -9,7 +9,7 @@ export function Avatar({ name, imageId, className = "size-10" }: { name: string;
   return (
     <span
       aria-hidden
-      className={`${className} flex shrink-0 items-center justify-center rounded-full bg-emerald-100 font-bold text-emerald-800 dark:bg-emerald-900 dark:text-emerald-100`}
+      className={`${className} flex shrink-0 items-center justify-center rounded-full bg-zinc-200 font-bold text-zinc-900 dark:text-zinc-100 dark:bg-zinc-700`}
     >
       {name.trim().charAt(0).toUpperCase()}
     </span>

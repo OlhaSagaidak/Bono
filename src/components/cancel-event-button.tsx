@@ -8,7 +8,7 @@ export function CancelEventButton({ eventId }: { eventId: string }) {
   const [confirming, setConfirming] = useState(false);
   const [error, setError] = useState<string>();
   const [pending, startTransition] = useTransition();
-  const base = "rounded-lg px-4 py-2 font-medium focus:outline-2 focus:outline-offset-2 focus:outline-emerald-600 disabled:opacity-60";
+  const base = "rounded-lg px-4 py-2 font-medium focus:outline-2 focus:outline-offset-2 focus:outline-zinc-900 dark:focus:outline-white disabled:opacity-60";
 
   if (!confirming) {
     return (

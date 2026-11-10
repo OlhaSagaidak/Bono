@@ -2,7 +2,7 @@ import "server-only";
 import { and, desc, eq, inArray, isNotNull, sql, type SQL } from "drizzle-orm";
 import { db } from "@/db";
 import { causes, nonprofitProfiles, reelCauses, reelLikes, reelSaves, reels } from "@/db/schema";
-import { mediaUrl } from "@/lib/image-url";
+import { imageUrl, mediaUrl } from "@/lib/image-url";
 
 export const REEL_CAPTION_MAX = 300;
 const LIMIT = 30;
@@ -10,6 +10,7 @@ const LIMIT = 30;
 const reelColumns = (viewerId: string | null) => ({
   id: reels.id,
   mediaId: reels.mediaId,
+  posterImageId: reels.posterImageId,
   caption: reels.caption,
   createdAt: reels.createdAt,
   nonprofit: { id: nonprofitProfiles.userId, name: nonprofitProfiles.name, logoImageId: nonprofitProfiles.logoImageId },
@@ -21,6 +22,7 @@ const reelColumns = (viewerId: string | null) => ({
 export type ReelView = {
   id: string;
   src: string;
+  poster: string | null; // first-frame image, when there is one
   caption: string;
   createdAt: string; // ISO
   nonprofit: { id: string; name: string; logoImageId: string | null };
@@ -40,9 +42,10 @@ async function withCauses(rows: Awaited<ReturnType<typeof reelRows>>): Promise<R
         .where(inArray(reelCauses.reelId, ids))
         .orderBy(causes.sortOrder)
     : [];
-  return rows.map(({ mediaId, createdAt, ...r }) => ({
+  return rows.map(({ mediaId, posterImageId, createdAt, ...r }) => ({
     ...r,
     src: mediaUrl(mediaId),
+    poster: posterImageId ? imageUrl(posterImageId) : null,
     createdAt: createdAt.toISOString(),
     causes: tags.filter((t) => t.reelId === r.id).map(({ slug, label }) => ({ slug, label })),
   }));

@@ -20,7 +20,7 @@ export function SidebarSection({
           {title}
         </h2>
         {href && (
-          <Link href={href} className="text-sm font-medium text-emerald-700 hover:underline focus:outline-2 focus:outline-offset-2 focus:outline-emerald-600 dark:text-emerald-400">
+          <Link href={href} className="text-sm font-medium text-zinc-900 dark:text-zinc-100 hover:underline focus:outline-2 focus:outline-offset-2 focus:outline-zinc-900 dark:focus:outline-white">
             {linkLabel}
           </Link>
         )}

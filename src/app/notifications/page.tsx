@@ -41,7 +41,7 @@ async function Notifications({ searchParams }: { searchParams: PageProps<"/notif
       {nextBefore && (
         <Link
           href={`/notifications?before=${nextBefore}`}
-          className="self-center rounded-lg px-4 py-2 font-medium text-emerald-700 hover:bg-zinc-100 focus:outline-2 focus:outline-emerald-600 dark:text-emerald-400 dark:hover:bg-zinc-800"
+          className="self-center rounded-lg px-4 py-2 font-medium text-zinc-900 dark:text-zinc-100 hover:bg-zinc-100 focus:outline-2 focus:outline-zinc-900 dark:focus:outline-white dark:hover:bg-zinc-800"
         >
           Older notifications
         </Link>

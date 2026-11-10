@@ -7,7 +7,7 @@ export default function GlobalError({ retry }: { error: Error & { digest?: strin
         <main>
           <h1 style={{ fontSize: 24 }}>Bono is having trouble</h1>
           <p>Something went wrong on our side. Please try again in a moment.</p>
-          <button type="button" onClick={retry} style={{ padding: "8px 16px", borderRadius: 8, border: "none", background: "#047857", color: "white", fontWeight: 600, cursor: "pointer" }}>
+          <button type="button" onClick={retry} style={{ padding: "8px 16px", borderRadius: 8, border: "none", background: "#000", color: "white", fontWeight: 600, cursor: "pointer" }}>
             Try again
           </button>
         </main>

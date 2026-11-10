@@ -33,7 +33,7 @@ export function BadgeSetting({ initial }: { initial: boolean }) {
               }
             });
           }}
-          className="mt-1 size-4 accent-emerald-700"
+          className="mt-1 size-4 accent-zinc-900 dark:accent-white"
         />
         <span>
           <span className="font-medium">Show my badges to others</span>

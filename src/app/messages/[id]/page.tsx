@@ -38,12 +38,12 @@ async function Conversation({ params }: Pick<PageProps<"/messages/[id]">, "param
       <MessagesShell viewerId={viewerId} selectedId={id}>
         <header className="flex flex-wrap items-center justify-between gap-2 border-b border-zinc-200 px-3 py-2 dark:border-zinc-800">
           <div className="flex min-w-0 items-center gap-2">
-            <Link href="/messages" className="rounded-lg px-1 text-sm font-medium text-emerald-700 focus:outline-2 focus:outline-emerald-600 lg:hidden dark:text-emerald-400">
+            <Link href="/messages" className="rounded-lg px-1 text-sm font-medium text-zinc-900 dark:text-zinc-100 focus:outline-2 focus:outline-zinc-900 dark:focus:outline-white lg:hidden">
               ← <span className="sr-only">All messages</span>
             </Link>
             <Avatar name={other.name} imageId={other.photoImageId} />
             <h2 className="truncate font-semibold">
-              <Link href={profilePath(other.role, other.id)} className="hover:underline focus:outline-2 focus:outline-emerald-600">
+              <Link href={profilePath(other.role, other.id)} className="hover:underline focus:outline-2 focus:outline-zinc-900 dark:focus:outline-white">
                 {other.name}
               </Link>
             </h2>

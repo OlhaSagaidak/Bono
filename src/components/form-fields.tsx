@@ -5,7 +5,7 @@
 import { useState } from "react";
 
 const inputClass =
-  "rounded-lg border border-zinc-300 bg-white px-3 py-2 text-zinc-900 focus:outline-2 focus:outline-offset-2 focus:outline-emerald-600 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-100";
+  "rounded-lg border border-zinc-300 bg-white px-3 py-2 text-zinc-900 focus:outline-2 focus:outline-offset-2 focus:outline-zinc-900 dark:focus:outline-white dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-100";
 
 function describedBy(name: string, hint?: string, errors?: string[]) {
   const ids = [hint && `${name}-hint`, errors && `${name}-error`].filter(Boolean);
@@ -188,7 +188,7 @@ export function ChipGroup({
         {options.map((o) => (
           <label
             key={o.value}
-            className="cursor-pointer rounded-full border border-zinc-300 px-4 py-2 text-sm has-[:checked]:border-emerald-700 has-[:checked]:bg-emerald-700 has-[:checked]:text-white has-[:focus-visible]:outline-2 has-[:focus-visible]:outline-offset-2 has-[:focus-visible]:outline-emerald-600 dark:border-zinc-700"
+            className="cursor-pointer rounded-full border border-zinc-300 px-4 py-2 text-sm has-[:checked]:border-zinc-900 dark:has-[:checked]:border-white has-[:checked]:bg-zinc-900 dark:has-[:checked]:bg-white has-[:checked]:text-white dark:has-[:checked]:text-zinc-900 has-[:focus-visible]:outline-2 has-[:focus-visible]:outline-offset-2 has-[:focus-visible]:outline-zinc-900 dark:has-[:focus-visible]:outline-white dark:border-zinc-700"
           >
             <input
               type="checkbox"
@@ -271,7 +271,7 @@ export function ImageField({
       </div>
       {currentUrl && removeName && (
         <label className="flex items-center gap-2 text-sm">
-          <input type="checkbox" name={removeName} className="accent-emerald-700" />
+          <input type="checkbox" name={removeName} className="accent-zinc-900 dark:accent-white" />
           Remove the current image
         </label>
       )}
@@ -294,7 +294,7 @@ export function SubmitButton({ pending, children }: { pending: boolean; children
     <button
       type="submit"
       disabled={pending}
-      className="rounded-lg bg-emerald-700 px-4 py-2 font-semibold text-white hover:bg-emerald-800 focus:outline-2 focus:outline-offset-2 focus:outline-emerald-600 disabled:opacity-60"
+      className="rounded-lg bg-zinc-900 dark:bg-white px-4 py-2 font-semibold text-white dark:text-zinc-900 hover:bg-zinc-700 dark:hover:bg-zinc-200 focus:outline-2 focus:outline-offset-2 focus:outline-zinc-900 dark:focus:outline-white disabled:opacity-60"
     >
       {pending ? "Please wait…" : children}
     </button>

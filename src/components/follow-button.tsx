@@ -41,11 +41,11 @@ export function FollowButton({
       disabled={pending}
       aria-pressed={isFollowing}
       title={error}
-      className={`${sizing} rounded-lg border focus:outline-2 focus:outline-offset-2 focus:outline-emerald-600 ${
+      className={`${sizing} rounded-lg border focus:outline-2 focus:outline-offset-2 focus:outline-zinc-900 dark:focus:outline-white ${
         // Not following: a filled green call to action. Following: a quiet white button.
         isFollowing
           ? "border-zinc-300 bg-white text-zinc-800 hover:bg-zinc-100 dark:border-zinc-600 dark:bg-zinc-900 dark:text-zinc-100 dark:hover:bg-zinc-800"
-          : "border-emerald-700 bg-emerald-700 text-white hover:bg-emerald-800"
+          : "border-zinc-900 dark:border-white bg-zinc-900 dark:bg-white text-white dark:text-zinc-900 hover:bg-zinc-700 dark:hover:bg-zinc-200"
       }`}
     >
       {isFollowing ? "Following" : "Follow"}

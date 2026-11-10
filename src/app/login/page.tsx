@@ -15,7 +15,7 @@ export default function LoginPage() {
       <LoginForm />
       <p className="text-sm text-zinc-600 dark:text-zinc-400">
         New to Bono?{" "}
-        <Link href="/signup" className="font-medium text-emerald-700 underline dark:text-emerald-400">
+        <Link href="/signup" className="font-medium text-zinc-900 dark:text-zinc-100 underline">
           Create an account
         </Link>
       </p>

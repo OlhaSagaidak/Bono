@@ -118,7 +118,7 @@ export function StoryForm({ nonprofitId }: { nonprofitId: string }) {
           ).map(([value, label]) => (
             <label
               key={value}
-              className="cursor-pointer rounded-full border border-zinc-300 px-4 py-2 text-sm has-[:checked]:border-emerald-700 has-[:checked]:bg-emerald-700 has-[:checked]:text-white has-[:focus-visible]:outline-2 has-[:focus-visible]:outline-offset-2 has-[:focus-visible]:outline-emerald-600 dark:border-zinc-700"
+              className="cursor-pointer rounded-full border border-zinc-300 px-4 py-2 text-sm has-[:checked]:border-zinc-900 dark:has-[:checked]:border-white has-[:checked]:bg-zinc-900 dark:has-[:checked]:bg-white has-[:checked]:text-white dark:has-[:checked]:text-zinc-900 has-[:focus-visible]:outline-2 has-[:focus-visible]:outline-offset-2 has-[:focus-visible]:outline-zinc-900 dark:has-[:focus-visible]:outline-white dark:border-zinc-700"
             >
               <input type="radio" name="sticker" value={value} checked={sticker === value} onChange={() => setSticker(value)} className="sr-only" />
               {label}

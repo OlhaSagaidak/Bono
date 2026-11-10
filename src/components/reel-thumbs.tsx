@@ -11,11 +11,16 @@ export function ReelThumbs({ reels }: { reels: ReelView[] }) {
           <Link
             href={`/reels?start=${r.id}`}
             aria-label={`Reel from ${r.nonprofit.name}${r.caption ? `: ${r.caption}` : ""}`}
-            className="relative block w-28 overflow-hidden rounded-xl bg-zinc-800 focus:outline-2 focus:outline-offset-2 focus:outline-emerald-600"
+            className="relative block w-28 overflow-hidden rounded-xl bg-zinc-800 focus:outline-2 focus:outline-offset-2 focus:outline-zinc-900 dark:focus:outline-white"
           >
-            {/* "#t=0.1" makes most browsers show a frame without autoplaying. iPhones load
-                nothing until play, so the icon and caption keep the tile from looking broken. */}
-            <video src={`${r.src}#t=0.1`} muted playsInline preload="metadata" aria-hidden className="pointer-events-none aspect-[9/16] w-full object-cover" />
+            {r.poster ? (
+              // eslint-disable-next-line @next/next/no-img-element -- served from our own image route, already sized
+              <img src={r.poster} alt="" loading="lazy" className="aspect-[9/16] w-full object-cover" />
+            ) : (
+              // No poster (an older upload): "#t=0.1" makes most browsers show a frame.
+              // iPhones load nothing until play, so the icon and caption still label the tile.
+              <video src={`${r.src}#t=0.1`} muted playsInline preload="metadata" aria-hidden className="pointer-events-none aspect-[9/16] w-full object-cover" />
+            )}
             <span aria-hidden className="absolute inset-0 flex items-center justify-center">
               <span className="flex size-9 items-center justify-center rounded-full bg-black/50">
                 <Play className="size-4 translate-x-px fill-white text-white" />

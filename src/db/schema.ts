@@ -650,6 +650,9 @@ export const reels = pgTable(
     mediaId: uuid("media_id")
       .notNull()
       .references(() => media.id, { onDelete: "cascade" }),
+    // The first frame as an image, shown while the video loads (and as the
+    // thumbnail), so a reel never starts as a black box. Optional.
+    posterImageId: uuid("poster_image_id").references(() => images.id, { onDelete: "set null" }),
     caption: text("caption").notNull().default(""),
     createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
   },

@@ -82,7 +82,7 @@ async function Feed({ searchParams }: { searchParams: PageProps<"/feed">["search
           session.user.role === "nonprofit" ? (
             <>
               No posts yet.{" "}
-              <Link href="/posts/new" className="font-medium text-emerald-700 underline dark:text-emerald-400">
+              <Link href="/posts/new" className="font-medium text-zinc-900 dark:text-zinc-100 underline">
                 Write the first one
               </Link>
               .

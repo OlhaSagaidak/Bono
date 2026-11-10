@@ -4,7 +4,7 @@ import { useState, useTransition } from "react";
 import { deletePostAction } from "@/lib/posts/actions";
 
 const smallButton =
-  "rounded-lg px-3 py-1 text-sm font-medium focus:outline-2 focus:outline-offset-2 focus:outline-emerald-600 disabled:opacity-60";
+  "rounded-lg px-3 py-1 text-sm font-medium focus:outline-2 focus:outline-offset-2 focus:outline-zinc-900 dark:focus:outline-white disabled:opacity-60";
 
 // Two steps instead of a browser confirm() dialog: nothing is deleted by a
 // single stray tap, and focus stays on the post.

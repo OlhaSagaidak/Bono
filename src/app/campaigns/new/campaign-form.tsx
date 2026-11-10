@@ -25,7 +25,7 @@ export function CampaignForm({ causes, nonprofits, today, inAMonth }: { causes: 
           { value: "nonprofits", label: "Specific nonprofits" },
         ].map((o) => (
           <label key={o.value} className="flex items-center gap-2">
-            <input type="radio" name="target" value={o.value} checked={target === o.value} onChange={() => setTarget(o.value)} className="accent-emerald-700" />
+            <input type="radio" name="target" value={o.value} checked={target === o.value} onChange={() => setTarget(o.value)} className="accent-zinc-900 dark:accent-white" />
             {o.label}
           </label>
         ))}

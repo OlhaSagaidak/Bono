@@ -17,7 +17,7 @@ export default function CampaignsPage() {
         <h1 className="text-2xl font-bold">Matching campaigns</h1>
         <Link
           href="/campaigns/new"
-          className="rounded-lg bg-emerald-700 px-4 py-2 font-semibold text-white hover:bg-emerald-800 focus:outline-2 focus:outline-offset-2 focus:outline-emerald-600"
+          className="rounded-lg bg-zinc-900 dark:bg-white px-4 py-2 font-semibold text-white dark:text-zinc-900 hover:bg-zinc-700 dark:hover:bg-zinc-200 focus:outline-2 focus:outline-offset-2 focus:outline-zinc-900 dark:focus:outline-white"
         >
           New campaign
         </Link>
@@ -51,7 +51,7 @@ async function Campaigns() {
         <li key={c.id}>
           <Link
             href={`/campaigns/${c.id}`}
-            className="flex flex-col gap-3 rounded-2xl border border-zinc-200 p-4 hover:border-emerald-600 focus:outline-2 focus:outline-offset-2 focus:outline-emerald-600 dark:border-zinc-800"
+            className="flex flex-col gap-3 rounded-2xl border border-zinc-200 p-4 hover:border-zinc-900 dark:hover:border-white focus:outline-2 focus:outline-offset-2 focus:outline-zinc-900 dark:focus:outline-white dark:border-zinc-800"
           >
             <div className="flex flex-wrap items-center justify-between gap-2">
               <span className="font-semibold">{c.name}</span>

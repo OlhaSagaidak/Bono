@@ -31,7 +31,7 @@ export function WhyButton({ postId }: { postId: string }) {
         disabled={pending}
         aria-expanded={open}
         aria-controls={panelId}
-        className="text-zinc-600 underline-offset-2 hover:underline focus:outline-2 focus:outline-offset-2 focus:outline-emerald-600 disabled:opacity-60 dark:text-zinc-400"
+        className="text-zinc-600 underline-offset-2 hover:underline focus:outline-2 focus:outline-offset-2 focus:outline-zinc-900 dark:focus:outline-white disabled:opacity-60 dark:text-zinc-400"
       >
         {pending ? "Checking…" : "Why am I seeing this?"}
       </button>

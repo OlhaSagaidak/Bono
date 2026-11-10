@@ -5,7 +5,7 @@ import { useState, useTransition } from "react";
 import { reportAction, setBlockedAction } from "@/lib/messages/actions";
 
 const button =
-  "rounded-lg border border-zinc-300 px-3 py-1.5 text-sm font-medium hover:bg-zinc-100 focus:outline-2 focus:outline-offset-2 focus:outline-emerald-600 disabled:opacity-60 dark:border-zinc-700 dark:hover:bg-zinc-800";
+  "rounded-lg border border-zinc-300 px-3 py-1.5 text-sm font-medium hover:bg-zinc-100 focus:outline-2 focus:outline-offset-2 focus:outline-zinc-900 dark:focus:outline-white disabled:opacity-60 dark:border-zinc-700 dark:hover:bg-zinc-800";
 
 /** Block / unblock and report, in the conversation's header. */
 export function ConversationMenu({ conversationId, otherId, otherName, iBlocked }: { conversationId: string; otherId: string; otherName: string; iBlocked: boolean }) {
@@ -56,7 +56,7 @@ export function ConversationMenu({ conversationId, otherId, otherName, iBlocked 
           maxLength={500}
           value={reason}
           onChange={(e) => setReason(e.target.value)}
-          className="rounded-lg border border-zinc-300 bg-white px-3 py-2 text-sm focus:outline-2 focus:outline-offset-2 focus:outline-emerald-600 dark:border-zinc-700 dark:bg-zinc-900"
+          className="rounded-lg border border-zinc-300 bg-white px-3 py-2 text-sm focus:outline-2 focus:outline-offset-2 focus:outline-zinc-900 dark:focus:outline-white dark:border-zinc-700 dark:bg-zinc-900"
         />
         <div className="flex gap-2">
           <button type="submit" disabled={pending || !reason.trim()} className={button}>
