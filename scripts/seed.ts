@@ -272,6 +272,8 @@ async function main() {
             return row.id;
           };
           const supporterId = await upsertJudge(`judge.supporter@${DEMO_DOMAIN}`, "Judge Supporter", "user");
+          const [judgeMe] = await tx.select({ avatar: users.avatarImageId }).from(users).where(eq(users.id, supporterId));
+          await tx.update(users).set({ avatarImageId: await photoFor("judge.supporter", supporterId, judgeMe.avatar) }).where(eq(users.id, supporterId));
           await tx.delete(userInterests).where(eq(userInterests.userId, supporterId));
           await tx.insert(userInterests).values(["animals", "climate", "food-security"].map((causeSlug) => ({ userId: supporterId, causeSlug })));
           // Following three organizations fills the stories row and the sidebars.
@@ -281,10 +283,12 @@ async function main() {
             .where(inArray(users.email, ["paws-haven", "green-seattle", "open-pantry"].map((slug) => `${slug}@${DEMO_DOMAIN}`)));
           await tx.insert(follows).values(followed.map((o) => ({ followerId: supporterId, nonprofitId: o.id }))).onConflictDoNothing();
           const sponsorId = await upsertJudge(`judge.sponsor@${DEMO_DOMAIN}`, "Judge Test Sponsor", "sponsor");
+          const currentLogo = (await tx.select({ logo: sponsorProfiles.logoImageId }).from(sponsorProfiles).where(eq(sponsorProfiles.userId, sponsorId)))[0]?.logo ?? null;
+          const judgeSponsor = { name: "Judge Test Sponsor", logoImageId: await photoFor("judge.sponsor", sponsorId, currentLogo) };
           await tx
             .insert(sponsorProfiles)
-            .values({ userId: sponsorId, name: "Judge Test Sponsor" })
-            .onConflictDoUpdate({ target: sponsorProfiles.userId, set: { name: "Judge Test Sponsor" } });
+            .values({ userId: sponsorId, ...judgeSponsor })
+            .onConflictDoUpdate({ target: sponsorProfiles.userId, set: judgeSponsor });
           return { supporterId, sponsorId };
         })()
       : null;

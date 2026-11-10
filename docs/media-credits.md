@@ -54,7 +54,7 @@ Demo photos, videos and music added on Nov 9, 2026. Every item is free to use wi
 
 Slideshow reels for Bright Futures, Open Pantry and New Roots are made from the photos above.
 
-### Added Nov 10 (posts without cover text, event covers, more stories)
+### Added Nov 10 (posts without cover text, event covers, stories, profile photos)
 
 | File | Title | Creator | License | Source |
 |---|---|---|---|---|
@@ -115,6 +115,28 @@ Slideshow reels for Bright Futures, Open Pantry and New Roots are made from the 
 | stories/open-pantry-5.jpg | Bread Bakery | Drew Coffman | CC0 | https://stocksnap.io/photo/bread-bakery-EA1243E167 |
 | stories/open-pantry-6.jpg | Freee red apple crate image |  | CC0 | https://www.rawpixel.com/image/5920961/photo-image-public-domain-green-fruit |
 | stories/new-roots-3.jpg | Rainy scratched bus stop view |  | CC0 | https://www.rawpixel.com/image/6083558/rain |
+| profiles/daniel.ortiz.jpg | Boxes of disaster foods being | U.S. Department of Agriculture | CC0 | https://www.rawpixel.com/image/3306948/free-photo-image-warehouse-store |
+| profiles/priya.raman.jpg | (Openverse search "colored chalk") |  | CC0 or PDM | source link to be added |
+| profiles/olek.kovalenko.jpg | (Openverse search "sunrise city") |  | CC0 or PDM | source link to be added |
+| profiles/grace.liu.jpg | Autumn Path | Tricia Gray | CC0 | https://stocksnap.io/photo/autumn-path-SBPB82MIOJ |
+| profiles/sam.okafor.jpg | Still Items | Markus Spiske | CC0 | https://stocksnap.io/photo/still-items-KTQZYM7YXM |
+| profiles/lucia.herrera.jpg | Free library shelves many books |  | CC0 | https://www.rawpixel.com/image/5924956/photo-image-book-public-domain-room |
+| profiles/ben.fischer.jpg | (Openverse search "dog bath") |  | CC0 or PDM | source link to be added |
+| profiles/hana.sato.jpg | (Openverse search "colored chalk") |  | CC0 or PDM | source link to be added |
+| profiles/marcus.bell.jpg | Basketball Court | Eric Haidara | CC0 | https://stocksnap.io/photo/basketball-court-FRDRMS892W |
+| profiles/elena.petrova.jpg | (Openverse search "dog leash walk") |  | CC0 or PDM | source link to be added |
+| profiles/theo.nguyen.jpg | Salmon River Francis Seymour Haden | clevelandart | CC0 | https://www.rawpixel.com/image/9669687/salmon-river-francis-seymour-haden |
+| profiles/aisha.rahman.jpg | Thick yellow rapeseed wildflowers meadow |  | CC0 | https://www.rawpixel.com/image/3301449/free-photo-image-cc0-countryside-creative-commons |
+| profiles/jonah.weiss.jpg | (Openverse search "guitar") |  | CC0 or PDM | source link to be added |
+| profiles/sofia.rossi.jpg | A statue of a monkey with a thoughtful expression, seated with its han | Riwaj Lamichhane | CC0 | https://wordpress.org/photos/photo/6606978b80/ |
+| profiles/kwame.mensah.jpg | Chalkboard Chalk | Flat Lay Photos | CC0 | https://stocksnap.io/photo/chalkboard-chalk-FQCCUDQ3N0 |
+| profiles/ingrid.larsen.jpg | A person with a backpack and hiking gear stands on a forest trail, fac | Yam B Chhetri | CC0 | https://wordpress.org/photos/photo/3656659a03/ |
+| profiles/diego.morales.jpg | White soccer ball field | Markus Spiske | CC0 | https://www.rawpixel.com/image/431837/free-photo-image-soccer-ball-goals |
+| profiles/nadia.haddad.jpg | (Openverse search "dog leash walk") |  | CC0 or PDM | source link to be added |
+| profiles/ruth.abrams.jpg | A classroom in Cameroon | Peace Corps | CC0 | https://www.rawpixel.com/image/3387969/free-photo-image-class-desk-school-table-africa |
+| profiles/judge.supporter.jpg | (Openverse search "mushroom forest") |  | CC0 or PDM | source link to be added |
+
+Organization logos (seed-media/profiles/<org>.png) are original drawings made for Bono from open-source Lucide icons (ISC license).
 
 ## Videos (Mixkit, Stock Video Free License)
 
