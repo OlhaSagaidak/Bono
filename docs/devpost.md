@@ -72,8 +72,10 @@ Bono is a social media app where **nonprofits are the influencers**.
 - **Fake charities.** Anyone can type a name. Bono checks the EIN on demand against IRS data
   (through ProPublica's Nonprofit Explorer) and requires 6 months of tax-exempt status, while
   letting new organizations take part as supporters until then.
-- **Running free.** Embeddings run locally, LLM results are cached, and photos and short
-  videos live in Postgres with strict size caps, so the whole demo runs on free plans.
+- **Running lean.** Embeddings run locally, LLM results are cached, and photos and short
+  videos live in Postgres with strict size caps, so the whole app runs on one small web
+  server and one small database, with no paid AI or storage services beyond a few cents of
+  Claude Haiku.
 
 ## Accomplishments that we're proud of
 

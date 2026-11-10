@@ -1,18 +1,20 @@
 # Render Blueprint: the Bono web app and its Postgres database.
 # Create both from the Render Dashboard: New > Blueprint > this repo.
-# The web service is on the free plan; the database is on the smallest paid one.
+# Both on the smallest paid plans since Nov 2026, so the demo never sleeps
+# and stays up through judging (Dec 1-15).
 
 services:
   - type: web
     name: bono
     runtime: node
-    plan: free
+    plan: starter
     region: oregon
     # The embedding model (~23 MB) is downloaded at build time, so the server never fetches it.
     buildCommand: npm ci && npm run build && npm run models:fetch
-    # Migrations run on every start, just before the app. They only apply what's
-    # new, and this works on the free plan (no pre-deploy step needed).
-    startCommand: npm run db:migrate && npm start
+    # Migrations run once per deploy, before the new version goes live (they only
+    # apply what's new). If one fails, the deploy stops and the old version keeps serving.
+    preDeployCommand: npm run db:migrate
+    startCommand: npm start
     healthCheckPath: /
     envVars:
       - key: NODE_VERSION

@@ -8,8 +8,7 @@ and boost posts, always clearly labeled.
 
 Built solo for the **PayPal AI Hackathon** with Claude Code and the APIMatic PayPal Context Plugin.
 
-- **Live demo:** https://bono-h8b8.onrender.com (PayPal sandbox; the free server sleeps, so the
-  first page can take ~30 s to wake up)
+- **Live demo:** https://bono-h8b8.onrender.com (PayPal sandbox)
 - **Demo video:** _coming soon_
 - **Judge logins:** see [For judges](#for-judges)
 
@@ -189,7 +188,7 @@ Sponsor tools: **PayPal** (payments), **APIMatic** (PayPal Server SDK + Context 
 ### Logins
 
 Everything runs in the **PayPal sandbox**: no real money moves. These accounts exist only for
-judging. The live site is on a free web plan, so the first page can take about 30 seconds to wake up.
+judging.
 
 **Bono** (https://bono-h8b8.onrender.com/login), password `Judge-sdnrzffysq` for both:
 
