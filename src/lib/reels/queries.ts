@@ -1,7 +1,7 @@
 import "server-only";
 import { and, desc, eq, inArray, isNotNull, sql, type SQL } from "drizzle-orm";
 import { db } from "@/db";
-import { causes, nonprofitProfiles, reelCauses, reelLikes, reelSaves, reels } from "@/db/schema";
+import { causes, nonprofitProfiles, reelCauses, reelLikes, reelSaves, reels, userInterests } from "@/db/schema";
 import { COVER_TEXT_MAX, type CoverTextPosition } from "@/components/cover-text";
 import { imageUrl, mediaUrl } from "@/lib/image-url";
 
@@ -75,6 +75,25 @@ export async function getReels(viewerId: string | null, startId?: string): Promi
   }
   const ordered = startId ? [...rows.filter((r) => r.id === startId), ...rows.filter((r) => r.id !== startId)] : rows;
   return withCauses(ordered);
+}
+
+/**
+ * Reels mixed into the home feed (one after every few posts): the ones whose
+ * causes best match the viewer's interests first, then the newest. Each feed
+ * page takes the next few, so paging on shows different reels.
+ */
+export async function getFeedReels(viewerId: string, page: number, count = 3): Promise<ReelView[]> {
+  const matches = sql`(select count(*) from ${reelCauses} rc join ${userInterests} ui on ui.cause_slug = rc.cause_slug
+    where rc.reel_id = ${reels.id} and ui.user_id = ${viewerId})`;
+  const rows = await db
+    .select(reelColumns(viewerId))
+    .from(reels)
+    .innerJoin(nonprofitProfiles, eq(nonprofitProfiles.userId, reels.nonprofitId))
+    .where(and(isNotNull(nonprofitProfiles.verifiedAt), sql`${reels.nonprofitId} <> ${viewerId}`))
+    .orderBy(desc(matches), desc(reels.createdAt), desc(reels.id))
+    .limit(count)
+    .offset((page - 1) * count);
+  return withCauses(rows);
 }
 
 /** One nonprofit's reels, for its profile page. */

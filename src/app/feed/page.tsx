@@ -7,7 +7,7 @@ import { z } from "zod";
 import { DwellTracker } from "@/components/dwell-tracker";
 import { EventsSidebar } from "@/components/events-sidebar";
 import { FollowingSidebar } from "@/components/following-sidebar";
-import { PostList } from "@/components/post-list";
+import { PostList, REEL_EVERY } from "@/components/post-list";
 import { RecentChatsSidebar } from "@/components/recent-chats-sidebar";
 import { SidebarEmpty, SidebarSection } from "@/components/sidebar-section";
 import { StoriesRow } from "@/components/stories-row";
@@ -19,6 +19,8 @@ import { viewerLanguage } from "@/lib/ai/viewer-language";
 import { payPalClientId } from "@/lib/paypal/public-config";
 import { boostTerms } from "@/lib/boosts/config";
 import { getRankedFeed } from "@/lib/feed/feed";
+import { PAGE_SIZE } from "@/lib/posts/queries";
+import { getFeedReels } from "@/lib/reels/queries";
 import { cleanUpExpiredStories, getStoriesRow, refreshDemoStories } from "@/lib/stories/queries";
 
 export const metadata = { title: "Feed · Bono" };
@@ -63,7 +65,10 @@ async function Feed({ searchParams }: { searchParams: PageProps<"/feed">["search
   // A missing or malformed page number just means the first page.
   const parsedPage = z.coerce.number().int().min(1).max(100).safeParse(pageParam);
   const page = parsedPage.success ? parsedPage.data : 1;
-  const { posts, nextPage, fetchedAt, caughtUpAt } = await getRankedFeed(session.user, page);
+  const [{ posts, nextPage, fetchedAt, caughtUpAt }, reels] = await Promise.all([
+    getRankedFeed(session.user, page),
+    getFeedReels(session.user.id, page, Math.floor(PAGE_SIZE / REEL_EVERY)),
+  ]);
 
   return (
     // Keyed by page so moving to the next page starts a fresh tracker.
@@ -77,6 +82,7 @@ async function Feed({ searchParams }: { searchParams: PageProps<"/feed">["search
         nextHref={nextPage ? `/feed?page=${nextPage}` : null}
         caughtUpAt={caughtUpAt}
         showWhy
+        reels={reels}
         boost={session.user.role === "sponsor" ? { ...boostTerms(), clientId: payPalClientId() } : null}
         empty={
           session.user.role === "nonprofit" ? (

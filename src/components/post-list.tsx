@@ -1,7 +1,12 @@
 import { Fragment } from "react";
 import Link from "next/link";
+import { FeedReelCard } from "@/components/feed-reel-card";
 import { PostCard } from "@/components/post-card";
 import type { FeedPost } from "@/lib/posts/queries";
+import type { ReelView } from "@/lib/reels/queries";
+
+// A reel after every few posts keeps the feed varied without crowding out posts.
+export const REEL_EVERY = 4;
 
 export function PostList({
   posts,
@@ -15,6 +20,7 @@ export function PostList({
   showWhy = false,
   boost = null,
   openComments = false,
+  reels = [],
   empty,
 }: {
   posts: FeedPost[];
@@ -34,6 +40,8 @@ export function PostList({
   boost?: { feeCents: number; days: number; clientId: string } | null;
   /** A single post's page opens its comments. */
   openComments?: boolean;
+  /** Reels mixed in, one after every REEL_EVERY posts (the home feed). */
+  reels?: ReelView[];
   empty: React.ReactNode;
 }) {
   if (posts.length === 0) {
@@ -63,6 +71,9 @@ export function PostList({
             boost={boost}
             openComments={openComments}
           />
+          {(i + 1) % REEL_EVERY === 0 && reels[(i + 1) / REEL_EVERY - 1] && (
+            <FeedReelCard reel={reels[(i + 1) / REEL_EVERY - 1]} donateClientId={donateClientId} />
+          )}
         </Fragment>
       ))}
       {nextHref && (
