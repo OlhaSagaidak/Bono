@@ -50,6 +50,8 @@ Bono is a social media app where **nonprofits are the influencers**.
   follows, comments, likes and **dwell time** (how long a post stays on screen). Ranking is a
   simple, documented score: relevance + freshness + followed + popularity + boost + a little
   exploration so people still discover new causes.
+- **Search by meaning**, with the same local model: "help for refugee families" finds the
+  right nonprofit's posts even when they're written in Ukrainian or Spanish.
 - **Claude Haiku** translates posts and comments (some demo nonprofits post in Ukrainian and
   Spanish) and writes a one-line "Why am I seeing this?" from the real ranking factors. Every
   result is cached, so the same input never reaches the API twice.

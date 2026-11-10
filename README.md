@@ -128,7 +128,11 @@ Everything except two short text jobs runs inside the app, with no paid AI servi
    where relevance is the cosine similarity between the person's vector and the post's; posts
    seen in the last 3 days move below "You're all caught up"
    ([`src/lib/feed/rank.ts`](src/lib/feed/rank.ts)).
-4. **Claude Haiku** translates posts and comments on request and turns the real ranking reasons
+4. **Search by meaning.** The search box embeds your query with the same local model and
+   compares it with every post, so "help for refugee families" finds New Roots' posts even in
+   Ukrainian or Spanish, and the organizations behind them
+   ([`src/lib/search/queries.ts`](src/lib/search/queries.ts)).
+5. **Claude Haiku** translates posts and comments on request and turns the real ranking reasons
    into a one-line "Why am I seeing this?". Every result is cached, so the same input never
    reaches the API twice ([`src/lib/ai/claude.ts`](src/lib/ai/claude.ts)). Comment languages
    are detected locally with franc.
