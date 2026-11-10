@@ -81,7 +81,7 @@ export async function seedReels(
       if (existing) {
         // Captions and cover text follow seed-data, so edits there show up on re-runs.
         const meta = demoReels[org.slug]?.[n - 1];
-        if (meta) await tx.update(reels).set({ caption: meta.caption, coverText: meta.coverText ?? null }).where(eq(reels.id, id));
+        if (meta) await tx.update(reels).set({ caption: meta.caption, coverText: meta.coverText ?? null, coverTextPosition: meta.coverTextPosition ?? "middle" }).where(eq(reels.id, id));
         const video = file === web ? reelVideo(file) : null;
         if (video && video.data.length !== existing.size && video.height > video.width) {
           // A lighter copy of the same video: swap it in, keeping the reel, its likes and saves.
@@ -108,7 +108,7 @@ export async function seedReels(
       const meta = demoReels[org.slug]?.[n - 1];
       const mediaId = await storeVideo(tx, org.id, { kind: "ok", ...video });
       const posterImageId = await storePoster(tx, org.id, file);
-      await tx.insert(reels).values({ id, nonprofitId: org.id, mediaId, posterImageId, caption: meta?.caption ?? "", coverText: meta?.coverText ?? null, createdAt: new Date(now - (meta?.hoursAgo ?? 24 * n) * 3_600_000) });
+      await tx.insert(reels).values({ id, nonprofitId: org.id, mediaId, posterImageId, caption: meta?.caption ?? "", coverText: meta?.coverText ?? null, coverTextPosition: meta?.coverTextPosition ?? "middle", createdAt: new Date(now - (meta?.hoursAgo ?? 24 * n) * 3_600_000) });
       await tx.insert(reelCauses).values(org.causes.map((causeSlug) => ({ reelId: id, causeSlug })));
       // A few likes from supporters who share the organization's causes.
       const fans = supporters.filter((s) => s.interests.some((c) => org.causes.includes(c))).slice(0, 3 + n);

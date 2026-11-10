@@ -232,6 +232,13 @@
       "when": 1794287188956,
       "tag": "0032_cover_text",
       "breakpoints": true
+    },
+    {
+      "idx": 33,
+      "version": "7",
+      "when": 1794320990767,
+      "tag": "0033_cover_text_position",
+      "breakpoints": true
     }
   ]
 }

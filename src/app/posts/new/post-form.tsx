@@ -12,6 +12,7 @@ import {
 } from "@/components/form-fields";
 import { listValue, textValue, type FormState } from "@/lib/forms";
 import { createPostAction } from "@/lib/posts/actions";
+import { COVER_TEXT_POSITIONS } from "@/components/cover-text";
 import { ALT_MAX, BODY_MAX, COVER_TEXT_MAX, LANGUAGES } from "@/lib/posts/validation";
 
 export function PostForm({ causes }: { causes: { value: string; label: string }[] }) {
@@ -64,10 +65,17 @@ export function PostForm({ causes }: { causes: { value: string; label: string }[
       <TextField
         name="coverText"
         label="Text on the photo (optional)"
-        hint={`A few words shown over the top of the photo, like "42 kittens need fosters". Up to ${COVER_TEXT_MAX} characters.`}
+        hint={`A line or two shown over the photo, like "42 kittens are waiting for a foster home this winter". Up to ${COVER_TEXT_MAX} characters.`}
         required={false}
         defaultValue={textValue(state, "coverText")}
         errors={errors.coverText}
+      />
+      <SelectField
+        name="coverTextPosition"
+        label="Where the text goes"
+        hint="Pick the spot that covers the least of what matters in the photo."
+        options={COVER_TEXT_POSITIONS}
+        defaultValue={textValue(state, "coverTextPosition") || "middle"}
       />
       <SubmitButton pending={pending}>Publish</SubmitButton>
     </form>

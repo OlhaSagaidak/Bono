@@ -38,6 +38,7 @@ export async function createPostAction(_prev: FormState, formData: FormData): Pr
     causes: formData.getAll("causes").map(String),
     imageAlt: formText(formData, "imageAlt"),
     coverText: formText(formData, "coverText"),
+    coverTextPosition: formText(formData, "coverTextPosition"),
   };
   const parsed = postSchema.safeParse(values);
   const image = await checkUploadedImage(formData.get("image"));
@@ -56,7 +57,7 @@ export async function createPostAction(_prev: FormState, formData: FormData): Pr
     return { error: "Tag the post with your organization's own causes.", values };
   }
 
-  const { body, language, causes, imageAlt, coverText } = parsed.data;
+  const { body, language, causes, imageAlt, coverText, coverTextPosition } = parsed.data;
   // Re-encoded and capped at 1600 px wide, which also strips metadata.
   const stored = image.kind === "ok" ? await fitImage(image).catch(() => null) : null;
   if (image.kind === "ok" && !stored) return { fieldErrors: { image: ["That image couldn't be read. Try another one."] }, values };
@@ -64,7 +65,7 @@ export async function createPostAction(_prev: FormState, formData: FormData): Pr
     const imageId = stored ? await storeImage(tx, nonprofitId, stored) : null;
     const [post] = await tx
       .insert(posts)
-      .values({ nonprofitId, body, language, imageId, imageAlt: imageId ? imageAlt : null, coverText: imageId && coverText ? coverText : null })
+      .values({ nonprofitId, body, language, imageId, imageAlt: imageId ? imageAlt : null, coverText: imageId && coverText ? coverText : null, coverTextPosition })
       .returning({ id: posts.id });
     await tx.insert(postCauses).values(causes.map((causeSlug) => ({ postId: post.id, causeSlug })));
     return post.id;

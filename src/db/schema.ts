@@ -134,6 +134,9 @@ export const sponsorProfiles = pgTable("sponsor_profiles", {
 });
 
 // Only nonprofits post. The embedding column for the AI feed arrives in week 3.
+// Where a cover text sits over a photo or video: wherever it covers the least.
+export const coverTextPositionEnum = pgEnum("cover_text_position", ["top", "middle", "bottom"]);
+
 export const posts = pgTable(
   "posts",
   {
@@ -146,8 +149,9 @@ export const posts = pgTable(
     language: text("language").notNull().default("en"),
     imageId: uuid("image_id").references(() => images.id, { onDelete: "set null" }),
     imageAlt: text("image_alt"),
-    // A short headline drawn over the photo, like text on a social post. Optional.
+    // A line or two of text drawn over the photo, like text on a social post. Optional.
     coverText: text("cover_text"),
+    coverTextPosition: coverTextPositionEnum("cover_text_position").notNull().default("middle"),
     // The post's text plus its cause tags, embedded once when it's created.
     // Null until then (or if the model failed); `npm run embed` fills gaps.
     embedding: vector("embedding", { dimensions: EMBEDDING_DIMENSIONS }),
@@ -655,8 +659,9 @@ export const reels = pgTable(
     // The first frame as an image, shown while the video loads (and as the
     // thumbnail), so a reel never starts as a black box. Optional.
     posterImageId: uuid("poster_image_id").references(() => images.id, { onDelete: "set null" }),
-    // A short headline drawn over the top of the video: the reel's point in a few words. Optional.
+    // A line or two drawn over the video, the way reels state their point. Optional.
     coverText: text("cover_text"),
+    coverTextPosition: coverTextPositionEnum("cover_text_position").notNull().default("middle"),
     caption: text("caption").notNull().default(""),
     createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
   },

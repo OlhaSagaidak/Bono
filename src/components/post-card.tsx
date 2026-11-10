@@ -108,7 +108,7 @@ export function PostCard({
         <div className="relative overflow-hidden rounded-xl">
           {/* eslint-disable-next-line @next/next/no-img-element -- served from our own API, no optimization needed */}
           <img src={imageUrl(post.imageId)} alt={post.imageAlt ?? ""} loading="lazy" className="max-h-[32rem] w-full object-cover" />
-          {post.coverText && <CoverText text={post.coverText} />}
+          {post.coverText && <CoverText text={post.coverText} position={post.coverTextPosition} />}
         </div>
       )}
 

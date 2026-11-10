@@ -231,6 +231,7 @@ async function main() {
           body: post.body,
           language: post.language ?? "en",
           coverText: photoFile ? (post.coverText ?? null) : null,
+          coverTextPosition: post.coverTextPosition ?? "middle",
           createdAt: hoursAgo(post.hoursAgo),
           ...photo,
         };

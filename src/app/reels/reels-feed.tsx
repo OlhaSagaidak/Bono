@@ -172,7 +172,7 @@ function Reel({
           onError={() => setPlayback("failed")}
           className="h-full w-full cursor-pointer object-contain"
         />
-        {reel.coverText && <CoverText text={reel.coverText} size="lg" />}
+        {reel.coverText && <CoverText text={reel.coverText} position={reel.coverTextPosition} on="video" />}
         {onScreen && playback === "loading" && (
           <div role="status" aria-label="Loading video" className="pointer-events-none absolute inset-0 flex items-center justify-center">
             <div className="size-12 animate-spin rounded-full border-4 border-white/30 border-t-white" />

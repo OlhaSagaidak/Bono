@@ -17,6 +17,7 @@ import { REEL_CAPTION_MAX, REEL_COVER_TEXT_MAX } from "@/lib/reels/queries";
 const fieldsSchema = z.object({
   caption: z.string().trim().max(REEL_CAPTION_MAX, `Keep the caption under ${REEL_CAPTION_MAX} characters.`),
   coverText: z.string().trim().max(REEL_COVER_TEXT_MAX, `Keep the text on the video under ${REEL_COVER_TEXT_MAX} characters.`),
+  coverTextPosition: z.enum(["top", "middle", "bottom"]).catch("middle"),
   causes: z.array(z.string()).min(1, "Pick at least one cause."),
 });
 
@@ -54,6 +55,7 @@ export async function POST(request: Request) {
   const fields = fieldsSchema.safeParse({
     caption: form.get("caption") ?? "",
     coverText: form.get("coverText") ?? "",
+    coverTextPosition: form.get("coverTextPosition") ?? "middle",
     causes: form.getAll("causes").map(String),
   });
   const fieldErrors: Errors = fields.success ? {} : (z.flattenError(fields.error).fieldErrors as Errors);
@@ -80,7 +82,7 @@ export async function POST(request: Request) {
   const id = await db.transaction(async (tx) => {
     const mediaId = await storeVideo(tx, nonprofitId, video);
     const posterImageId = poster.kind === "ok" ? await storeImage(tx, nonprofitId, await fitImage(poster, 720)) : null;
-    const [reel] = await tx.insert(reels).values({ nonprofitId, mediaId, posterImageId, coverText: fields.data.coverText || null, caption: fields.data.caption }).returning({ id: reels.id });
+    const [reel] = await tx.insert(reels).values({ nonprofitId, mediaId, posterImageId, coverText: fields.data.coverText || null, coverTextPosition: fields.data.coverTextPosition, caption: fields.data.caption }).returning({ id: reels.id });
     await tx.insert(reelCauses).values(fields.data.causes.map((causeSlug) => ({ reelId: reel.id, causeSlug })));
     return reel.id;
   });

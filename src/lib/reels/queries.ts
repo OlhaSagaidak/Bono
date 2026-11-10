@@ -2,10 +2,11 @@ import "server-only";
 import { and, desc, eq, inArray, isNotNull, sql, type SQL } from "drizzle-orm";
 import { db } from "@/db";
 import { causes, nonprofitProfiles, reelCauses, reelLikes, reelSaves, reels } from "@/db/schema";
+import { COVER_TEXT_MAX, type CoverTextPosition } from "@/components/cover-text";
 import { imageUrl, mediaUrl } from "@/lib/image-url";
 
 export const REEL_CAPTION_MAX = 300;
-export const REEL_COVER_TEXT_MAX = 80;
+export const REEL_COVER_TEXT_MAX = COVER_TEXT_MAX;
 const LIMIT = 30;
 
 const reelColumns = (viewerId: string | null) => ({
@@ -13,6 +14,7 @@ const reelColumns = (viewerId: string | null) => ({
   mediaId: reels.mediaId,
   posterImageId: reels.posterImageId,
   coverText: reels.coverText,
+  coverTextPosition: reels.coverTextPosition,
   caption: reels.caption,
   createdAt: reels.createdAt,
   nonprofit: { id: nonprofitProfiles.userId, name: nonprofitProfiles.name, logoImageId: nonprofitProfiles.logoImageId },
@@ -25,7 +27,8 @@ export type ReelView = {
   id: string;
   src: string;
   poster: string | null; // first-frame image, when there is one
-  coverText: string | null; // headline over the top of the video
+  coverText: string | null; // text over the video
+  coverTextPosition: CoverTextPosition;
   caption: string;
   createdAt: string; // ISO
   nonprofit: { id: string; name: string; logoImageId: string | null };

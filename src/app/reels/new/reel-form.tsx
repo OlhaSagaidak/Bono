@@ -2,12 +2,13 @@
 
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
-import { ChipGroup, CountedTextArea, FormError, SubmitButton, TextField } from "@/components/form-fields";
+import { COVER_TEXT_MAX, COVER_TEXT_POSITIONS } from "@/components/cover-text";
+import { ChipGroup, CountedTextArea, FormError, SelectField, SubmitButton, TextField } from "@/components/form-fields";
 import { megabytes, REEL_VIDEO } from "@/lib/media/limits";
 
 const VIDEO_TYPES = ["video/mp4", "video/quicktime"];
 const CAPTION_MAX = 300;
-const COVER_TEXT_MAX = 80;
+
 
 type Errors = Record<string, string[] | undefined>;
 
@@ -96,10 +97,11 @@ export function ReelForm({ causes }: { causes: { value: string; label: string }[
       <TextField
         name="coverText"
         label="Text on the video (optional)"
-        hint={`The reel's point in a few words, shown over the top of the video, like "Mobile pantry: every Thursday". Up to ${COVER_TEXT_MAX} characters.`}
+        hint={`The reel's point in a line or two, shown over the video, like "Some neighbors can't make it to the pantry, so the pantry comes to them". Up to ${COVER_TEXT_MAX} characters.`}
         required={false}
         errors={errors.coverText}
       />
+      <SelectField name="coverTextPosition" label="Where the text goes" hint="Pick the spot that covers the least of what matters in the video." options={COVER_TEXT_POSITIONS} defaultValue="middle" />
       <CountedTextArea name="caption" label="Caption (optional)" maxLength={CAPTION_MAX} errors={errors.caption} />
       <ChipGroup
         name="causes"
