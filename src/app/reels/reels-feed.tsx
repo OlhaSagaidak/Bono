@@ -18,7 +18,8 @@ const OFFLINE = { error: "Couldn't reach Bono. Check your connection and try aga
  */
 export function ReelsFeed({ reels, viewerId, donateClientId }: { reels: ReelView[]; viewerId: string; donateClientId: string }) {
   const [muted, setMuted] = useState(true);
-  const [current, setCurrent] = useState(0);
+  // The last reel that started playing; the one after it loads in the background.
+  const [playing, setPlaying] = useState(-1);
   const container = useRef<HTMLDivElement>(null);
 
   return (
@@ -32,11 +33,13 @@ export function ReelsFeed({ reels, viewerId, donateClientId }: { reels: ReelView
         <Reel
           key={reel.id}
           reel={reel}
-          // The next reel loads in full while this one plays, so swiping on is
-          // instant; the rest load when scrolled to (their posters show at once).
-          preload={i === current + 1 ? "auto" : i < 2 ? "metadata" : "none"}
+          // The first reel loads straight away. Each next one starts loading only
+          // once the one before it plays, so they never compete for the
+          // connection, and swiping on is instant. The rest load when scrolled
+          // to; their posters show at once.
+          preload={i === 0 || i === playing + 1 ? "auto" : "none"}
           scroller={container}
-          onShown={() => setCurrent(i)}
+          onPlaying={() => setPlaying(i)}
           own={reel.nonprofit.id === viewerId}
           muted={muted}
           onToggleMute={() => setMuted((m) => !m)}
@@ -51,16 +54,16 @@ function Reel({
   reel,
   preload,
   scroller,
-  onShown,
+  onPlaying,
   own,
   muted,
   onToggleMute,
   donateClientId,
 }: {
   reel: ReelView;
-  preload: "auto" | "metadata" | "none";
+  preload: "auto" | "none";
   scroller: RefObject<HTMLDivElement | null>;
-  onShown: () => void;
+  onPlaying: () => void;
   own: boolean;
   muted: boolean;
   onToggleMute: () => void;
@@ -80,21 +83,12 @@ function Reel({
   const [onScreen, setOnScreen] = useState(false);
   const [playback, setPlayback] = useState<"loading" | "playing" | "paused" | "failed">("loading");
 
-  // Kept in a ref so a new callback each render doesn't re-create the observer.
-  const shown = useRef(onShown);
-  useEffect(() => {
-    shown.current = onShown;
-  }, [onShown]);
-
   // Play while mostly on screen; pause as soon as it scrolls away.
   useEffect(() => {
     const el = section.current;
     if (!el) return;
     const observer = new IntersectionObserver(
-      ([entry]) => {
-        setOnScreen(entry.isIntersecting);
-        if (entry.isIntersecting) shown.current();
-      },
+      ([entry]) => setOnScreen(entry.isIntersecting),
       { root: scroller.current, threshold: 0.6 },
     );
     observer.observe(el);
@@ -168,7 +162,10 @@ function Reel({
           preload={preload}
           aria-label={reel.caption || `Video from ${reel.nonprofit.name}`}
           onClick={togglePlay}
-          onPlaying={() => setPlayback("playing")}
+          onPlaying={() => {
+            setPlayback("playing");
+            onPlaying();
+          }}
           onWaiting={() => setPlayback("loading")}
           onPause={() => setPlayback((p) => (p === "failed" ? p : "paused"))}
           onError={() => setPlayback("failed")}
