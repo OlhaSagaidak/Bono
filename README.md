@@ -277,7 +277,7 @@ npm run dev            # http://localhost:3000
 ### Demo data
 
 `npm run seed` creates 6 fictional nonprofits, 2 fictional sponsors, 20 supporters,
-70 posts (some in Spanish and Ukrainian), 23 reels and 14 stories. Photos, videos and music are
+70 posts (some in Spanish and Ukrainian), 30 reels and 14 stories. Photos, videos and music are
 free stock (public domain, CC0 or Mixkit's free license), listed in
 [docs/media-credits.md](docs/media-credits.md); the files themselves live in the gitignored
 `seed-media/` folder. Every organization and person in

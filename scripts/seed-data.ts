@@ -464,16 +464,23 @@ export const reels: Record<string, { caption: string; coverText?: string; hoursA
     { caption: "Three partner farms, one goal: fresh food for every family that walks in. Produce days are Tuesdays and Thursdays.", coverText: "Fresh produce, not just cans", hoursAgo: 22 },
     { caption: "Every evening, bakeries and orchards send us what they couldn't sell. Every morning, it feeds our neighbors.", coverText: "Rescued food, every day", hoursAgo: 58 },
     { caption: "Nothing goes to waste in our community kitchen. Today's soup: roasted roots, 140 bowls.", coverText: "Today's soup: 140 bowls", hoursAgo: 100 },
+    { caption: "This week's produce boxes: carrots, peppers, tomatoes and radishes from three partner farms.", coverText: "What's in this week's box", hoursAgo: 9 },
+    { caption: "Washed, sorted and ready by 10 am. Thank you to our Tuesday volunteer crew!", coverText: "Volunteers make it happen", hoursAgo: 70 },
   ],
   "bright-futures": [
     { caption: "Our winter book drive: every mentee picks three books to keep. 412 books in, 588 to go.", coverText: "1,000 books by December", hoursAgo: 16 },
     { caption: "Homework club, Tuesdays 4 to 6 at our community room. Math, essays, science projects, snacks.", coverText: "Homework help, every Tuesday", hoursAgo: 52 },
     { caption: "Basketball on Fridays, soccer on Saturdays. Mentoring doesn't always happen at a desk.", coverText: "Mentoring, on and off the court", hoursAgo: 88 },
+    { caption: "Every mentee leaves the winter book drive with three books of their own. Help us reach 1,000.", coverText: "Every kid deserves a bookshelf", hoursAgo: 6 },
+    { caption: "Saturday soccer is back. Mentors, mentees and a lot of very muddy shoes.", coverText: "Saturday soccer is back", hoursAgo: 40 },
   ],
   "new-roots": [
     { caption: "From the first night in a new city to the keys to a first home. This is what your support makes possible.", coverText: "A new home, step by step", hoursAgo: 14 },
     { caption: "Friday welcome dinners: every family brings a dish from home, and nobody leaves hungry.", coverText: "Welcome dinner, every Friday", hoursAgo: 48 },
     { caption: "English circles, school enrollment, bus routes, job applications. Our volunteers help with all of it.", coverText: "Families from 31 countries", hoursAgo: 92 },
+    { caption: "A first morning in a new city. We're there for the second, the third and every one after.", coverText: "A first morning, not alone", hoursAgo: 11 },
+    { caption: "Our volunteers ride along on the first trips to work, to school and to the clinic.", coverText: "Learning the way to work", hoursAgo: 36 },
+    { caption: "Some of our families haven't seen their relatives in years. A video call can mean everything. Your gifts fund phones and data plans.", coverText: "Staying close to home", hoursAgo: 75 },
   ],
 };
 

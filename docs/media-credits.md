@@ -68,6 +68,13 @@ Slideshow reels for Bright Futures, Open Pantry and New Roots are made from the 
 | reels/green-seattle-6 | https://mixkit.co/free-stock-video/a-picturesque-small-creek-with-calm-waters-and-steam-at-51662/ |
 | stories/green-seattle-2 | https://mixkit.co/free-stock-video/huge-trees-in-a-large-green-forest-5040/ |
 | stories/green-seattle-3 | https://mixkit.co/free-stock-video/fly-over-a-huge-canyon-covered-in-vegetation-41401/ |
+| reels/bright-futures-4 | https://mixkit.co/free-stock-video/stacked-and-piled-books-taken-close-up-21587/ |
+| reels/bright-futures-5 | https://mixkit.co/free-stock-video/juggling-the-ball-42541/ |
+| reels/open-pantry-6 | https://mixkit.co/free-stock-video/fresh-vegetables-on-a-wooden-board-close-up-view-10420/ |
+| reels/open-pantry-7 | https://mixkit.co/free-stock-video/rinsing-strawberries-apples-and-grapes-holding-hands-10434/ |
+| reels/new-roots-4 | https://mixkit.co/free-stock-video/view-of-a-park-while-a-girl-runs-across-4831/ |
+| reels/new-roots-5 | https://mixkit.co/free-stock-video/train-arriving-to-a-subway-station-1622/ |
+| reels/new-roots-6 | https://mixkit.co/free-stock-video/drawing-a-heart-on-a-foggy-window-on-a-rainy-18308/ |
 
 ## Music (Freesound via Openverse: CC0)
 
