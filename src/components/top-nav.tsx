@@ -6,6 +6,7 @@ import {
   Clapperboard,
   Home,
   MessageCircle,
+  Search,
   Users,
   type LucideIcon,
 } from "lucide-react";
@@ -129,6 +130,10 @@ export function TopNav({
           );
         })}
       </ul>
+      <Link href="/search" aria-current={pathname === "/search" ? "page" : undefined} className={itemClass}>
+        <Search aria-hidden className="size-6 md:size-5" />
+        <Label text="Search" count={0} />
+      </Link>
       <NotificationsBell unread={counts.notifications} />
     </div>
   );

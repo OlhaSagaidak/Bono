@@ -20,12 +20,16 @@ type Tx = Parameters<Parameters<typeof Db.transaction>[0]>[0];
 // built-in avconvert (no install needed); the result is cached in
 // seed-media/.converted/. Without a file, a simple text card is drawn instead.
 
+// Each nonprofit's logo colour (seed-media/profiles/<slug>.png), from a deeper
+// shade of it, so a text story looks like it came from that organization and
+// white text stays readable.
 const COLORS: Record<string, [string, string]> = {
-  "paws-haven": ["#065f46", "#84cc16"],
-  "green-seattle": ["#14532d", "#22c55e"],
-  "bright-futures": ["#1e3a8a", "#f59e0b"],
-  "open-pantry": ["#7c2d12", "#f97316"],
-  "new-roots": ["#4c1d95", "#ec4899"],
+  "paws-haven": ["#8A3A12", "#E8743B"],
+  "green-seattle": ["#123B24", "#2F7D4F"],
+  "bright-futures": ["#6B4500", "#C98E0E"],
+  "open-pantry": ["#6E2416", "#C8553D"],
+  "new-roots": ["#0B3A44", "#1F7A8C"],
+  "canvas-commons": ["#3B2557", "#7B5EA7"],
 };
 
 const escapeXml = (s: string) => s.replace(/[<>&"']/g, (c) => `&#${c.charCodeAt(0)};`);

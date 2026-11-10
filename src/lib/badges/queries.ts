@@ -87,6 +87,10 @@ export async function backerTiersFor(nonprofitId: string, userIds: string[]): Pr
   return tiers;
 }
 
+// The judge-only demo logins test donations and sponsorship; they shouldn't
+// show up as a nonprofit's public supporters.
+const notJudge = sql`u.email not like 'judge.%@bono.example'`;
+
 export type Backer = { id: string; role: "user" | "sponsor"; name: string; photoImageId: string | null; badge: BackerTier };
 
 /** A nonprofit's top backers (tiers only, never amounts), for its profile page. */
@@ -95,12 +99,12 @@ export async function getTopBackers(nonprofitId: string, limit = 12): Promise<Ba
     db.execute<{ id: string; name: string; photo: string | null; gifts: number; cents: number }>(sql`
       select u.id, u.name, u.avatar_image_id as photo, g.gifts, g.cents
       from ${giving()} g join ${users} u on u.id = g.user_id
-      where g.nonprofit_id = ${nonprofitId} and u.show_badges and u.role = 'user'
+      where g.nonprofit_id = ${nonprofitId} and u.show_badges and u.role = 'user' and ${notJudge}
       order by g.cents desc, g.gifts desc limit ${limit}`),
     db.execute<{ id: string; name: string; photo: string | null; cents: number }>(sql`
       select u.id, coalesce(sp.name, u.name) as name, sp.logo_image_id as photo, s.cents
       from ${sponsoring()} s join ${users} u on u.id = s.user_id left join ${sponsorProfiles} sp on sp.user_id = u.id
-      where s.nonprofit_id = ${nonprofitId} and u.show_badges
+      where s.nonprofit_id = ${nonprofitId} and u.show_badges and ${notJudge}
       order by s.cents desc limit ${limit}`),
   ]);
   const backers: (Backer & { rank: number })[] = [

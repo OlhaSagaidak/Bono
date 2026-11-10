@@ -51,8 +51,9 @@ async function Dashboard() {
         <h1 className="text-2xl font-bold">{data.orgName} dashboard</h1>
         <p className="text-zinc-600 dark:text-zinc-400">
           {role === "nonprofit"
-            ? "Donations, sponsor matches and campaigns that cover you. Click a chart to filter the rest of the page."
-            : "Your matching pools, where your matches went, and what your boosts did. Click a chart to filter the rest of the page."}
+            ? "Donations, sponsor matches and campaigns that cover you."
+            : "Your matching pools, where your matches went, and what your boosts did."}
+          <span className="hidden md:inline"> Click a chart to filter the rest of the page.</span>
         </p>
       </div>
       <DashboardLoader data={data} licenseKey={process.env.NEXT_PUBLIC_AG_STUDIO_LICENSE_KEY} />
