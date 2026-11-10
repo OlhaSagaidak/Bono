@@ -13,6 +13,19 @@ Built solo for the **PayPal AI Hackathon** with Claude Code and the APIMatic Pay
 - **Demo video:** _coming soon_
 - **Judge logins:** see [For judges](#for-judges)
 
+### Try it in 2 minutes
+
+1. Log in at https://bono-h8b8.onrender.com/login as **`judge.supporter@bono.example`**
+   (password `Judge-sdnrzffysq`) and press **Donate** on a **Paws Haven** post. Approve in
+   PayPal with the sandbox buyer **`sb-5tuls53714143@personal.example.com`** (password `%h,<0&LN`).
+2. The thank-you shows the money went **straight to Paws Haven**, whether a **sponsor matched
+   it** (paid to Paws Haven automatically with PayPal Payouts), and your new **supporter badge**.
+   Press **Why am I seeing this?** on any post to see the AI feed explain itself.
+3. Log out, log in as **`judge.sponsor@bono.example`** (same password), open **Dashboard**,
+   click **Customize & ask AI** and pick **"Where did my matches go?"**.
+
+More to try, and accounts for signing up your own nonprofit, are in [For judges](#for-judges).
+
 ![The Bono home feed: stories, ranked nonprofit posts with Donate, recent chats and upcoming events](docs/screenshots/feed.jpg)
 
 ## Why
@@ -143,6 +156,22 @@ flowchart LR
   Migrations run on start; the embedding model is downloaded at build time.
 - No background worker is needed: payouts and housekeeping run after responses, and expiring
   content (stories, reminders) is handled when it's read.
+
+## From hackathon to production
+
+Bono runs in the PayPal sandbox, and a few parts are simplified for the demo. With real money:
+
+- **Nonprofit onboarding:** nonprofits would connect their PayPal account through PayPal's
+  partner onboarding (a "Connect PayPal" button) instead of typing in an account email. That also
+  replaces the verification fee as the way Bono confirms the account is theirs.
+- **Sponsor pools:** pools would be set up with PayPal's multiparty (platform) payments, so Bono
+  never holds anyone's money, not even matching pools. Today the demo pool sits in Bono's
+  sandbox account and matches go out with Payouts.
+- **Verification fee:** waived for small nonprofits, or covered by sponsors.
+- **For donors:** year-end tax receipts and recurring monthly gifts.
+- **Operations:** payouts and feed updates in a background worker instead of after each
+  response, moderation tools for reported posts and comments, and a pilot with one real
+  nonprofit.
 
 ## Built with Claude Code + APIMatic Context Plugin
 

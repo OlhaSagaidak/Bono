@@ -92,8 +92,17 @@ contract instead of guessing.
 
 ## What's next for Bono
 
-- Onboarding real nonprofits with PayPal's partner onboarding instead of a pasted account email.
-- Recurring donations and year-end giving receipts.
+The demo runs in the PayPal sandbox with a few deliberate simplifications. The production path:
+
+- **Connect PayPal** for nonprofits through PayPal's partner onboarding, instead of a typed-in
+  account email; it also replaces the verification fee as proof the account is theirs.
+- **Multiparty (platform) payments for sponsor pools**, so Bono never holds anyone's money,
+  not even matching pools (in the demo, pools sit in Bono's sandbox account and matches go out
+  with Payouts).
+- **No verification fee for small nonprofits**, or sponsors cover it.
+- **Tax receipts and recurring monthly gifts** for donors.
+- A background worker for payouts and feed updates, moderation tools, and a pilot with one real
+  nonprofit.
 
 ## Built with
 
@@ -103,5 +112,16 @@ claude-haiku, transformers.js, ag-grid, ag-studio, render, playwright
 
 ## Testing instructions for judges
 
-Live demo: https://bono-h8b8.onrender.com (PayPal sandbox; the free server can take ~30 s to
-wake up). Judge logins and step-by-step instructions are in the README's "For judges" section.
+Live demo: https://bono-h8b8.onrender.com (PayPal sandbox).
+
+Try it in 2 minutes:
+1. Log in as judge.supporter@bono.example (password Judge-sdnrzffysq) and press Donate on a
+   Paws Haven post. Approve in PayPal with the sandbox buyer sb-5tuls53714143@personal.example.com
+   (password %h,<0&LN).
+2. The thank-you shows the money went straight to Paws Haven, whether a sponsor matched it, and
+   your new supporter badge. Press "Why am I seeing this?" on any post.
+3. Log in as judge.sponsor@bono.example (same password), open Dashboard, click "Customize & ask
+   AI" and pick "Where did my matches go?".
+
+More (including signing up and verifying your own nonprofit) is in the README's "For judges"
+section.
