@@ -239,6 +239,13 @@
       "when": 1794320990767,
       "tag": "0033_cover_text_position",
       "breakpoints": true
+    },
+    {
+      "idx": 34,
+      "version": "7",
+      "when": 1794324594231,
+      "tag": "0034_story_demo_pool",
+      "breakpoints": true
     }
   ]
 }

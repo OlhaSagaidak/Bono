@@ -125,6 +125,7 @@ export async function seedStories(
           caption: s.caption ?? "",
           sticker: s.sticker ?? "none",
           linkUrl: s.sticker === "link" ? "https://example.com/bono-demo-signup" : null,
+          demoSeed: true,
           createdAt,
           expiresAt: new Date(createdAt.getTime() + 24 * 3_600_000),
         })

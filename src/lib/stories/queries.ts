@@ -1,5 +1,5 @@
 import "server-only";
-import { sql } from "drizzle-orm";
+import { eq, sql } from "drizzle-orm";
 import { db } from "@/db";
 import { follows, images, media, nonprofitProfiles, stories, storyViews } from "@/db/schema";
 import { imageUrl, mediaUrl } from "@/lib/image-url";
@@ -57,9 +57,12 @@ export async function getStoriesRow(viewerId: string): Promise<StoryOrg[]> {
     join ${nonprofitProfiles} np on np.user_id = s.nonprofit_id
     where s.expires_at > now()
       and np.verified_at is not null
-      and (s.nonprofit_id = ${viewerId}
-           or s.nonprofit_id in (select f.nonprofit_id from ${follows} f where f.follower_id = ${viewerId}))
     order by s.created_at asc`);
+  // Organizations you follow come first; then other verified nonprofits, so the
+  // row is never empty for someone who follows only a few.
+  const followed = new Set(
+    (await db.select({ id: follows.nonprofitId }).from(follows).where(eq(follows.followerId, viewerId))).map((f) => f.id),
+  );
 
   const byOrg = new Map<string, StoryOrg>();
   for (const r of rows.rows) {
@@ -89,12 +92,48 @@ export async function getStoriesRow(viewerId: string): Promise<StoryOrg[]> {
   }
 
   const latest = (o: StoryOrg) => o.stories.at(-1)!.createdAt;
+  const isFollowed = (o: StoryOrg) => Number(followed.has(o.id));
   return [...byOrg.values()].sort(
-    (a, b) => Number(b.own) - Number(a.own) || Number(a.allSeen) - Number(b.allSeen) || latest(b).localeCompare(latest(a)),
+    (a, b) =>
+      Number(b.own) - Number(a.own) ||
+      isFollowed(b) - isFollowed(a) ||
+      Number(a.allSeen) - Number(b.allSeen) ||
+      latest(b).localeCompare(latest(a)),
   );
 }
 
 let lastCleanup = 0;
+let lastRefresh = 0;
+
+const DAY_MS = 24 * 3_600_000;
+const DEMO_STORIES_PER_DAY = 3;
+
+/**
+ * Keeps the demo's stories fresh without a scheduler: each day a different
+ * few of each demo nonprofit's pooled stories (demo_seed) come back, with new
+ * times, as if just posted, and with nobody having seen them yet. Runs when
+ * stories are about to be shown, at most every ten minutes per server.
+ */
+export async function refreshDemoStories(now = Date.now()): Promise<void> {
+  if (now - lastRefresh < 10 * 60_000) return;
+  lastRefresh = now;
+  const day = Math.floor(now / DAY_MS);
+  // Today's picks: a window of the pool that moves along by one story a day.
+  const picked = await db.execute<{ id: string; slot: number }>(sql`
+    with pool as (
+      select id, row_number() over (partition by nonprofit_id order by id) - 1 as rank,
+             count(*) over (partition by nonprofit_id) as size, expires_at
+      from ${stories} where demo_seed
+    )
+    select id, ((rank - ${day} % size + size) % size)::int as slot from pool
+    where ((rank - ${day} % size + size) % size) < least(size, ${DEMO_STORIES_PER_DAY}) and expires_at <= now()`);
+  for (const p of picked.rows) {
+    // Spread them over the last few hours, oldest first, like real posting.
+    const createdAt = new Date(now - (DEMO_STORIES_PER_DAY - p.slot) * 2 * 3_600_000);
+    await db.update(stories).set({ createdAt, expiresAt: new Date(createdAt.getTime() + DAY_MS) }).where(eq(stories.id, p.id));
+    await db.delete(storyViews).where(eq(storyViews.storyId, p.id));
+  }
+}
 
 /**
  * Deletes expired stories by deleting their photo or video (the story row
@@ -104,6 +143,7 @@ let lastCleanup = 0;
 export async function cleanUpExpiredStories(now = Date.now()): Promise<void> {
   if (now - lastCleanup < 10 * 60_000) return;
   lastCleanup = now;
-  await db.execute(sql`delete from ${images} where id in (select image_id from ${stories} where expires_at <= now() and image_id is not null)`);
-  await db.execute(sql`delete from ${media} where id in (select media_id from ${stories} where expires_at <= now() and media_id is not null)`);
+  // Demo stories stay in their pool (see refreshDemoStories); everyone else's go.
+  await db.execute(sql`delete from ${images} where id in (select image_id from ${stories} where expires_at <= now() and image_id is not null and not demo_seed)`);
+  await db.execute(sql`delete from ${media} where id in (select media_id from ${stories} where expires_at <= now() and media_id is not null and not demo_seed)`);
 }

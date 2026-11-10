@@ -1,0 +1,1 @@
+ALTER TABLE "stories" ADD COLUMN "demo_seed" boolean DEFAULT false NOT NULL;

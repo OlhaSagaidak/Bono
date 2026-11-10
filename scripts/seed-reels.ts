@@ -68,7 +68,7 @@ export async function seedReels(
 ): Promise<number> {
   let added = 0;
   for (const org of orgs) {
-    for (let n = 1; n <= 8; n++) {
+    for (let n = 1; n <= 12; n++) {
       const web = `seed-media/reels-web/${org.slug}-${n}.mp4`;
       const file = existsSync(web) ? web : ["mp4", "mov"].map((ext) => `seed-media/reels/${org.slug}-${n}.${ext}`).find((f) => existsSync(f));
       if (!file) continue;

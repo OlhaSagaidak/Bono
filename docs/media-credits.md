@@ -54,6 +54,68 @@ Demo photos, videos and music added on Nov 9, 2026. Every item is free to use wi
 
 Slideshow reels for Bright Futures, Open Pantry and New Roots are made from the photos above.
 
+### Added Nov 10 (posts without cover text, event covers, more stories)
+
+| File | Title | Creator | License | Source |
+|---|---|---|---|---|
+| posts/paws-haven-15.jpg | (Openverse search "cat window") |  | CC0 or PDM | source link to be added |
+| posts/paws-haven-16.jpg | (Openverse search "cat window") |  | CC0 or PDM | source link to be added |
+| posts/paws-haven-17.jpg | (Openverse search "dog bath") |  | CC0 or PDM | source link to be added |
+| posts/paws-haven-18.jpg | (Openverse search "dog bath") |  | CC0 or PDM | source link to be added |
+| posts/paws-haven-19.jpg | (Openverse search "dog bath") |  | CC0 or PDM | source link to be added |
+| posts/paws-haven-20.jpg | (Openverse search "dog beach") |  | CC0 or PDM | source link to be added |
+| posts/paws-haven-21.jpg | (Openverse search "dog beach") |  | CC0 or PDM | source link to be added |
+| posts/paws-haven-22.jpg | (Openverse search "puppies") |  | CC0 or PDM | source link to be added |
+| posts/green-seattle-15.jpg | (Openverse search "autumn leaves") |  | CC0 or PDM | source link to be added |
+| posts/green-seattle-16.jpg | (Openverse search "autumn leaves") |  | CC0 or PDM | source link to be added |
+| posts/green-seattle-17.jpg | (Openverse search "autumn leaves") |  | CC0 or PDM | source link to be added |
+| posts/green-seattle-18.jpg | Girl Woman | Leeroy | CC0 | https://stocksnap.io/photo/girl-woman-K5VUUDLK6L |
+| posts/green-seattle-19.jpg | Bicycle Bike | Alisa Anton | CC0 | https://stocksnap.io/photo/bicycle-bike-Y2KCFMGHD1 |
+| posts/green-seattle-20.jpg | (Openverse search "mushroom forest") |  | CC0 or PDM | source link to be added |
+| posts/green-seattle-21.jpg | (Openverse search "mushroom forest") |  | CC0 or PDM | source link to be added |
+| posts/green-seattle-22.jpg | Running Fitness | Chanan Greenblatt | CC0 | https://stocksnap.io/photo/running-fitness-RMDYXIJFJN |
+| posts/bright-futures-15.jpg | Rainbow color chalks | Sharon McCutcheon | CC0 | https://commons.wikimedia.org/w/index.php?curid=97045397 |
+| posts/bright-futures-16.jpg | Free colored chalk, art aesthetic |  | CC0 | https://www.rawpixel.com/image/5910479/image-background-aesthetic-design |
+| posts/bright-futures-17.jpg | Musicians Guitars | Mike Giles | CC0 | https://stocksnap.io/photo/musicians-guitars-L3L1V89NLF |
+| posts/bright-futures-18.jpg | Guitar Music | Paulina Lohunko | CC0 | https://stocksnap.io/photo/guitar-music-8N3NW8ZGRT |
+| posts/bright-futures-19.jpg | Man playing an acoustic brazilian guitar (Violão) on Marco Zero Square | Wilfredo Rafael Rodriguez Hernandez | CC0 | https://commons.wikimedia.org/w/index.php?curid=86334911 |
+| posts/bright-futures-20.jpg | Paint Brushes | Marcin Milewski | CC0 | https://stocksnap.io/photo/paint-brushes-KJ03A8R2NC |
+| posts/bright-futures-21.jpg | Paint Brushes | Negative Space | CC0 | https://stocksnap.io/photo/paint-brushes-265GAALCWG |
+| posts/bright-futures-22.jpg | Paint Brushes | Artsy Crafty | CC0 | https://stocksnap.io/photo/paint-brushes-Q1WF543QIR |
+| posts/open-pantry-15.jpg | Different types of fresh herbs | Jakub Kapusnak | CC0 | https://www.rawpixel.com/image/448304/free-photo-image-herbs-herbal-food |
+| posts/open-pantry-16.jpg | Chopped fresh herbs | Markus Spiske | CC0 | https://www.rawpixel.com/image/432554/free-photo-image-rosemary-herbs-cutting-board |
+| posts/open-pantry-17.jpg | Different types of fresh herbs | Jakub Kapusnak | CC0 | https://www.rawpixel.com/image/448349/freshly-chopped-herb |
+| posts/open-pantry-18.jpg | Variety of fresh herbs | Jakub Kapusnak | CC0 | https://www.rawpixel.com/image/448353/free-photo-image-herbs-herbal-vegetable |
+| posts/open-pantry-19.jpg | Close up of fresh herbs | Markus Spiske | CC0 | https://www.rawpixel.com/image/432305/some-fresh-herbs |
+| posts/open-pantry-20.jpg | Free pumpkin soup bowl image |  | CC0 | https://www.rawpixel.com/image/5922901/photo-image-public-domain-leaf-fruit |
+| posts/open-pantry-21.jpg | Free clear vegetable soup bowl |  | CC0 | https://www.rawpixel.com/image/5924545/photo-image-public-domain-food-water |
+| posts/open-pantry-22.jpg | Fresh Vegetables | Nordwood Themes | CC0 | https://stocksnap.io/photo/fresh-vegetables-975FOJMNYA |
+| posts/new-roots-15.jpg | Sunrise city background |  | CC0 | https://www.rawpixel.com/image/6031340/photo-image-light-public-domain-nature |
+| posts/new-roots-16.jpg | File:Panorama Neuchâtel et le château au lever du soleil.jpg | Martouf | CC0 | https://commons.wikimedia.org/w/index.php?curid=16285377 |
+| posts/new-roots-17.jpg | Cranes Construction | Wyncliffe | CC0 | https://stocksnap.io/photo/cranes-construction-KOKXBB635S |
+| posts/new-roots-18.jpg | Cup Mug | Pawel Kadysz | CC0 | https://stocksnap.io/photo/cup-mug-884KIHU30I |
+| posts/new-roots-19.jpg | Rainy April |  | CC0 | https://www.rawpixel.com/image/6079217/rainy-april |
+| posts/new-roots-20.jpg | One Historic Wooden Houses Key | U.S. National Archives | CC0 | https://www.rawpixel.com/image/8803027/photo-image-house-door-arch |
+| posts/new-roots-21.jpg | Bike Bicycle | Huney Co | CC0 | https://stocksnap.io/photo/bike-bicycle-J4D7AJ8YU0 |
+| posts/new-roots-22.jpg | (Openverse search "dog leash walk") |  | CC0 or PDM | source link to be added |
+| events/paws-haven-1.jpg | (Openverse search "dog leash walk") |  | CC0 or PDM | source link to be added |
+| events/paws-haven-2.jpg | (Openverse search "cat window") |  | CC0 or PDM | source link to be added |
+| events/green-seattle-2.jpg | Trees Plants | Alex%20Bl%u0103jan | CC0 | https://stocksnap.io/photo/trees-plants-YM863UXAFR |
+| events/open-pantry-1.jpg |  |  | CC0 | https://www.rawpixel.com/image/5949500/free-public-domain-cc0-photo |
+| events/open-pantry-2.jpg | Free big bread bakery shop |  | CC0 | https://www.rawpixel.com/image/5928055/photo-image-public-domain-food-free |
+| stories/paws-haven-5.jpg | (Openverse search "dog beach") |  | CC0 or PDM | source link to be added |
+| stories/paws-haven-6.jpg | (Openverse search "dog leash walk") |  | CC0 or PDM | source link to be added |
+| stories/paws-haven-7.jpg | (Openverse search "dog leash walk") |  | CC0 or PDM | source link to be added |
+| stories/green-seattle-4.jpg | (Openverse search "mushroom forest") |  | CC0 or PDM | source link to be added |
+| stories/green-seattle-5.jpg | (Openverse search "autumn leaves") |  | CC0 or PDM | source link to be added |
+| stories/bright-futures-3.jpg | (Openverse search "colored chalk") |  | CC0 or PDM | source link to be added |
+| stories/bright-futures-4.jpg | (Openverse search "guitar") |  | CC0 or PDM | source link to be added |
+| stories/bright-futures-5.jpg | (Openverse search "colored chalk") |  | CC0 or PDM | source link to be added |
+| stories/open-pantry-4.jpg | (Openverse search "fresh herbs") |  | CC0 or PDM | source link to be added |
+| stories/open-pantry-5.jpg | Bread Bakery | Drew Coffman | CC0 | https://stocksnap.io/photo/bread-bakery-EA1243E167 |
+| stories/open-pantry-6.jpg | Freee red apple crate image |  | CC0 | https://www.rawpixel.com/image/5920961/photo-image-public-domain-green-fruit |
+| stories/new-roots-3.jpg | Rainy scratched bus stop view |  | CC0 | https://www.rawpixel.com/image/6083558/rain |
+
 ## Videos (Mixkit, Stock Video Free License)
 
 | Used for | Source |
@@ -76,6 +138,29 @@ Slideshow reels for Bright Futures, Open Pantry and New Roots are made from the 
 | reels/new-roots-5 | https://mixkit.co/free-stock-video/train-arriving-to-a-subway-station-1622/ |
 | reels/new-roots-6 | https://mixkit.co/free-stock-video/drawing-a-heart-on-a-foggy-window-on-a-rainy-18308/ |
 
+| reels/paws-haven-7 | https://mixkit.co/free-stock-video/smiling-dog-1552/ |
+| reels/paws-haven-8 | https://mixkit.co/free-stock-video/dog-catches-a-ball-in-a-river-1494/ |
+| reels/paws-haven-9 | https://mixkit.co/free-stock-video/border-collie-hi-fives-a-human-hand-with-its-paw-50686/ |
+| reels/paws-haven-10 | https://mixkit.co/free-stock-video/a-panting-border-collie-receives-a-small-treat-on-its-50683/ |
+| reels/green-seattle-7 | https://mixkit.co/free-stock-video/meadow-covered-with-grass-and-trees-in-the-blazing-sun-40657/ |
+| reels/green-seattle-8 | https://mixkit.co/free-stock-video/waterfall-landscape-572/ |
+| reels/green-seattle-9 | https://mixkit.co/free-stock-video/walking-a-path-that-crosses-a-dense-forest-41574/ |
+| reels/green-seattle-10 | https://mixkit.co/free-stock-video/tree-branches-in-the-breeze-1188/ |
+| reels/green-seattle-11 | https://mixkit.co/free-stock-video/branches-swaying-in-the-wind-95/ |
+| reels/bright-futures-6 | https://mixkit.co/free-stock-video/reverse-tour-of-a-library-full-of-books-21595/ |
+| reels/bright-futures-7 | https://mixkit.co/free-stock-video/one-on-one-in-a-soccer-game-43483/ |
+| reels/bright-futures-8 | https://mixkit.co/free-stock-video/skilled-basketball-player-shooting-baskets-training-alone-44448/ |
+| reels/bright-futures-9 | https://mixkit.co/free-stock-video/goal-play-in-a-semi-professional-soccer-game-43499/ |
+| reels/open-pantry-8 | https://mixkit.co/free-stock-video/vegan-looking-food-on-a-plate-3085/ |
+| reels/open-pantry-9 | https://mixkit.co/free-stock-video/cook-mixing-flour-for-a-dough-42464/ |
+| reels/open-pantry-10 | https://mixkit.co/free-stock-video/preparing-a-bowl-with-yogurt-and-fruit-43925/ |
+| reels/open-pantry-11 | https://mixkit.co/free-stock-video/a-man-slices-a-tomato-40534/ |
+| reels/open-pantry-12 | https://mixkit.co/free-stock-video/fresh-sliced-fruit-placed-on-a-table-10419/ |
+| reels/new-roots-7 | https://mixkit.co/free-stock-video/elevated-electric-train-1600/ |
+| reels/new-roots-8 | https://mixkit.co/free-stock-video/sunset-over-train-tracks-1594/ |
+| reels/new-roots-9 | https://mixkit.co/free-stock-video/silhouette-of-a-womans-hands-moving-them-gently-40938/ |
+| reels/new-roots-10 | https://mixkit.co/free-stock-video/woman-and-a-butterfly-in-a-field-of-lavender-962/ |
+
 ## Music (Freesound via Openverse: CC0)
 
 | Title | Creator | Source |
@@ -89,3 +174,7 @@ Slideshow reels for Bright Futures, Open Pantry and New Roots are made from the 
 | Realistic Emotional Piano Melody Beautiful.wav | iliyabylich04 | https://freesound.org/people/iliyabylich04/sounds/641077 |
 | Blue Sky.mp3 | Sergmusic | https://freesound.org/people/Sergmusic/sounds/639933 |
 | COTTAGECORE.wav | lindseysewell | https://freesound.org/people/lindseysewell/sounds/512929 |
+| Free Background Music | Seth_Makes_Sounds | https://freesound.org/people/Seth_Makes_Sounds/sounds/659747 |
+| Folk Guitar Music Track | Dvideoguy | https://freesound.org/people/Dvideoguy/sounds/246315 |
+| 60 bpm background music | Seth_Makes_Sounds | https://freesound.org/people/Seth_Makes_Sounds/sounds/677169 |
+| Tropical beach - Cinematic Beach Tropical Music Waves Drum S | szegvari | https://freesound.org/people/szegvari/sounds/595776 |

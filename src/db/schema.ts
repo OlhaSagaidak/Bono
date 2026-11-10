@@ -631,6 +631,10 @@ export const stories = pgTable(
     linkUrl: text("link_url"),
     expiresAt: timestamp("expires_at", { withTimezone: true }).notNull(),
     createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+    // A demo story from `npm run seed`. Demo stories are a pool: they aren't
+    // deleted when they expire, and a few come back each day (lib/stories/queries.ts),
+    // so the demo always has fresh stories. Stories people post are never touched.
+    demoSeed: boolean("demo_seed").notNull().default(false),
   },
   (t) => [index("stories_nonprofit_idx").on(t.nonprofitId, t.expiresAt), index("stories_expires_idx").on(t.expiresAt)],
 );

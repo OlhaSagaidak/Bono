@@ -60,7 +60,7 @@ export function StoriesRow({
     observer.observe(el);
     return () => observer.disconnect();
   }, [updateEdges]);
-  const scrollBy = (dir: 1 | -1) => scroller.current?.scrollBy({ left: dir * 3 * 124, behavior: "smooth" });
+  const scrollBy = (dir: 1 | -1) => scroller.current?.scrollBy({ left: dir * (scroller.current.clientWidth + 12), behavior: "smooth" });
 
   if (orgs.length === 0 && !canPost) {
     return (
@@ -74,7 +74,7 @@ export function StoriesRow({
     <section aria-label="Stories" className="relative">
       <ul ref={scroller} onScroll={updateEdges} className="flex gap-3 overflow-x-auto pb-1 [scrollbar-width:none]">
         {canPost && (
-          <li className="shrink-0">
+          <li className={tile}>
             <Link href="/stories/new" className={`${card} flex flex-col bg-white dark:bg-zinc-900`}>
               <span className="relative block h-[70%] overflow-hidden">
                 {viewerPhotoId ? (
@@ -97,7 +97,7 @@ export function StoriesRow({
           // Preview the story the viewer would open at: the first unseen one.
           const preview = org.stories.find((s) => !s.seen) ?? org.stories.at(-1)!;
           return (
-            <li key={org.id} className="shrink-0">
+            <li key={org.id} className={tile}>
               <button
                 type="button"
                 onClick={() => setOpenAt(i)}
@@ -155,6 +155,9 @@ export function StoriesRow({
 }
 
 const card =
-  "group relative block h-48 w-28 overflow-hidden rounded-xl border border-zinc-200 shadow-sm focus:outline-2 focus:outline-offset-2 focus:outline-zinc-900 dark:focus:outline-white dark:border-zinc-800";
+  "group relative block aspect-[7/12] w-full overflow-hidden rounded-xl border border-zinc-200 shadow-sm focus:outline-2 focus:outline-offset-2 focus:outline-zinc-900 dark:focus:outline-white dark:border-zinc-800";
+// Five tiles exactly fill the row on wider screens (more scroll sideways);
+// on phones, fixed-width tiles you swipe through.
+const tile = "w-24 shrink-0 sm:w-[calc((100%-3rem)/5)]";
 const arrow =
   "absolute top-1/2 flex size-9 -translate-y-1/2 items-center justify-center rounded-full bg-white text-zinc-800 shadow-md hover:bg-zinc-100 focus:outline-2 focus:outline-zinc-900 dark:focus:outline-white dark:bg-zinc-800 dark:text-zinc-100";

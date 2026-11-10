@@ -19,7 +19,7 @@ import { viewerLanguage } from "@/lib/ai/viewer-language";
 import { payPalClientId } from "@/lib/paypal/public-config";
 import { boostTerms } from "@/lib/boosts/config";
 import { getRankedFeed } from "@/lib/feed/feed";
-import { cleanUpExpiredStories, getStoriesRow } from "@/lib/stories/queries";
+import { cleanUpExpiredStories, getStoriesRow, refreshDemoStories } from "@/lib/stories/queries";
 
 export const metadata = { title: "Feed · Bono" };
 
@@ -115,6 +115,7 @@ async function StoriesForViewer({ searchParams }: { searchParams: PageProps<"/fe
   const session = await getSession();
   if (!session?.user.onboarded) return null;
   const { id, role } = session.user;
+  await refreshDemoStories();
   const [orgs, account, profile, { story }] = await Promise.all([
     getStoriesRow(id),
     getAccount(id),
