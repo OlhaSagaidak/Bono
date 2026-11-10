@@ -1,6 +1,14 @@
 "use client";
 
-import { Bell, CalendarDays, Clapperboard, Home, MessageCircle, Users, type LucideIcon } from "lucide-react";
+import {
+  Bell,
+  CalendarDays,
+  Clapperboard,
+  Home,
+  MessageCircle,
+  Users,
+  type LucideIcon,
+} from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useCallback, useEffect, useId, useRef, useState } from "react";
@@ -8,16 +16,26 @@ import { NotificationItem } from "@/components/notification-item";
 import { markAllNotificationsReadAction } from "@/lib/notifications/actions";
 import type { NotificationView } from "@/lib/notifications/describe";
 
-const ITEMS: { href: string; label: string; Icon: LucideIcon; badge?: "messages" }[] = [
+const ITEMS: {
+  href: string;
+  label: string;
+  Icon: LucideIcon;
+  badge?: "messages";
+}[] = [
   { href: "/feed", label: "Home", Icon: Home },
   { href: "/reels", label: "Reels", Icon: Clapperboard },
-  { href: "/messages", label: "Messages", Icon: MessageCircle, badge: "messages" },
+  {
+    href: "/messages",
+    label: "Messages",
+    Icon: MessageCircle,
+    badge: "messages",
+  },
   { href: "/following", label: "Following", Icon: Users },
   { href: "/events", label: "Events", Icon: CalendarDays },
 ];
 
 const itemClass =
-  "relative flex flex-col items-center gap-0.5 rounded-lg px-2 py-1.5 text-xs font-medium text-zinc-700 hover:bg-zinc-100 focus:outline-2 focus:outline-offset-2 focus:outline-zinc-900 dark:focus:outline-white aria-[current=page]:text-zinc-900 dark:aria-[current=page]:text-zinc-100 dark:text-zinc-300 dark:hover:bg-zinc-800 lg:px-3";
+  "relative flex flex-col items-center gap-0.5 rounded-lg px-3 py-2 md:px-2 md:py-1.5 text-xs font-medium text-zinc-700 hover:bg-zinc-100 focus:outline-2 focus:outline-offset-2 focus:outline-zinc-900 dark:focus:outline-white aria-[current=page]:text-zinc-900 dark:aria-[current=page]:text-zinc-100 dark:text-zinc-300 dark:hover:bg-zinc-800 lg:px-3";
 
 // The label and the count are real text (the label only visually hidden on
 // phones), so the accessible name is what people see: "Notifications 4
@@ -73,38 +91,53 @@ function useBadges(initial: { notifications: number; messages: number }) {
 }
 
 /**
- * The signed-in top bar: icon + label on wide screens, icons only (with
- * aria-labels) on phones. The current page is marked with aria-current.
+ * The signed-in navigation. On phones the five main destinations sit in a
+ * tab bar at the bottom of the screen, within thumb reach, and only the bell
+ * stays at the top (like Instagram or Threads). From tablet width up they're
+ * all in the top bar, with labels on wide screens. The current page is marked
+ * with aria-current.
  */
-export function TopNav({ unreadMessages = 0, unreadNotifications = 0 }: { unreadMessages?: number; unreadNotifications?: number }) {
+export function TopNav({
+  unreadMessages = 0,
+  unreadNotifications = 0,
+}: {
+  unreadMessages?: number;
+  unreadNotifications?: number;
+}) {
   const pathname = usePathname();
-  const counts = useBadges({ notifications: unreadNotifications, messages: unreadMessages });
+  const counts = useBadges({
+    notifications: unreadNotifications,
+    messages: unreadMessages,
+  });
   return (
-    <ul className="flex items-center gap-0.5 lg:gap-1">
-      {ITEMS.map(({ href, label, Icon, badge }) => {
-        const current = pathname === href || pathname.startsWith(`${href}/`);
-        const count = badge === "messages" ? counts.messages : 0;
-        return (
-          <li key={href}>
-            <Link
-              href={href}
-              aria-current={current ? "page" : undefined}
-              className={itemClass}
-            >
-              <Icon aria-hidden className="size-5" />
-              <Label text={label} count={count} />
-            </Link>
-          </li>
-        );
-      })}
-      <li>
-        <NotificationsBell unread={counts.notifications} />
-      </li>
-    </ul>
+    <div className="flex items-center gap-0.5 lg:gap-1">
+      <ul className="fixed inset-x-0 bottom-0 z-40 flex items-center justify-around border-t border-zinc-200 bg-white/95 pb-[env(safe-area-inset-bottom)] backdrop-blur dark:border-zinc-800 dark:bg-zinc-950/95 md:static md:justify-start md:gap-0.5 md:border-0 md:bg-transparent md:pb-0 md:backdrop-blur-none md:dark:bg-transparent lg:gap-1">
+        {ITEMS.map(({ href, label, Icon, badge }) => {
+          const current = pathname === href || pathname.startsWith(`${href}/`);
+          const count = badge === "messages" ? counts.messages : 0;
+          return (
+            <li key={href}>
+              <Link
+                href={href}
+                aria-current={current ? "page" : undefined}
+                className={itemClass}
+              >
+                <Icon aria-hidden className="size-6 md:size-5" />
+                <Label text={label} count={count} />
+              </Link>
+            </li>
+          );
+        })}
+      </ul>
+      <NotificationsBell unread={counts.notifications} />
+    </div>
   );
 }
 
-type Recent = { state: "loading" } | { state: "error" } | { state: "ready"; items: NotificationView[] };
+type Recent =
+  | { state: "loading" }
+  | { state: "error" }
+  | { state: "ready"; items: NotificationView[] };
 
 /** The bell and its dropdown of the latest notifications, loaded each time it opens. */
 function NotificationsBell({ unread }: { unread: number }) {
@@ -129,7 +162,11 @@ function NotificationsBell({ unread }: { unread: number }) {
   }
 
   async function markAllRead() {
-    if (recent.state === "ready") setRecent({ state: "ready", items: recent.items.map((i) => ({ ...i, unread: false })) });
+    if (recent.state === "ready")
+      setRecent({
+        state: "ready",
+        items: recent.items.map((i) => ({ ...i, unread: false })),
+      });
     // If this doesn't reach the server, the next badge poll shows the real count again.
     await markAllNotificationsReadAction().catch(() => {});
     window.dispatchEvent(new Event("bono:badges"));
@@ -189,23 +226,38 @@ function NotificationsBell({ unread }: { unread: number }) {
             )}
           </div>
           {recent.state === "loading" && (
-            <p className="px-2 py-6 text-center text-sm text-zinc-600 dark:text-zinc-400">Loading…</p>
+            <p className="px-2 py-6 text-center text-sm text-zinc-600 dark:text-zinc-400">
+              Loading…
+            </p>
           )}
           {recent.state === "error" && (
-            <p role="alert" className="px-2 py-6 text-center text-sm text-zinc-600 dark:text-zinc-400">
+            <p
+              role="alert"
+              className="px-2 py-6 text-center text-sm text-zinc-600 dark:text-zinc-400"
+            >
               Couldn&apos;t load notifications.{" "}
-              <button type="button" onClick={load} className="font-medium text-zinc-900 dark:text-zinc-100 underline">
+              <button
+                type="button"
+                onClick={load}
+                className="font-medium text-zinc-900 dark:text-zinc-100 underline"
+              >
                 Try again
               </button>
             </p>
           )}
           {recent.state === "ready" &&
             (recent.items.length === 0 ? (
-              <p className="px-2 py-6 text-center text-sm text-zinc-600 dark:text-zinc-400">No notifications yet.</p>
+              <p className="px-2 py-6 text-center text-sm text-zinc-600 dark:text-zinc-400">
+                No notifications yet.
+              </p>
             ) : (
               <ul className="flex max-h-[min(28rem,70vh)] flex-col gap-0.5 overflow-y-auto">
                 {recent.items.map((item) => (
-                  <NotificationItem key={item.id} item={item} onOpen={() => setOpen(false)} />
+                  <NotificationItem
+                    key={item.id}
+                    item={item}
+                    onOpen={() => setOpen(false)}
+                  />
                 ))}
               </ul>
             ))}

@@ -198,7 +198,7 @@ export function StoryViewer({
             <p className="px-6 text-center text-sm text-white/80">This story couldn&apos;t be loaded. Tap to continue.</p>
           ) : story.kind === "image" ? (
             // eslint-disable-next-line @next/next/no-img-element -- served from our own API
-            <img src={story.src} alt={story.caption || `Story from ${org.name}`} draggable={false} onError={() => setFailed(true)} className="max-h-full w-full object-contain" />
+            <img src={story.src} alt={story.caption || `Story from ${org.name}`} draggable={false} onError={() => setFailed(true)} className="absolute inset-0 size-full object-cover" />
           ) : (
             <video
               key={story.id}
@@ -211,7 +211,7 @@ export function StoryViewer({
               onTimeUpdate={(e) => setProgress(e.currentTarget.currentTime / (e.currentTarget.duration || 1))}
               onEnded={next}
               onError={() => setFailed(true)}
-              className="max-h-full w-full object-contain"
+              className="absolute inset-0 size-full object-cover"
             />
           )}
         </div>

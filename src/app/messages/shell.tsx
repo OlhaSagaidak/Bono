@@ -8,7 +8,7 @@ import { getInbox } from "@/lib/messages/queries";
 export async function MessagesShell({ viewerId, selectedId, children }: { viewerId: string; selectedId?: string; children: React.ReactNode }) {
   const inbox = await getInbox(viewerId);
   return (
-    <div className="mx-auto grid h-[calc(100dvh-3.75rem)] w-full max-w-5xl flex-1 gap-4 px-4 py-4 lg:grid-cols-[20rem_minmax(0,1fr)]">
+    <div className="mx-auto grid h-[calc(100dvh-3.75rem-3.5rem-env(safe-area-inset-bottom))] w-full md:h-[calc(100dvh-3.75rem)] max-w-5xl flex-1 gap-4 px-4 py-4 lg:grid-cols-[20rem_minmax(0,1fr)]">
       <section aria-labelledby="inbox-heading" className={`min-h-0 flex-col gap-2 overflow-y-auto ${selectedId ? "hidden lg:flex" : "flex"}`}>
         <h1 id="inbox-heading" className="px-2 text-2xl font-bold">
           Messages

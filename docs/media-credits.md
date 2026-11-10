@@ -107,7 +107,6 @@ Slideshow reels for Bright Futures, Open Pantry and New Roots are made from the 
 | stories/paws-haven-6.jpg | (Openverse search "dog leash walk") |  | CC0 or PDM | source link to be added |
 | stories/paws-haven-7.jpg | (Openverse search "dog leash walk") |  | CC0 or PDM | source link to be added |
 | stories/green-seattle-4.jpg | (Openverse search "mushroom forest") |  | CC0 or PDM | source link to be added |
-| stories/green-seattle-5.jpg | (Openverse search "autumn leaves") |  | CC0 or PDM | source link to be added |
 | stories/bright-futures-3.jpg | (Openverse search "colored chalk") |  | CC0 or PDM | source link to be added |
 | stories/bright-futures-4.jpg | (Openverse search "guitar") |  | CC0 or PDM | source link to be added |
 | stories/bright-futures-5.jpg | (Openverse search "colored chalk") |  | CC0 or PDM | source link to be added |

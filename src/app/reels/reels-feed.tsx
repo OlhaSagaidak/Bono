@@ -28,7 +28,7 @@ export function ReelsFeed({ reels, viewerId, donateClientId }: { reels: ReelView
       ref={container}
       tabIndex={0}
       aria-label="Reels. Scroll or use the arrow keys to move between them."
-      className="h-[calc(100dvh-3.75rem)] snap-y snap-mandatory overflow-y-scroll bg-black focus:outline-none"
+      className="h-[calc(100dvh-3.75rem-3.5rem-env(safe-area-inset-bottom))] snap-y md:h-[calc(100dvh-3.75rem)] snap-mandatory overflow-y-scroll bg-black focus:outline-none"
     >
       {reels.map((reel, i) => (
         <Reel

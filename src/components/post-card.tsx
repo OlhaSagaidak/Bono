@@ -102,6 +102,7 @@ export function PostCard({
         language={post.language}
         viewerLanguage={viewerLanguage}
         canTranslate={canTranslate}
+        collapsible={!openComments}
       />
 
       {post.imageId && (

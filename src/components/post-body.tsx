@@ -12,13 +12,17 @@ export function PostBody({
   language,
   viewerLanguage,
   canTranslate,
+  collapsible = true,
 }: {
   postId: string;
   body: string;
   language: string;
   viewerLanguage: string;
   canTranslate: boolean;
+  /** In a feed, long posts start collapsed to a few lines with "See more". */
+  collapsible?: boolean;
 }) {
+  const [expanded, setExpanded] = useState(false);
   const [translation, setTranslation] = useState<string | null>(null);
   const [showTranslation, setShowTranslation] = useState(false);
   const [error, setError] = useState<string>();
@@ -38,12 +42,29 @@ export function PostBody({
   }
 
   const shown = showTranslation && translation;
+  // Long enough to run past five lines on a phone.
+  const collapsed = collapsible && !expanded && (shown ? translation : body).length > 280;
   return (
     <div className="flex flex-col gap-1">
       {/* lang lets screen readers pronounce the text in the right language. */}
-      <p lang={shown ? viewerLanguage : language} className="whitespace-pre-line break-words">
+      <p
+        id={`post-body-${postId}`}
+        lang={shown ? viewerLanguage : language}
+        className={`whitespace-pre-line break-words ${collapsed ? "line-clamp-5" : ""}`}
+      >
         {shown ? translation : body}
       </p>
+      {collapsed && (
+        <button
+          type="button"
+          onClick={() => setExpanded(true)}
+          aria-expanded={false}
+          aria-controls={`post-body-${postId}`}
+          className="self-start font-medium text-zinc-600 hover:text-zinc-900 focus:outline-2 focus:outline-zinc-900 dark:text-zinc-400 dark:hover:text-zinc-100 dark:focus:outline-white"
+        >
+          See more
+        </button>
+      )}
       {offerTranslation && (
         <div className="flex flex-wrap items-center gap-x-2 text-sm">
           <button
