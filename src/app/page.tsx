@@ -89,8 +89,8 @@ export default function Home() {
       </section>
 
       <footer className="mx-auto w-full max-w-6xl px-4 py-8 text-sm text-zinc-600 dark:text-zinc-400">
-        Built for the PayPal AI Hackathon. Every organization and person in this demo is fictional, and payments run in
-        the PayPal sandbox.
+        Built for the PayPal AI Hackathon. Every organization and person in this demo is fictional, the photos and
+        videos are the author&apos;s own or free stock, and payments run in the PayPal sandbox.
       </footer>
     </main>
   );

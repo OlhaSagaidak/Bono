@@ -283,8 +283,9 @@ npm run dev            # http://localhost:3000
 
 `npm run seed` creates 6 fictional nonprofits, 2 fictional sponsors, 20 supporters,
 125 posts (some in Spanish and Ukrainian), 58 reels, 39 stories (a few come back each day) and 10 events with cover photos. Photos, videos and music are
-free stock (public domain, CC0 or Mixkit's free license), listed in
-[docs/media-credits.md](docs/media-credits.md); the files themselves live in the gitignored
+either Olya's own (filmed on her phone around Seattle) or free stock (public domain, CC0 or
+Mixkit's free license); every file is listed with its source and license in
+[docs/media-credits.md](docs/media-credits.md). The files themselves live in the gitignored
 `seed-media/` folder. Every organization and person in
 it is invented. Five nonprofits start verified with fictional EINs from a clearly
 labeled demo registry (prefix `00`, which the IRS never assigns); **Canvas Commons
@@ -320,7 +321,8 @@ domain are never touched.
 ## About this project
 
 Bono was built from scratch during the hackathon's submission period. All organizations,
-people, posts and logos in the demo are fictional.
+people, posts and logos in the demo are fictional. Photos and videos are Olya's own or free
+stock, credited in [docs/media-credits.md](docs/media-credits.md).
 
 ## License
 
