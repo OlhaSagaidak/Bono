@@ -203,3 +203,17 @@ Northwind: https://mixkit.co/free-stock-video/serving-juice-in-a-glass-with-some
 | Folk Guitar Music Track | Dvideoguy | https://freesound.org/people/Dvideoguy/sounds/246315 |
 | 60 bpm background music | Seth_Makes_Sounds | https://freesound.org/people/Seth_Makes_Sounds/sounds/677169 |
 | Tropical beach - Cinematic Beach Tropical Music Waves Drum S | szegvari | https://freesound.org/people/szegvari/sounds/595776 |
+
+## Olya's own footage (Nov 11, 2026)
+
+Filmed by Olya on her phone in and around Seattle; no credit required and no stock license involved. Nobody in them is identifiable.
+
+| Files | What |
+|---|---|
+| reels-web/green-seattle-7..12.mp4 | heron at sunset, tide pool, alpine meadow, turtles on lily pads, marmot on a rock garden trail, glacier hike |
+| reels-web/paws-haven-11.mp4 | a dog on a forest trail |
+| reels-web/bright-futures-10..11.mp4 | ribbon canopy at a playground, fireworks over a park |
+| reels-web/new-roots-11..12.mp4 | the skyline from a ferry, a bike ride on a beach |
+| stories/green-seattle-7..14 | driftwood beach, low-tide walk, a lake, a park, a tree in the wind, a campfire, driftwood (photo), a mushroom (photo) |
+| stories/new-roots-6.jpg, stories/bright-futures-6.mp4 | the skyline from the water, fireworks |
+| posts/paws-haven-25.jpg, bright-futures-25.jpg, new-roots-25.jpg, green-seattle-25..26.jpg | a bowl of dog food, latte art, the skyline from a ferry deck, a snowy mountain, an autumn meadow with a deer |

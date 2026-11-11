@@ -551,6 +551,44 @@ const followUps: Record<string, DemoPost[]> = {
 };
 for (const np of nonprofits) np.posts.push(...(followUps[np.slug] ?? [])); // indices 22 and 23, used by the comments below
 
+// Posts with Olya's own photos (seed-media/posts/<slug>-25.jpg onward), from index 24.
+const ownPhotoPosts: Record<string, DemoPost[]> = {
+  "paws-haven": [
+    {
+      hoursAgo: 4,
+      alt: "A hand holding a white bowl full of dry dog food",
+      body: "Wednesday, 4 pm. This is one bowl. 🥣\n\nThe pet food bank opens in an hour, and by 7 we'll have handed out about 900 bowls' worth of dog and cat food to families who are having a hard month. No forms, no questions, no judgment. Just a bag of food so a pet can stay where it's loved.\n\nThe food bank fund is nearly full for the winter thanks to you. If you've got an unopened bag at home your dog turned up his nose at, we'll take it. Someone else's dog won't be so picky.",
+    },
+  ],
+  "bright-futures": [
+    {
+      hoursAgo: 7,
+      alt: "A latte with a cartoon monster face drawn in the foam, on a marble table",
+      body: "Mentor coffee is a thing we do. ☕\n\nOnce a month, every mentor gets a coffee on us at the café next to our office, no agenda, just a check-in: what's working, what's hard, what a 12-year-old said this week that they're still thinking about. The barista has started drawing a monster on every mentor's cup. We did not ask for this. We would not change it.\n\nForty-one mentors came in October. If you've been thinking about mentoring, come to a coffee first. The monster is free.",
+    },
+  ],
+  "new-roots": [
+    {
+      hoursAgo: 6,
+      alt: "The Seattle skyline seen from the open deck of a ferry on a sunny morning",
+      body: "Ferry day. ⛴️\n\nNine families, most of them here less than a month, took the ferry across the Sound and back this morning. For a lot of them it was the first time they'd seen the city from the water, and the first hour since they arrived that wasn't about paperwork, appointments or finding a school.\n\nOne dad stood at the rail the whole way and said, when we docked: \"OK. Now I live here.\"\n\nFerry day happens on the first Saturday of every month. Volunteers ride along; the tickets are covered by your gifts.",
+    },
+  ],
+  "green-seattle": [
+    {
+      hoursAgo: 9,
+      alt: "A snow-covered mountain above an alpine meadow under a clear blue sky",
+      body: "Where it all starts. 🏔️\n\nEvery drop of water that runs through the creeks we restore started up here, as snow. Less snow and earlier melt mean lower, warmer creeks in August, which is exactly when salmon need them cool and deep.\n\nWe can't fix the mountain. We can shade the creeks: that's why every planting day along Thornton and Longfellow matters more than it looks. A tree on the bank today is a cold pool for a fish in ten summers.",
+    },
+    {
+      hoursAgo: 40,
+      alt: "An alpine meadow in autumn colors with evergreen trees and a deer grazing in the distance",
+      body: "Spot the deer. 🦌\n\nThis meadow was a worn-out campsite five years ago: bare dirt, fire rings, nothing growing. The Forest Service closed it, and volunteers (some of them ours) replanted it with native huckleberry, heather and sedges. This is what it looks like now, in October, with a resident.\n\nRestoration works. It just works slowly, and it needs people who'll show up for a few years in a row. Next alpine work party: the first weekend of July. Sign-ups open in May.",
+    },
+  ],
+};
+for (const np of nonprofits) np.posts.push(...(ownPhotoPosts[np.slug] ?? []));
+
 // Stories (they expire after 24 hours, so each seed run posts fresh ones).
 // With no photo or video in seed-media/stories/<slug>-<n>.*, the seed draws a
 // simple text card from `text`. Each organization's stories, oldest first.
@@ -571,6 +609,14 @@ export const stories: Record<string, { text: string; caption?: string; sticker?:
     { text: "Fungus walk, Sunday at 10", caption: "Guided fungus walk Sunday at 10. Look, don't pick! 🍄", hoursAgo: 5 },
     { text: "Leave the leaves 🍂", caption: "Rake leaves onto your garden beds, not into the street. Free yard signs at our office.", hoursAgo: 9 },
     { text: "Winter planting: 14 dates, 8 neighborhoods", caption: "Our winter planting calendar is out. Pick a date and grab a shovel.", sticker: "link", hoursAgo: 11 },
+    { text: "Beach cleanup, Sunday at 9", caption: "This is what the beach looks like after a winter storm. Cleanup Sunday at 9; gloves and bags on us.", sticker: "link", hoursAgo: 12 },
+    { text: "Low tide walk", caption: "Low tide walk this Saturday, 8 am. Bring boots, we bring the field guide.", hoursAgo: 13 },
+    { text: "The lake our creeks feed", caption: "Every creek we restore ends up here. Clean upstream, clean downstream. 💧", hoursAgo: 14 },
+    { text: "Afternoon in the park", caption: "Shade like this is why we plant. 🌳", hoursAgo: 15 },
+    { text: "Windy day at the nursery", caption: "Our tree nursery on a windy afternoon. 400 saplings, ready for December.", sticker: "donate", hoursAgo: 16 },
+    { text: "Volunteer campfire tonight", caption: "End-of-season campfire for our volunteers. You earned it. 🔥", hoursAgo: 17 },
+    { text: "Winter storm season", caption: "Storm season leaves the beaches like this. Cleanup dates on our profile.", sticker: "link", hoursAgo: 18 },
+    { text: "Fungus walk, Sunday at 10", caption: "Found on last week's fungus walk. Next one: Sunday at 10. 🍄", hoursAgo: 19 },
   ],
   "bright-futures": [
     { text: "Mentors needed: 1 hour a week", caption: "Change a kid's year with one hour a week.", sticker: "link", hoursAgo: 9 },
@@ -578,6 +624,7 @@ export const stories: Record<string, { text: string; caption?: string; sticker?:
     { text: "Chalk day at the community center", caption: "40 kids, 300 sticks of chalk, one very long sidewalk. 🎨", hoursAgo: 4 },
     { text: "Got a guitar in your closet?", caption: "6 teens are waiting for a guitar. Donate yours to guitar club!", sticker: "donate", hoursAgo: 7 },
     { text: "Art studio: Tue & Thu, 4 to 7", caption: "Teen art studio is open twice a week. Supplies and snacks free.", hoursAgo: 10 },
+    { text: "Summer night at the park", caption: "Fireworks night with our mentees. Sound on. 🎆", hoursAgo: 12 },
   ],
   "open-pantry": [
     { text: "The shelves are full again 🥫", caption: "Your donations stocked the pantry for the week.", sticker: "donate", hoursAgo: 3 },
@@ -593,6 +640,7 @@ export const stories: Record<string, { text: string; caption?: string; sticker?:
     { text: "Winter coat drive ☔", caption: "Kids' coats and boots needed in all sizes. Drop-off until December 31.", sticker: "donate", hoursAgo: 5 },
     { text: "12 new citizens today! 🎉", caption: "All 12 of our students passed their citizenship test this morning.", hoursAgo: 8 },
     { text: "Be a phone buddy", caption: "One call a week to a new neighbor, in any language you speak.", sticker: "link", hoursAgo: 11 },
+    { text: "Ferry day", caption: "Nine families, one ferry, a first look at the city from the water. 🌊", hoursAgo: 13 },
   ],
 };
 
@@ -610,6 +658,7 @@ export const reels: Record<string, { caption: string; coverText?: string; coverT
     { caption: "Bear discovered the river on Saturday's volunteer hike and has not stopped talking about it since. Our weekend adventure club takes shelter dogs out of their kennels for a few hours of sun, water and freedom. Want to be a hiking buddy? Sign up on our profile.", hoursAgo: 28 },
     { caption: "Shadow is 9 and a perfect gentleman. He was surrendered when his owner moved into a care home, and he still waits by the door at 5 pm every day. He needs a quiet family that's home in the evenings. 🖤", hoursAgo: 66 },
     { caption: "Close-up of the face that greets our volunteers every morning. Pippin has been with us 61 days. Share this so his family can find him. 🐾", hoursAgo: 140 },
+    { caption: "Trail test passed. 🐾 Every adventure-club dog gets a practice hike before a real one: loose leash, calm around other dogs, happy to be out. Nala, 4, aced it. Sound on for the happy panting.", hoursAgo: 3 },
   ],
   "green-seattle": [
     { caption: "Healthy forests keep our creeks cool and clean. Help us plant 300 more trees this fall.", coverText: "Shade from trees keeps creeks cool enough for salmon. We planted 1,240 this fall.", coverTextPosition: "middle", hoursAgo: 30 },
@@ -618,11 +667,12 @@ export const reels: Record<string, { caption: string; coverText?: string; coverT
     { caption: "Every tree we plant is a small piece of a forest like this one. Planting season runs through March.", coverText: "Winter is the best time to plant a tree in the Northwest. Here's why 👇", coverTextPosition: "middle", hoursAgo: 18 },
     { caption: "Clean water starts upstream. Our creek teams clear trash and invasive ivy every second Saturday.", coverText: "Clean water starts upstream. Our creek teams are out every second Saturday.", coverTextPosition: "middle", hoursAgo: 66 },
     { caption: "Mornings like this are why we do it. Thank you to the 600 volunteers who gave their weekends this year.", coverText: "600 volunteers gave up their Saturday mornings this year. This is what they protected.", coverTextPosition: "middle", hoursAgo: 110 },
-    { caption: "Golden hour at the park we helped replant three years ago. Every one of these trees was planted by a volunteer holding a shovel for the first time. 🌳", hoursAgo: 8 },
-    { caption: "Listen to that. 💧 Clean water is the sound of a healthy watershed. Every storm drain we stencil and every street tree we plant helps keep water like this clean downstream.", hoursAgo: 34 },
-    { caption: "A quiet forest road, two hours from the city. The trees we plant on city streets are cousins of these. Next planting day: Saturday, 9 am, Rainier Beach.", hoursAgo: 78 },
-    { caption: "Look up. 🍃 A single mature tree can cool the air around it by several degrees on a summer afternoon. That's why we plant the hottest blocks first.", hoursAgo: 125 },
-    { caption: "Native grasses don't need watering, mowing or fertilizer, and they feed the insects that feed the birds. This is what a lawn could look like. Free seed packets at our office all month.", hoursAgo: 200 },
+    { caption: "Great blue heron, 7:40 pm, on the beach we restored two summers ago. 🪶 Herons only hunt where the water is clean enough to see through. Sound on.", hoursAgo: 8 },
+    { caption: "Low tide shows you who actually lives here: anemones, barnacles and a few very patient crabs. 🌊 Everything that runs off our streets ends up in this pool. That's why we stencil storm drains. Sound on for the waves.", hoursAgo: 34 },
+    { caption: "Where our water starts. ⛰️ Every creek in the city begins in a meadow like this one. Protect the top of the watershed and the bottom takes care of itself.", hoursAgo: 78 },
+    { caption: "Count the turtles. 🐢 Eleven on one patch of lily pads at the wetland we help maintain. Ten years ago this was a parking lot.", hoursAgo: 125 },
+    { caption: "A marmot, a rock garden and a whistle you can hear across the valley. 🐿️ Volunteers rebuilt this alpine trail so hikers stay off the meadow. The locals approve.", hoursAgo: 200 },
+    { caption: "Walking up to the ice. 🧊 Our youth crew's end-of-season hike to the glacier, which has retreated 300 feet since the oldest of them was born. Sound on.", hoursAgo: 4 },
   ],
   "open-pantry": [
     { caption: "Some neighbors can't make it to the pantry, so the pantry comes to them.", coverText: "Some neighbors can't get to the pantry, so every Thursday the pantry goes to them.", coverTextPosition: "top", hoursAgo: 15 },
@@ -648,6 +698,8 @@ export const reels: Record<string, { caption: string; coverText?: string; coverT
     { caption: "Footwork drills before Saturday's game. Our mentees have been practicing all week, and their mentors are, frankly, nervous. ⚽", hoursAgo: 46 },
     { caption: "Number 67 is one of our volunteer coaches. He's also a nurse, a dad of three and the reason half our mentees now love basketball. Thank you, Coach. 🏀", hoursAgo: 84 },
     { caption: "Saturday soccer, mentors vs. mentees. Final score: 7 to 2. We will not be discussing which side won. 😅", hoursAgo: 150 },
+    { caption: "The ribbon canopy at the community center playground is up! 🎀 Three hundred ribbons, tied by forty kids on Saturday. Look up next time you're there.", hoursAgo: 3 },
+    { caption: "End-of-summer night at the park: mentors, mentees, families and a sky full of fireworks. 🎆 Sound on. Thank you to everyone who made this summer's program happen.", hoursAgo: 30 },
   ],
   "new-roots": [
     { caption: "From the first night in a new city to the keys to a first home. This is what your support makes possible.", coverText: "They arrived with 4 suitcases in March. This week they got the keys to their first home.", coverTextPosition: "top", hoursAgo: 14 },
@@ -660,6 +712,8 @@ export const reels: Record<string, { caption: string; coverText?: string; coverT
     { caption: "Evenings are the hardest part of the first months, families tell us: the quiet after the kids are asleep, the time difference with home. That's why our volunteer phone line is open until 10 pm. 🌇", hoursAgo: 40 },
     { caption: "Our kids' art club made shadow puppets this week and told stories from home in four languages. Nobody needed a translator for the ending: the hero always made it home. ✋", hoursAgo: 82 },
     { caption: "A grandmother from Ukraine grew lavender at her old house. This summer she planted some in our community garden, and it took. Small roots, deep ones. 💜", hoursAgo: 130 },
+    { caption: "A first ferry ride, and a first look at the skyline from the water. 🌊 Every new family gets a free day on the ferries in their first month. The city looks different once you've seen it from here.", hoursAgo: 5 },
+    { caption: "Bike club's first beach ride. 🚲 Twelve of the bikes you helped refurbish, a stretch of hard sand and a very fast sunset. Nobody fell. Sound on.", hoursAgo: 20 },
   ],
 };
 
