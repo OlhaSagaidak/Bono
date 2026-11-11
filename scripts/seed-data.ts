@@ -493,6 +493,64 @@ const goals: Record<string, Record<number, NonNullable<DemoPost["goal"]>>> = {
 };
 for (const np of nonprofits) for (const [i, goal] of Object.entries(goals[np.slug] ?? {})) np.posts[Number(i)].goal = goal;
 
+// Follow-ups: later chapters of stories told in the photo posts above, so the
+// feed reads like something that is still happening ("Remember Rex?"). Text
+// only, dated after the post they continue; the comments below carry on the
+// conversation, with the nonprofit answering.
+const followUps: Record<string, DemoPost[]> = {
+  "paws-haven": [
+    {
+      hoursAgo: 22,
+      body: "Rex, day 10. 🐕\n\nStitches out this morning, cone off (he celebrated by rolling in the one muddy patch in the yard), and his first slow walk around the block: eleven minutes, a lot of sniffing, zero limping. Physical therapy starts Thursday with our volunteer vet tech, who has promised him peanut butter for every exercise.\n\nThe other news: you've covered most of his surgery bill in a week. A few more gifts and it's paid in full, and every dollar past that goes into our medical fund for the next Rex.\n\nAdoption applications for him open next Monday. He'll need a quiet home, a yard, and someone who doesn't mind being followed from room to room.",
+    },
+    {
+      hoursAgo: 14,
+      body: "Kitten season, week two. 🐱\n\nSince we posted, 11 of you signed up to foster and 57 kittens are now growing up in living rooms across the city instead of in the shelter. (That's up from 42. Nobody told the kittens to slow down.)\n\nWhat your gifts bought this week: 40 cans of kitten formula, two heating pads, a scale that works, and a vet visit for a litter of four found under a porch in Georgetown.\n\nThe formula and vet-care fund is about half-way there. The next foster orientation is Thursday at 6 pm, online. Bring questions; we have answers and an unreasonable number of photos.",
+    },
+  ],
+  "green-seattle": [
+    {
+      hoursAgo: 6,
+      body: "Rainier Beach, one week later. 🌳\n\nAll 240 trees from last Sunday are in the ground and watered, and every one of them has a neighbor who signed up to look after it for two summers. Our youngest tree guardian is 6. She named hers Gerald.\n\nThe goal is 500 trees in this neighborhood before spring, and your gifts are paying for the next batch of saplings, stakes and mulch. We're a third of the way there.\n\nNext planting day: Sunday, November 16, 9 am, Rainier Beach. Tools, gloves and coffee provided. Gerald's friends are waiting.",
+    },
+    {
+      hoursAgo: 10,
+      body: "Boardwalk update: it has fish. 🐟\n\nOne week after 40 volunteers finished the new boardwalk along Longfellow Creek, a creek-walk volunteer counted three coho resting in the pool right under it. The old trail had washed into that pool for years; now the bank is stable and the water's clear.\n\nWe also counted 212 people using the boardwalk on Saturday, including two strollers and one very proud dog.\n\nIf you helped build it: come see it. If you didn't: come see it anyway, and bring the kids. The best viewing is early morning, from the second bend.",
+    },
+  ],
+  "bright-futures": [
+    {
+      hoursAgo: 5,
+      body: "Jordan update. 🐉\n\nTwo weeks ago we told you Jordan, 9, read his first chapter book cover to cover. This week he finished the second one and asked his mentor, in a tone of some urgency, whether there is a third.\n\nThere is. It's on the way.\n\nThe winter book drive is now at 640 books of our 1,000. Every mentee picks three to keep, and we've noticed the dragon shelf empties first. If you have a favorite from when you were 9, drop it at the office, weekdays 9 to 5. Someone's about to meet it for the first time.",
+    },
+    {
+      hoursAgo: 18,
+      body: "Guitar club, week eight. 🎸\n\nTwo new guitars arrived this week, bought with your gifts, which means 13 guitars for 14 teens and only one of them has to share. The fund for the next batch is nearly there; one more push and nobody shares.\n\nMarcus reports that three students can now play a full song without stopping, and that one of them has started writing lyrics \"about feelings,\" which he says is the whole point.\n\nSave the date: the club's first concert for parents is Friday, December 12, 6 pm, in the community room. It will be loud. It will be wonderful.",
+    },
+  ],
+  "open-pantry": [
+    {
+      hoursAgo: 16,
+      body: "The diabetes-friendly shelf, three weeks in. 🥗\n\n94 people have used it so far, and the dietitians' recipe cards are gone by Thursday every week (we're printing more). A retired nurse read our post and now volunteers on Thursdays, checking blood sugar for anyone who asks.\n\nThe shelf has been restocked twice with your gifts: lentils, canned fish, whole-grain pasta, and the fresh vegetables that keep running out first. We're about half-way to keeping it full through the winter.\n\nOne visitor told us it was the first time a food bank had food she was actually allowed to eat. That's the whole idea.",
+    },
+    {
+      hoursAgo: 30,
+      body: "What happened to the apples. 🍎\n\nRemember gleaning day, when 31 volunteers picked 1,800 pounds of apples that would have rotted on the ground? Here's where they went: 400 produce boxes, 60 apple crisps from the community kitchen (gone in one Friday), 20 pounds of applesauce for the weekend backpacks, and a very large bowl at the front desk that still isn't empty.\n\nThe orchard has invited us back. Next gleaning day is Saturday, 9 am; ladders, bags and the ride are on us. No experience needed, just a sweater.",
+    },
+  ],
+  "new-roots": [
+    {
+      hoursAgo: 9,
+      body: "Amira passed. 🩺\n\nEight months ago she arrived speaking no English, a nurse in her old country and nothing on paper here. This week she passed the first of the two exams she needs to work as a nurse in Washington. She studied at our Thursday paperwork hour, at the library, and on the bus.\n\nShe asked us to tell you this: \"Thank you for the bus pass. It was the exam, really.\"\n\nThe second exam is in March. We'll be there when she walks out.",
+    },
+    {
+      hoursAgo: 26,
+      body: "Bikes: 12 down, 18 to go. 🚲\n\nThe first twelve refurbished bikes went to families this week, each with a lock, lights and a helmet, and Saturday's first riding lesson in the school parking lot had seven adults and roughly a hundred wobbles. By the end, all seven made it around the lot without a foot touching the ground.\n\nYour gifts have us half-way to 30 bikes. Each one costs about $120 to refurbish and equip. One family's bike now gets a father to a 6 am shift the bus can't reach.\n\nNext lesson: Saturday, 10 am. Old bikes still welcome at the office.",
+    },
+  ],
+};
+for (const np of nonprofits) np.posts.push(...(followUps[np.slug] ?? [])); // indices 22 and 23, used by the comments below
+
 // Stories (they expire after 24 hours, so each seed run posts fresh ones).
 // With no photo or video in seed-media/stories/<slug>-<n>.*, the seed draws a
 // simple text card from `text`. Each organization's stories, oldest first.
@@ -615,6 +673,150 @@ type DemoComment = {
   replies?: Omit<DemoComment, "replies">[];
 };
 export const comments: { org: string; post: number; comments: DemoComment[] }[] = [
+  {
+    org: "paws-haven",
+    post: 22,
+    comments: [
+      {
+        by: "ben.fischer",
+        text: "Zero limping after a torn ligament, ten days out? That's a tough dog. How's his appetite?",
+        hoursAgo: 20,
+        reactions: [["maya.chen", "like"], ["paws-haven", "love"]],
+        replies: [{ by: "paws-haven", text: "Enormous. He has opinions about breakfast being late. The vet is very happy with him.", hoursAgo: 19, reactions: [["ben.fischer", "haha"], ["sofia.rossi", "love"]] }],
+      },
+      {
+        by: "maya.chen",
+        text: "Quiet home, yard, happy to be followed from room to room. Where do I apply? 🥹",
+        hoursAgo: 12,
+        reactions: [["elena.petrova", "love"], ["ingrid.larsen", "love"], ["paws-haven", "care"]],
+        replies: [{ by: "paws-haven", text: "Monday, on our profile! We'll message you when it opens. He'd be lucky.", hoursAgo: 11 }],
+      },
+      { by: "sofia.rossi", text: "Rex chose the muddy patch on purpose. Respect.", hoursAgo: 8, reactions: [["maya.chen", "haha"]] },
+    ],
+  },
+  {
+    org: "paws-haven",
+    post: 23,
+    comments: [
+      {
+        by: "ingrid.larsen",
+        text: "Signed up after your last post. Our bathroom now belongs to three kittens and we've named them after cheeses.",
+        hoursAgo: 10,
+        reactions: [["paws-haven", "love"], ["elena.petrova", "haha"], ["maya.chen", "love"]],
+        replies: [{ by: "paws-haven", text: "Brie, Gouda and… we have to know. Thank you, Ingrid. Photos to the help line, please, for science.", hoursAgo: 9, reactions: [["ingrid.larsen", "haha"]] }],
+      },
+      { by: "elena.petrova", text: "Just sent something for the formula fund. Під порчем в Джорджтауні… bless whoever found them.", hoursAgo: 6, reactions: [["paws-haven", "love"]] },
+    ],
+  },
+  {
+    org: "green-seattle",
+    post: 22,
+    comments: [
+      {
+        by: "theo.nguyen",
+        text: "Gerald is a strong name for a tree. Rode past this morning, every stake is still straight.",
+        hoursAgo: 5,
+        reactions: [["green-seattle", "love"], ["grace.liu", "like"]],
+        replies: [{ by: "green-seattle", text: "Gerald's guardian will be thrilled. See you on the 16th?", hoursAgo: 4 }],
+      },
+      { by: "hana.sato", text: "Going on the 16th, bringing two friends who've never held a shovel. Be gentle.", hoursAgo: 3, reactions: [["green-seattle", "love"], ["theo.nguyen", "like"]] },
+    ],
+  },
+  {
+    org: "green-seattle",
+    post: 23,
+    comments: [
+      {
+        by: "grace.liu",
+        text: "Coho under the boardwalk within a week. That's the whole project in one sentence.",
+        hoursAgo: 8,
+        reactions: [["green-seattle", "love"], ["ruth.abrams", "wow"], ["ingrid.larsen", "like"]],
+        replies: [{ by: "green-seattle", text: "We may have shouted. The volunteer who counted them has worked on that creek for nine years.", hoursAgo: 7, reactions: [["grace.liu", "love"]] }],
+      },
+    ],
+  },
+  {
+    org: "bright-futures",
+    post: 22,
+    comments: [
+      {
+        by: "priya.raman",
+        text: "\"In a tone of some urgency\" is exactly how a 9-year-old asks about a sequel. Dropping off a box of dragons on Friday.",
+        hoursAgo: 4,
+        reactions: [["bright-futures", "love"], ["sofia.rossi", "haha"], ["marcus.bell", "like"]],
+        replies: [{ by: "bright-futures", text: "The dragon shelf thanks you. Jordan's mentor says he's already picked his third.", hoursAgo: 3 }],
+      },
+      { by: "marcus.bell", text: "640 of 1,000 already. Let's close that gap by December.", hoursAgo: 2, reactions: [["bright-futures", "like"]] },
+    ],
+  },
+  {
+    org: "bright-futures",
+    post: 23,
+    comments: [
+      {
+        by: "jonah.weiss",
+        text: "Lyrics \"about feelings\" at 15 is the bravest thing in this post. Will there be a recording of the concert?",
+        hoursAgo: 15,
+        reactions: [["bright-futures", "love"], ["priya.raman", "love"]],
+        replies: [{ by: "bright-futures", text: "If the band agrees. Negotiations are ongoing and involve pizza.", hoursAgo: 14, reactions: [["jonah.weiss", "haha"]] }],
+      },
+    ],
+  },
+  {
+    org: "open-pantry",
+    post: 22,
+    comments: [
+      {
+        by: "aisha.rahman",
+        text: "I'm a nurse too. Could use a second pair of hands on Thursdays?",
+        hoursAgo: 14,
+        reactions: [["open-pantry", "love"], ["nadia.haddad", "like"], ["lucia.herrera", "care"]],
+        replies: [{ by: "open-pantry", text: "Yes, please. Messaging you now, Aisha. Thursdays are getting busy in the best way.", hoursAgo: 13 }],
+      },
+      { by: "kwame.mensah", text: "\"Food she was actually allowed to eat.\" That line. Sent a gift for the shelf.", hoursAgo: 9, reactions: [["open-pantry", "love"], ["aisha.rahman", "love"]] },
+    ],
+  },
+  {
+    org: "open-pantry",
+    post: 23,
+    comments: [
+      {
+        by: "ruth.abrams",
+        text: "I was on the ladder for the top branches! Can confirm the apple crisp was worth it. Saturday, count me in again.",
+        hoursAgo: 28,
+        reactions: [["open-pantry", "love"], ["sam.okafor", "like"]],
+        replies: [{ by: "open-pantry", text: "Ladder crew for life. Same ride as last time, 8:30 at the pantry.", hoursAgo: 27 }],
+      },
+    ],
+  },
+  {
+    org: "new-roots",
+    post: 22,
+    comments: [
+      {
+        by: "olek.kovalenko",
+        text: "Вітаю, Аміро! 🎉 Studying for an exam in your third language, on a bus. Incredible.",
+        hoursAgo: 8,
+        reactions: [["new-roots", "love"], ["elena.petrova", "love"], ["diego.morales", "wow"]],
+        replies: [{ by: "new-roots", text: "We'll pass it on, Olek. She has a list of people to thank and it's long.", hoursAgo: 7 }],
+      },
+      { by: "lucia.herrera", text: "The bus pass line got me. Sometimes the help that matters is the smallest thing.", hoursAgo: 5, reactions: [["new-roots", "care"], ["daniel.ortiz", "like"]] },
+    ],
+  },
+  {
+    org: "new-roots",
+    post: 23,
+    comments: [
+      {
+        by: "diego.morales",
+        text: "Have two old bikes in the garage, one needs a chain. Still useful?",
+        hoursAgo: 24,
+        reactions: [["new-roots", "like"]],
+        replies: [{ by: "new-roots", text: "Very. The bike shop fixes chains in ten minutes. Drop them at the office any weekday, or message us and a volunteer can pick them up.", hoursAgo: 23, reactions: [["diego.morales", "like"]] }],
+      },
+      { by: "daniel.ortiz", text: "A hundred wobbles and seven riders. That's a good Saturday.", hoursAgo: 20, reactions: [["new-roots", "love"]] },
+    ],
+  },
   {
     org: "paws-haven",
     post: 0,
