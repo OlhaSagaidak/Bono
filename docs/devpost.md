@@ -8,108 +8,47 @@ A social feed where nonprofits are the influencers: scroll guilt free, give in t
 
 ## Inspiration
 
-We spend hours a day in feeds built to keep us scrolling, and charities compete there with
-everything else, paying for ads to be seen. Giving, meanwhile, happens on a donation page you
-only reach once you've already decided to give. I wanted a feed you could scroll without
-guilt: only nonprofit stories, ranked by what you actually care about, where the step from
-"this moved me" to "I helped" is one tap, and the money goes straight to the charity.
+I built Bono, a social network where nonprofits are the influencers. You can discover a cause on your lunch break, follow the people doing the work, and come back months later to see what the donations made possible.
+
+I've volunteered with the Ukrainian Association of Washington State for several years. I've seen how much work it takes to reach people who would gladly give, volunteer, or tell a friend if they knew about a cause. I also know how easy it is to open my phone out of habit and scroll through posts I'll barely remember.
+
+When I came across this hackathon, I wondered, What if the scroll itself could help? On Bono, a view, a like, a comment, a follow, or a donation can help a story you paused on show up in someone else's feed.
 
 ## What it does
 
-Bono is a social media app where **nonprofits are the influencers**.
+Open Bono and you might meet Rex, a Seattle rescue dog who needs surgery. You give $25 in two taps with PayPal, straight to the rescue. A dollar-for-dollar sponsor match through PayPal Payouts brings it to $50. Later, the rescue shares the update you've been waiting for. Rex got adopted.
 
-- **Supporters** pick the causes they care about and get an AI-ranked feed of posts, stories,
-  reels and events from verified nonprofits. They like, comment, follow, message, RSVP and
-  **donate with PayPal** from any post. Posts can carry a fundraising goal whose bar moves the
-  moment a gift (and its match) clears, and the feed opens with the giving pulse: what moved
-  through Bono in the last 30 days and the latest gifts, never who gave. Over time supporters
-  earn public badges per nonprofit (Rising, Emerging, Established, Champion), shown as tiers
-  and never as amounts.
-- **Nonprofits** get verified (an EIN check against IRS records, at least 6 months
-  tax-exempt, then a verification fee through PayPal). They post, and receive donations
-  **directly into their own PayPal account**: Bono never holds donation money.
-- **Sponsors** (companies) fund matching campaigns ("Acme matches gifts to animal shelters
-  1:1, up to $25 each") and boost posts. Matches are paid to the nonprofit automatically
-  with PayPal Payouts, and boosted posts are always labeled "Boosted by …".
-- **Dashboards** show nonprofits where their money comes from and sponsors what their money did,
-  and anyone can ask them questions in plain English.
+The feed learns from what you follow and what makes you pause. You can see why a post was recommended, read it in translation, and search in your own words.
+
+Bono checks each U.S. nonprofit's EIN against IRS records and requires at least six months of tax-exempt status. The nonprofit pays a verification fee from the PayPal account it will use to receive donations. Search any nonprofit on Bono and see at a glance whether it's verified.
+
+AG Grid dashboards show nonprofits what they raised and what sponsors added. Sponsors can ask the dashboard, "Where did my matches go?"
 
 ## How we built it
 
-- **Next.js 16** (App Router, Server Actions, TypeScript), Tailwind, Auth.js, **Postgres +
-  pgvector** with Drizzle, hosted on **Render** (web service + Postgres).
-- **PayPal**, all server-side through the APIMatic-generated **PayPal Server SDK**:
-  - Donations: JS SDK v6 + Orders v2 with `purchase_units[].payee` set to the nonprofit.
-  - Verification fees, sponsor pools and boosts: Orders v2 paid to the platform account.
-  - Sponsor matches: the **Payouts API**, idempotent (one match per donation, and the match
-    ID is the payout's `sender_batch_id`).
-  - **Webhooks** with signature verification to confirm captures and payouts.
-  - A popup on laptops and a same-tab redirect on phones, where popups are unreliable.
-  - The server always chooses the payee and validates the amount; the browser only ever gets
-    the client ID.
-- **AI feed**, with no paid AI service: posts are embedded with the open-source
-  all-MiniLM-L6-v2 model running inside the app (transformers.js) and stored in pgvector.
-  Each person's interest vector starts from their chosen causes and learns from donations,
-  follows, comments, likes and **dwell time** (how long a post stays on screen). Ranking is a
-  simple, documented score: relevance + freshness + followed + popularity + boost + a little
-  exploration so people still discover new causes.
-- **Search by meaning**, with the same local model: "help for refugee families" finds the
-  right nonprofit's posts even when they're written in Ukrainian or Spanish.
-- **Claude Haiku** translates posts and comments (some demo nonprofits post in Ukrainian and
-  Spanish) and writes a one-line "Why am I seeing this?" from the real ranking factors. Every
-  result is cached, so the same input never reaches the API twice.
-- **AG Studio dashboards** for nonprofits and sponsors, themed like Bono, with a custom
-  matching-pool meter widget. People ask questions in plain English through the **Studio Agent
-  Framework**: a custom Bono agent answers from the data and hands "add a chart of…" requests to
-  Studio's built-in agents. All of them run on Claude Haiku through Bono's server, with cached turns
-  and a daily limit.
-- **Claude Code + the APIMatic PayPal Context Plugin**: every PayPal call was written from the
-  plugin's SDK map (operations, request fields, error types), not from memory, with a
-  contract sheet checked into the repo.
+I built Bono solo in five weeks with Claude Code as my coding partner. I used Next.js 16, TypeScript, Postgres with pgvector, Auth.js, and Tailwind. Render hosts the app and database.
+
+I used APIMatic's PayPal Context Plugin to build the Orders v2 and Payouts integrations against the API contracts. A local embedding model powers search and helps rank the feed. Claude Haiku translates posts, explains recommendations, and powers the dashboard agent in AG Studio.
 
 ## Challenges we ran into
 
-- **Paying the nonprofit, not the platform.** Donations set the payee per order, so each
-  nonprofit needs its own PayPal account, and verification has to prove the account belongs
-  to it: the fee must be paid from that same account.
-- **Phones.** PayPal's popup is unreliable on mobile browsers, so phones approve in the same
-  tab and come back to a return page where the server captures the order.
-- **Fake charities.** Anyone can type a name. Bono checks the EIN on demand against IRS data
-  (through ProPublica's Nonprofit Explorer) and requires 6 months of tax-exempt status, while
-  letting new organizations take part as supporters until then.
-- **Running lean.** Embeddings run locally, LLM results are cached, and photos and short
-  videos live in Postgres with strict size caps, so the whole app runs on one small web
-  server and one small database, with no paid AI or storage services beyond a few cents of
-  Claude Haiku.
+PayPal can report the same capture in both its response and a webhook. I check amounts on the server, verify webhook signatures, and make both paths safe to retry so one gift can trigger at most one match.
+
+The IRS check and PayPal verification payment had to fit into one signup flow a nonprofit could complete on its own. To run a media-heavy feed on Render's smallest plans, I compressed reels for phones and streamed media from Postgres. Caching and daily limits kept AI costs down.
 
 ## Accomplishments that we're proud of
 
-- Money flows the way it should: donor → nonprofit directly, sponsor → pool → nonprofit via
-  Payouts, with idempotency so nobody is ever paid twice.
-- A feed that visibly adapts: donate to an animal shelter and animal posts rise.
-- A full social app (stories, reels, messages, events, notifications, comments, badges) that
-  works on a phone, built solo in a month, with unit, end-to-end and accessibility tests.
+My favorite moment is watching a gift and its sponsor match move the goal bar while the story is still on screen. The Giving Pulse shows what people are helping fund across Bono as gifts come in.
 
 ## What we learned
 
-How PayPal's pieces fit together for a marketplace-style app (per-order payees, Payouts,
-webhooks), how far a small local embedding model can go for personalization, and how much
-faster and safer integration work gets when the AI coding agent reads the SDK's real
-contract instead of guessing.
+I learned that a donation flow earns trust after someone taps Donate. The app has to show what's happening when a payment takes time or fails. A handful of signals was enough to make the feed feel personal and explain why a post was there. I got the best results from Claude Code when I gave it a clear product goal and the actual API contract.
 
 ## What's next for Bono
 
-The demo runs in the PayPal sandbox with a few deliberate simplifications. The production path:
+Bono's next step is to go global. Bono already translates posts on tap and searches by meaning, so a nonprofit can share its story once, in its own language, and be read across borders. Next: nonprofit registries beyond the IRS, so a charity anywhere PayPal works, in more than 200 markets, can be verified and funded directly. If there's PayPal, there's Bono.
 
-- **Connect PayPal** for nonprofits through PayPal's partner onboarding, instead of a typed-in
-  account email; it also replaces the verification fee as proof the account is theirs.
-- **Multiparty (platform) payments for sponsor pools**, so Bono never holds anyone's money,
-  not even matching pools (in the demo, pools sit in Bono's sandbox account and matches go out
-  with Payouts).
-- **No verification fee for small nonprofits**, or sponsors cover it.
-- **Tax receipts and recurring monthly gifts** for donors.
-- A background worker for payouts and feed updates, moderation tools, and a pilot with one real
-  nonprofit.
+Happy mindful scrolling.
 
 ## Built with
 
