@@ -20,8 +20,11 @@ Bono is a social media app where **nonprofits are the influencers**.
 
 - **Supporters** pick the causes they care about and get an AI-ranked feed of posts, stories,
   reels and events from verified nonprofits. They like, comment, follow, message, RSVP and
-  **donate with PayPal** from any post. Over time they earn public badges per nonprofit
-  (Rising, Emerging, Established, Champion), shown as tiers and never as amounts.
+  **donate with PayPal** from any post. Posts can carry a fundraising goal whose bar moves the
+  moment a gift (and its match) clears, and the feed opens with the giving pulse: what moved
+  through Bono in the last 30 days and the latest gifts, never who gave. Over time supporters
+  earn public badges per nonprofit (Rising, Emerging, Established, Champion), shown as tiers
+  and never as amounts.
 - **Nonprofits** get verified (an EIN check against IRS records, at least 6 months
   tax-exempt, then a verification fee through PayPal). They post, and receive donations
   **directly into their own PayPal account**: Bono never holds donation money.
