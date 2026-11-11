@@ -1,4 +1,7 @@
-import { Search } from "lucide-react";
+import { CalendarDays, Search } from "lucide-react";
+import { Avatar } from "@/components/avatar";
+import { LocalTime } from "@/components/local-time";
+import { imageUrl } from "@/lib/images";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { Suspense } from "react";
@@ -7,7 +10,7 @@ import { Logo } from "@/components/profile-header";
 import { viewerLanguage } from "@/lib/ai/viewer-language";
 import { getSession } from "@/lib/auth/session";
 import { payPalClientId } from "@/lib/paypal/public-config";
-import { QUERY_MAX, searchOrganizations, searchPosts } from "@/lib/search/queries";
+import { QUERY_MAX, searchEvents, searchOrganizations, searchPeople, searchPosts } from "@/lib/search/queries";
 
 export const metadata = { title: "Search · Bono" };
 
@@ -33,7 +36,7 @@ async function Results({ searchParams }: { searchParams: PageProps<"/search">["s
   const form = (
     <form action="/search" role="search" className="flex gap-2">
       <label htmlFor="q" className="sr-only">
-        Search nonprofits and posts
+        Search nonprofits, people, events and posts
       </label>
       <input
         id="q"
@@ -42,7 +45,7 @@ async function Results({ searchParams }: { searchParams: PageProps<"/search">["s
         defaultValue={q}
         maxLength={QUERY_MAX}
         autoFocus={!q}
-        placeholder="Search nonprofits and posts"
+        placeholder="Search nonprofits, people, events and posts"
         className="min-w-0 flex-1 rounded-lg border border-zinc-300 bg-white px-3 py-2 text-zinc-900 focus:outline-2 focus:outline-zinc-900 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-100 dark:focus:outline-white"
       />
       <button
@@ -60,7 +63,7 @@ async function Results({ searchParams }: { searchParams: PageProps<"/search">["s
       <>
         {form}
         <p className="text-zinc-600 dark:text-zinc-400">
-          Search by name, cause or what you care about. Bono understands meaning, not just words: try one of these.
+          Search nonprofits, people, events and posts by name, cause or what you care about. Bono understands meaning, not just words: try one of these.
         </p>
         <ul className="flex flex-wrap gap-2">
           {SUGGESTIONS.map((s) => (
@@ -82,14 +85,25 @@ async function Results({ searchParams }: { searchParams: PageProps<"/search">["s
   // The organizations behind the matching posts, the one with the most matches first.
   const counts = new Map<string, number>();
   for (const p of posts) counts.set(p.nonprofit.id, (counts.get(p.nonprofit.id) ?? 0) + 1);
-  const orgs = await searchOrganizations(q, [...counts.entries()].sort((a, b) => b[1] - a[1]).map(([id]) => id));
+  const [orgs, people, events] = await Promise.all([
+    searchOrganizations(q, [...counts.entries()].sort((a, b) => b[1] - a[1]).map(([id]) => id)),
+    searchPeople(q),
+    searchEvents(q),
+  ]);
+  const plural = (n: number, one: string, many: string) => `${n} ${n === 1 ? one : many}`;
+  const found = [
+    orgs.length && plural(orgs.length, "organization", "organizations"),
+    people.length && plural(people.length, "person", "people"),
+    events.length && plural(events.length, "event", "events"),
+    posts.length && plural(posts.length, "post", "posts"),
+  ].filter(Boolean);
   return (
     <>
       {form}
       <p role="status" className="text-sm text-zinc-600 dark:text-zinc-400">
-        {orgs.length + posts.length === 0
+        {found.length === 0
           ? `Nothing found for "${q}". Try other words, or a cause like "animals" or "climate".`
-          : `${orgs.length} ${orgs.length === 1 ? "organization" : "organizations"} and ${posts.length} ${posts.length === 1 ? "post" : "posts"} for "${q}"`}
+          : `${found.join(", ")} for "${q}"`}
       </p>
       {orgs.length > 0 && (
         <section aria-labelledby="orgs-heading" className="flex flex-col gap-3">
@@ -110,6 +124,67 @@ async function Results({ searchParams }: { searchParams: PageProps<"/search">["s
                       {!o.verified && <span className="ml-2 text-xs font-normal text-zinc-600 dark:text-zinc-400">Not verified yet</span>}
                     </span>
                     <span className="line-clamp-1 text-sm text-zinc-600 dark:text-zinc-400">{o.mission}</span>
+                  </span>
+                </Link>
+              </li>
+            ))}
+          </ul>
+        </section>
+      )}
+      {people.length > 0 && (
+        <section aria-labelledby="people-heading" className="flex flex-col gap-3">
+          <h2 id="people-heading" className="text-lg font-semibold">
+            People
+          </h2>
+          <ul className="flex flex-col gap-2">
+            {people.map((p) => (
+              <li key={p.id}>
+                <Link
+                  href={p.role === "sponsor" ? `/sponsors/${p.id}` : `/users/${p.id}`}
+                  className="flex items-center gap-3 rounded-2xl border border-zinc-200 p-3 hover:bg-zinc-50 focus:outline-2 focus:outline-zinc-900 dark:border-zinc-800 dark:hover:bg-zinc-900 dark:focus:outline-white"
+                >
+                  <Avatar name={p.name} imageId={p.imageId} className="size-11" />
+                  <span className="flex min-w-0 flex-col">
+                    <span className="font-semibold">
+                      {p.name}
+                      <span className="ml-2 text-xs font-normal text-zinc-600 dark:text-zinc-400">{p.role === "sponsor" ? "Sponsor" : "Supporter"}</span>
+                    </span>
+                    {p.bio && <span className="line-clamp-1 text-sm text-zinc-600 dark:text-zinc-400">{p.bio}</span>}
+                  </span>
+                </Link>
+              </li>
+            ))}
+          </ul>
+        </section>
+      )}
+      {events.length > 0 && (
+        <section aria-labelledby="events-heading" className="flex flex-col gap-3">
+          <h2 id="events-heading" className="text-lg font-semibold">
+            Events
+          </h2>
+          <ul className="flex flex-col gap-2">
+            {events.map((e) => (
+              <li key={e.id}>
+                <Link
+                  href={`/events/${e.id}`}
+                  className="flex items-center gap-3 rounded-2xl border border-zinc-200 p-3 hover:bg-zinc-50 focus:outline-2 focus:outline-zinc-900 dark:border-zinc-800 dark:hover:bg-zinc-900 dark:focus:outline-white"
+                >
+                  {e.coverImageId ? (
+                    // eslint-disable-next-line @next/next/no-img-element -- served from our own API
+                    <img src={imageUrl(e.coverImageId)} alt="" className="size-14 shrink-0 rounded-lg object-cover" />
+                  ) : (
+                    <span className="flex size-14 shrink-0 items-center justify-center rounded-lg bg-zinc-100 dark:bg-zinc-800">
+                      <CalendarDays aria-hidden className="size-6" />
+                    </span>
+                  )}
+                  <span className="flex min-w-0 flex-col">
+                    <span className="font-semibold">
+                      {e.title}
+                      {e.cancelled && <span className="ml-2 text-xs font-normal text-zinc-600 dark:text-zinc-400">Cancelled</span>}
+                    </span>
+                    <span className="text-sm text-zinc-600 dark:text-zinc-400">
+                      <LocalTime iso={e.startsAt.toISOString()} /> · {e.nonprofitName}
+                    </span>
                   </span>
                 </Link>
               </li>
