@@ -4,6 +4,7 @@ import { useId, useRef, useState } from "react";
 import { captureDonationAction, createDonationOrderAction } from "@/lib/donations/actions";
 import { amountSchema, formatCents, PRESET_DOLLARS } from "@/lib/donations/amounts";
 import { PayPalCheckout } from "@/components/paypal-checkout";
+import { announceDonation } from "@/components/post-goal";
 
 type Props = {
   nonprofitId: string;
@@ -87,6 +88,8 @@ function DonateFlow({
     if ("declined" in result) return "Your payment method was declined. Try another one.";
     if ("error" in result) return result.error;
     setThanks({ amountCents: result.amountCents, pending: result.status === "pending", match: result.match, tier: result.tier });
+    // Only a completed gift counts toward a post's goal; a pending one shows up after it clears.
+    if (result.status !== "pending") announceDonation({ postId: postId ?? null, amountCents: result.amountCents, matchCents: result.match?.amountCents ?? 0 });
     return null;
   }
 

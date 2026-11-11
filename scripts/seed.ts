@@ -168,6 +168,8 @@ async function main() {
 
     let postCount = 0;
     const seededPostIds: string[] = [];
+    // Posts with a fundraising goal, and the gifts the demo history should put behind each.
+    const goalPosts: { postId: string; nonprofitId: string; targetCents: number; createdAt: Date }[] = [];
     for (const np of nonprofits) {
       const id = await upsertUser(`${np.slug}@${DEMO_DOMAIN}`, np.name, "nonprofit", np.bio);
       const currentLogo =
@@ -232,9 +234,12 @@ async function main() {
           language: post.language ?? "en",
           coverText: photoFile ? (post.coverText ?? null) : null,
           coverTextPosition: post.coverTextPosition ?? "middle",
+          goalTitle: post.goal?.title ?? null,
+          goalCents: post.goal ? post.goal.dollars * 100 : null,
           createdAt: hoursAgo(post.hoursAgo),
           ...photo,
         };
+        if (post.goal) goalPosts.push({ postId, nonprofitId: id, targetCents: Math.round(post.goal.dollars * post.goal.raisedPercent), createdAt: values.createdAt });
         await tx.insert(posts).values({ id: postId, ...values }).onConflictDoUpdate({ target: posts.id, set: values });
         await tx.delete(postCauses).where(eq(postCauses.postId, postId));
         await tx
@@ -443,6 +448,7 @@ async function main() {
       nonprofits.filter((n) => !n.unverified).map((n) => ({ slug: n.slug, id: nonprofitIds.get(n.slug)!, causes: n.causes })),
       [...sponsorIds, ...(judges ? [judges.sponsorId] : [])],
       boostTerms().feeCents,
+      goalPosts,
     );
 
     // Comments, replies and reactions on a few demo posts.

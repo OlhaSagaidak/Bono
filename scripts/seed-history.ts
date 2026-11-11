@@ -31,6 +31,7 @@ export async function seedGivingHistory(
   orgs: { slug: string; id: string; causes: string[] }[],
   sponsorIds: string[],
   boostFeeCents: number,
+  goalPosts: { postId: string; nonprofitId: string; targetCents: number; createdAt: Date }[] = [],
 ): Promise<{ donations: number; boosts: number; campaigns: number; matches: number }> {
   await tx.delete(campaigns).where(eq(campaigns.demoSeed, true)); // takes its matches with it
   await tx.delete(donations).where(eq(donations.demoSeed, true));
@@ -66,6 +67,24 @@ export async function seedGivingHistory(
           demoSeed: true,
         });
       }
+    }
+  }
+  // Gifts behind each post's fundraising goal: from supporters who share the
+  // cause, dated after the post, adding up to about the target. Larger gifts
+  // than the pattern above, so a $2,400 goal doesn't take 100 donors.
+  const GOAL_AMOUNTS = [1_000, 2_500, 2_500, 5_000, 5_000, 10_000, 25_000];
+  for (const g of goalPosts) {
+    const org = orgs.find((o) => o.id === g.nonprofitId);
+    const givers = supporters.filter((s) => org?.causes.some((c) => s.interests.includes(c)));
+    if (!org || givers.length === 0) continue;
+    let raised = 0;
+    for (let k = 0; raised < g.targetCents; k++) {
+      const amount = Math.min(GOAL_AMOUNTS[Math.floor(pick(`goal:${g.postId}:${k}:a`) * GOAL_AMOUNTS.length)], g.targetCents - raised);
+      if (amount < 100) break;
+      raised += amount;
+      const giver = givers[Math.floor(pick(`goal:${g.postId}:${k}:who`) * givers.length)];
+      const at = new Date(g.createdAt.getTime() + pick(`goal:${g.postId}:${k}:d`) * (now - g.createdAt.getTime()));
+      rows.push({ donorId: giver.id, nonprofitId: org.id, postId: g.postId, amountCents: amount, payeeEmail: payees.get(org.id) ?? "", status: "completed", createdAt: at, completedAt: at, demoSeed: true });
     }
   }
   const seeded = rows.length ? await tx.insert(donations).values(rows).returning({ id: donations.id, nonprofitId: donations.nonprofitId, amountCents: donations.amountCents, completedAt: donations.completedAt }) : [];

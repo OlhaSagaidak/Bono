@@ -6,6 +6,7 @@ import { DonateButton } from "@/components/donate-button";
 import { FollowButton } from "@/components/follow-button";
 import { LikeButton } from "@/components/like-button";
 import { PostBody } from "@/components/post-body";
+import { PostGoal } from "@/components/post-goal";
 import { PostActions } from "@/components/post-comments";
 import { SaveButton } from "@/components/save-button";
 import { WhyButton } from "@/components/why-button";
@@ -112,6 +113,8 @@ export function PostCard({
           {post.coverText && <CoverText text={post.coverText} position={post.coverTextPosition} />}
         </div>
       )}
+
+      {post.goal && <PostGoal postId={post.id} {...post.goal} />}
 
       {post.causes.length > 0 && (
         <ul className="flex flex-wrap gap-2" aria-label="Causes">

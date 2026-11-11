@@ -2,7 +2,7 @@ import { and, asc, count, desc, eq, inArray, isNotNull, sql, type SQL } from "dr
 import { db } from "@/db";
 import { activeBoostSponsors } from "@/lib/boosts/queries";
 import { matchingSponsorsFor } from "@/lib/matching/matching";
-import { causes, follows, nonprofitProfiles, postCauses, postComments, postLikes, postSaves, posts } from "@/db/schema";
+import { causes, donations, follows, matches, nonprofitProfiles, postCauses, postComments, postLikes, postSaves, posts } from "@/db/schema";
 
 export const PAGE_SIZE = 20;
 
@@ -17,6 +17,8 @@ const postColumns = {
   imageAlt: posts.imageAlt,
   coverText: posts.coverText,
   coverTextPosition: posts.coverTextPosition,
+  goalTitle: posts.goalTitle,
+  goalCents: posts.goalCents,
   createdAt: posts.createdAt,
   nonprofit: {
     id: nonprofitProfiles.userId,
@@ -38,11 +40,12 @@ export async function getPostsByIds(ids: string[], viewerId: string | null = nul
     .innerJoin(nonprofitProfiles, eq(nonprofitProfiles.userId, posts.nonprofitId))
     .where(inArray(posts.id, ids));
   const nonprofitIds = [...new Set(rows.map((r) => r.nonprofit.id))];
-  const [tags, engagement, matching, boosted] = await Promise.all([
+  const [tags, engagement, matching, boosted, progress] = await Promise.all([
     getCauseTags(ids),
     getEngagement(ids, nonprofitIds, viewerId),
     matchingSponsorsFor(nonprofitIds),
     activeBoostSponsors(ids),
+    getGoalProgress(rows.filter((r) => r.goalCents).map((r) => r.id)),
   ]);
   const byId = new Map(
     rows.map((r) => [
@@ -59,10 +62,36 @@ export async function getPostsByIds(ids: string[], viewerId: string | null = nul
         matchedBy: matching.get(r.nonprofit.id) ?? null,
         // Sponsors paying to boost this post right now: always shown, never hidden.
         boostedBy: boosted.get(r.id) ?? [],
+        // The post's fundraising goal and how far along it is, if it has one.
+        goal:
+          r.goalCents && r.goalTitle
+            ? { title: r.goalTitle, goalCents: r.goalCents, ...(progress.get(r.id) ?? { raisedCents: 0, donors: 0 }) }
+            : null,
       },
     ]),
   );
   return ids.flatMap((id) => byId.get(id) ?? []);
+}
+
+export type GoalProgress = { raisedCents: number; donors: number };
+
+/**
+ * What each post's goal has raised: completed donations made from the post,
+ * plus the sponsor matches those donations earned (a match that failed to pay
+ * out doesn't count). Donors are distinct people.
+ */
+async function getGoalProgress(postIds: string[]): Promise<Map<string, GoalProgress>> {
+  if (postIds.length === 0) return new Map();
+  const rows = await db
+    .select({
+      postId: donations.postId,
+      raised: sql<number>`sum(${donations.amountCents} + coalesce((select ${matches.amountCents} from ${matches} where ${matches.donationId} = ${donations.id} and ${matches.status} <> 'failed'), 0))::int`,
+      donors: sql<number>`count(distinct ${donations.donorId})::int`,
+    })
+    .from(donations)
+    .where(and(inArray(donations.postId, postIds), eq(donations.status, "completed")))
+    .groupBy(donations.postId);
+  return new Map(rows.map((r) => [r.postId!, { raisedCents: r.raised, donors: r.donors }]));
 }
 
 async function getEngagement(postIds: string[], nonprofitIds: string[], viewerId: string | null) {

@@ -13,7 +13,7 @@ import {
 import { listValue, textValue, type FormState } from "@/lib/forms";
 import { createPostAction } from "@/lib/posts/actions";
 import { COVER_TEXT_POSITIONS } from "@/components/cover-text";
-import { ALT_MAX, BODY_MAX, COVER_TEXT_MAX, LANGUAGES } from "@/lib/posts/validation";
+import { ALT_MAX, BODY_MAX, COVER_TEXT_MAX, GOAL_TITLE_MAX, LANGUAGES } from "@/lib/posts/validation";
 
 export function PostForm({ causes }: { causes: { value: string; label: string }[] }) {
   const [state, action, pending] = useActionState<FormState, FormData>(createPostAction, {});
@@ -77,6 +77,28 @@ export function PostForm({ causes }: { causes: { value: string; label: string }[
         options={COVER_TEXT_POSITIONS}
         defaultValue={textValue(state, "coverTextPosition") || "middle"}
       />
+      <fieldset className="flex flex-col gap-4 rounded-xl border border-zinc-200 p-4 dark:border-zinc-800">
+        <legend className="px-1 text-sm font-medium">Fundraising goal (optional)</legend>
+        <p className="-mt-2 text-sm text-zinc-600 dark:text-zinc-400">
+          Give the post a goal and supporters see a progress bar that moves with every gift, sponsor matches included.
+        </p>
+        <TextField
+          name="goalTitle"
+          label="What it's for"
+          hint={`Short and concrete, like "Rex's surgery" or "Winter coats for 40 kids". Up to ${GOAL_TITLE_MAX} characters.`}
+          required={false}
+          defaultValue={textValue(state, "goalTitle")}
+          errors={errors.goalTitle}
+        />
+        <TextField
+          name="goalDollars"
+          label="Amount (USD)"
+          hint="Whole dollars, like 2400."
+          required={false}
+          defaultValue={textValue(state, "goalDollars")}
+          errors={errors.goalDollars}
+        />
+      </fieldset>
       <SubmitButton pending={pending}>Publish</SubmitButton>
     </form>
   );

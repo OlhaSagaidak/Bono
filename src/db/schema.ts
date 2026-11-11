@@ -152,6 +152,10 @@ export const posts = pgTable(
     // A line or two of text drawn over the photo, like text on a social post. Optional.
     coverText: text("cover_text"),
     coverTextPosition: coverTextPositionEnum("cover_text_position").notNull().default("middle"),
+    // An optional fundraising goal the post asks for ("Rex's surgery", $2,400).
+    // Progress = completed donations made from this post plus their sponsor matches.
+    goalTitle: text("goal_title"),
+    goalCents: integer("goal_cents"),
     // The post's text plus its cause tags, embedded once when it's created.
     // Null until then (or if the model failed); `npm run embed` fills gaps.
     embedding: vector("embedding", { dimensions: EMBEDDING_DIMENSIONS }),
