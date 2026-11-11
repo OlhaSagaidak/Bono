@@ -50,11 +50,6 @@ export default function Home() {
           <Suspense fallback={<div className="h-12" aria-hidden />}>
             <SignedInRedirect />
           </Suspense>
-          <p className="max-w-xl rounded-xl border border-zinc-200 px-4 py-3 text-sm text-zinc-700 dark:border-zinc-800 dark:text-zinc-300">
-            <strong className="text-zinc-900 dark:text-zinc-100">Judging Bono?</strong> Log in as{" "}
-            <code className="font-mono">judge.supporter@bono.example</code> with the password{" "}
-            <code className="font-mono">Judge-sdnrzffysq</code>. Payments use the PayPal sandbox: no real money moves.
-          </p>
         </div>
         {/* Two phone screens of the real app, overlapping. Decorative: the text above says what they show. */}
         <div aria-hidden className="relative mx-auto hidden h-[34rem] w-[22rem] sm:block">
