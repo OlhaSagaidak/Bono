@@ -47,35 +47,20 @@ const STARTERS: Record<DashboardData["kind"], AgAiPromptStarter[]> = {
   ],
 };
 
-// Bono's look: black and white like the rest of the app, its own font, and a
-// monochrome chart palette (inverted in dark mode) so charts stay calm.
+// Bono's look: black-and-white chrome like the rest of the app, with colour
+// reserved for the data. The six chart colours are a fixed categorical order
+// (blue, orange, aqua, yellow, magenta, violet) validated for colour-vision
+// deficiency and contrast; dark mode uses the same hues stepped for the dark
+// surface, not an inversion.
+export const CHART_COLORS = {
+  light: ["#2a78d6", "#eb6834", "#1baf7a", "#eda100", "#e87ba4", "#6250d6"],
+  dark: ["#3987e5", "#d95926", "#199e70", "#c98500", "#d55181", "#9085e9"],
+} as const;
+const fills = (colors: readonly string[]) =>
+  Object.fromEntries(colors.map((c, i) => [`chartPaletteFills${i + 1}Color`, c])) as Record<`chartPaletteFills${1 | 2 | 3 | 4 | 5 | 6}Color`, string>;
 const theme = studioTheme
-  .withParams(
-    {
-      accentColor: "#18181b",
-      fontFamily: "inherit",
-      borderRadius: 8,
-      chartPaletteFills1Color: "#18181b",
-      chartPaletteFills2Color: "#71717a",
-      chartPaletteFills3Color: "#a1a1aa",
-      chartPaletteFills4Color: "#3f3f46",
-      chartPaletteFills5Color: "#d4d4d8",
-      chartPaletteFills6Color: "#52525b",
-    },
-    "light",
-  )
-  .withParams(
-    {
-      accentColor: "#fafafa",
-      chartPaletteFills1Color: "#fafafa",
-      chartPaletteFills2Color: "#a1a1aa",
-      chartPaletteFills3Color: "#71717a",
-      chartPaletteFills4Color: "#d4d4d8",
-      chartPaletteFills5Color: "#52525b",
-      chartPaletteFills6Color: "#e4e4e7",
-    },
-    "dark",
-  );
+  .withParams({ accentColor: "#18181b", fontFamily: "inherit", borderRadius: 8, ...fills(CHART_COLORS.light) }, "light")
+  .withParams({ accentColor: "#fafafa", ...fills(CHART_COLORS.dark) }, "dark");
 
 // The glossary the Bono agent can look things up in, so answers use Bono's real rules.
 const GLOSSARY = {

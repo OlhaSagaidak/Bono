@@ -13,7 +13,7 @@ export function PoolMeter({ usedCents, poolCents }: { usedCents: number; poolCen
         aria-valuenow={percent}
         className="h-2.5 overflow-hidden rounded-full bg-zinc-200 dark:bg-zinc-800"
       >
-        <div className="h-full rounded-full bg-zinc-900 dark:bg-white" style={{ width: `${percent}%` }} />
+        <div className="h-full rounded-full bg-[#2a78d6] dark:bg-[#3987e5]" style={{ width: `${percent}%` }} />
       </div>
       <p className="text-sm text-zinc-600 dark:text-zinc-400">
         {formatCents(usedCents)} matched of {formatCents(poolCents)} · {formatCents(Math.max(0, poolCents - usedCents))} left
