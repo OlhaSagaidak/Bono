@@ -87,6 +87,18 @@ export async function seedGivingHistory(
       rows.push({ donorId: giver.id, nonprofitId: org.id, postId: g.postId, amountCents: amount, payeeEmail: payees.get(org.id) ?? "", status: "completed", createdAt: at, completedAt: at, demoSeed: true });
     }
   }
+  // A few gifts in the last hours, so the feed's giving pulse reads "12 minutes
+  // ago" rather than "3 days ago" (re-run the seed to freshen them).
+  for (const org of orgs) {
+    const givers = supporters.filter((s) => org.causes.some((c) => s.interests.includes(c)));
+    for (let k = 0; k < 3 && givers.length; k++) {
+      const giver = givers[Math.floor(pick(`fresh:${org.slug}:${k}:who`) * givers.length)];
+      const at = new Date(now - (5 + pick(`fresh:${org.slug}:${k}:d`) * 600) * 60_000); // 5 minutes to ~10 hours ago
+      const fresh = goalPosts.filter((g) => g.nonprofitId === org.id && g.createdAt < at);
+      const post = fresh[Math.floor(pick(`fresh:${org.slug}:${k}:p`) * (fresh.length + 1))]; // sometimes none
+      rows.push({ donorId: giver.id, nonprofitId: org.id, postId: post?.postId ?? null, amountCents: AMOUNTS[Math.floor(pick(`fresh:${org.slug}:${k}:a`) * AMOUNTS.length)], payeeEmail: payees.get(org.id) ?? "", status: "completed", createdAt: at, completedAt: at, demoSeed: true });
+    }
+  }
   const seeded = rows.length ? await tx.insert(donations).values(rows).returning({ id: donations.id, nonprofitId: donations.nonprofitId, amountCents: donations.amountCents, completedAt: donations.completedAt }) : [];
 
   // Two or three past boosts per sponsor, on posts of different nonprofits; all ended long ago.

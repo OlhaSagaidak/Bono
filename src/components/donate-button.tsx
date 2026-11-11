@@ -89,7 +89,16 @@ function DonateFlow({
     if ("error" in result) return result.error;
     setThanks({ amountCents: result.amountCents, pending: result.status === "pending", match: result.match, tier: result.tier });
     // Only a completed gift counts toward a post's goal; a pending one shows up after it clears.
-    if (result.status !== "pending") announceDonation({ postId: postId ?? null, amountCents: result.amountCents, matchCents: result.match?.amountCents ?? 0 });
+    if (result.status !== "pending") {
+      announceDonation({
+        postId: postId ?? null,
+        amountCents: result.amountCents,
+        matchCents: result.match?.amountCents ?? 0,
+        nonprofitId,
+        nonprofitName,
+        sponsorName: result.match?.sponsorName ?? null,
+      });
+    }
     return null;
   }
 

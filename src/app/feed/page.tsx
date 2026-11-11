@@ -7,6 +7,7 @@ import { z } from "zod";
 import { DwellTracker } from "@/components/dwell-tracker";
 import { EventsSidebar } from "@/components/events-sidebar";
 import { FollowingSidebar } from "@/components/following-sidebar";
+import { GivingPulse } from "@/components/giving-pulse";
 import { PostList, REEL_EVERY } from "@/components/post-list";
 import { RecentChatsSidebar } from "@/components/recent-chats-sidebar";
 import { SidebarEmpty, SidebarSection } from "@/components/sidebar-section";
@@ -18,6 +19,7 @@ import { getAccount } from "@/lib/profiles/queries";
 import { viewerLanguage } from "@/lib/ai/viewer-language";
 import { payPalClientId } from "@/lib/paypal/public-config";
 import { boostTerms } from "@/lib/boosts/config";
+import { getGivingPulse } from "@/lib/donations/pulse";
 import { getRankedFeed } from "@/lib/feed/feed";
 import { PAGE_SIZE } from "@/lib/posts/queries";
 import { getFeedReels } from "@/lib/reels/queries";
@@ -41,6 +43,9 @@ export default function FeedPage({ searchParams }: PageProps<"/feed">) {
       <main className="flex min-w-0 flex-col gap-6">
         <Suspense fallback={<div className="h-[12.25rem]" aria-hidden />}>
           <StoriesForViewer searchParams={searchParams} />
+        </Suspense>
+        <Suspense fallback={<div className="h-[5.75rem]" aria-hidden />}>
+          <PulseForViewer />
         </Suspense>
         <h1 className="sr-only">Your feed</h1>
         <Suspense fallback={<p className="text-zinc-600 dark:text-zinc-400">Loading posts…</p>}>
@@ -115,6 +120,13 @@ async function EventsSidebarForViewer() {
 async function RecentChatsSidebarForViewer() {
   const session = await getSession();
   return session ? <RecentChatsSidebar userId={session.user.id} /> : null;
+}
+
+// The giving pulse is the same for everyone signed in; it just isn't shown to visitors.
+async function PulseForViewer() {
+  const session = await getSession();
+  if (!session?.user.onboarded) return null;
+  return <GivingPulse pulse={await getGivingPulse()} />;
 }
 
 async function StoriesForViewer({ searchParams }: { searchParams: PageProps<"/feed">["searchParams"] }) {

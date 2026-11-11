@@ -9,7 +9,15 @@ import { formatCents } from "@/lib/donations/amounts";
 // match included, without waiting for a reload.
 
 export const DONATED_EVENT = "bono:donated";
-export type DonatedDetail = { postId: string | null; amountCents: number; matchCents: number };
+export type DonatedDetail = {
+  postId: string | null;
+  amountCents: number;
+  matchCents: number;
+  // For the giving pulse on the feed, which shows the gift and its match.
+  nonprofitId?: string;
+  nonprofitName?: string;
+  sponsorName?: string | null;
+};
 
 /** Tells any goal bar on the page that a gift just went through. */
 export function announceDonation(detail: DonatedDetail) {
