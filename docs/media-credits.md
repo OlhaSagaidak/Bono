@@ -105,7 +105,7 @@ Slideshow reels for Bright Futures, Open Pantry and New Roots are made from the 
 | events/open-pantry-2.jpg | Free big bread bakery shop |  | CC0 | https://www.rawpixel.com/image/5928055/photo-image-public-domain-food-free |
 | stories/paws-haven-5.jpg | Dog Beach | Studio 7042 | CC0 | https://stocksnap.io/photo/dog-beach-8N5GOMBTAB |
 | stories/paws-haven-6.jpg | Walking Dog | Matt Bango | CC0 | https://stocksnap.io/photo/walking-dog-GJJ6TGNARW |
-| stories/paws-haven-7.jpg | (Openverse search "dog leash walk") |  | CC0 or PDM | source link to be added |
+| stories/paws-haven-7.jpg | Woman walking a dog on a park path (Openverse search "dog leash walk", Nov 9, 2026) |  | CC0 | https://openverse.org/search/image?q=dog+leash+walk&license=cc0,pdm |
 | stories/green-seattle-4.jpg | Brown mushroom forest floor |  | CC0 | https://www.rawpixel.com/image/6034846/photo-image-public-domain-plant-nature |
 | stories/bright-futures-3.jpg | Colored Chalk | Artsy Crafty | CC0 | https://stocksnap.io/photo/colored-chalk-1OEIUV4JNK |
 | stories/bright-futures-4.jpg | Guitar | Matteo Sellas | CC0 | https://commons.wikimedia.org/w/index.php?curid=57858379 |
