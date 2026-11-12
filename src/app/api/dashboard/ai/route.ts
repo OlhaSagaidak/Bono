@@ -31,7 +31,10 @@ export async function POST(request: Request) {
     if (error instanceof AiUnavailableError) {
       return Response.json({ error: "The assistant isn't available right now. Try again in a little while." }, { status: 503 });
     }
-    throw error;
+    // Anything else is a bug: log it in full, and tell the person what kind so it can be reported.
+    console.error("Dashboard assistant failed:", error);
+    const reason = error instanceof Error ? `${error.name}: ${error.message.slice(0, 200)}` : String(error).slice(0, 200);
+    return Response.json({ error: `The assistant hit an error (${reason}). Please try again.` }, { status: 500 });
   }
 }
 
