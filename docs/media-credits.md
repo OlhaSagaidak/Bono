@@ -58,21 +58,21 @@ Slideshow reels for Bright Futures, Open Pantry and New Roots are made from the 
 
 | File | Title | Creator | License | Source |
 |---|---|---|---|---|
-| posts/paws-haven-15.jpg | (Openverse search "cat window") |  | CC0 or PDM | source link to be added |
-| posts/paws-haven-16.jpg | (Openverse search "cat window") |  | CC0 or PDM | source link to be added |
-| posts/paws-haven-17.jpg | (Openverse search "dog bath") |  | CC0 or PDM | source link to be added |
-| posts/paws-haven-18.jpg | (Openverse search "dog bath") |  | CC0 or PDM | source link to be added |
-| posts/paws-haven-19.jpg | (Openverse search "dog bath") |  | CC0 or PDM | source link to be added |
-| posts/paws-haven-20.jpg | (Openverse search "dog beach") |  | CC0 or PDM | source link to be added |
-| posts/paws-haven-21.jpg | (Openverse search "dog beach") |  | CC0 or PDM | source link to be added |
-| posts/paws-haven-22.jpg | (Openverse search "puppies") |  | CC0 or PDM | source link to be added |
-| posts/green-seattle-15.jpg | (Openverse search "autumn leaves") |  | CC0 or PDM | source link to be added |
-| posts/green-seattle-16.jpg | (Openverse search "autumn leaves") |  | CC0 or PDM | source link to be added |
-| posts/green-seattle-17.jpg | (Openverse search "autumn leaves") |  | CC0 or PDM | source link to be added |
+| posts/paws-haven-15.jpg | Cat window |  | CC0 | https://www.rawpixel.com/image/3370654/free-photo-image-cat-eye-afternoon |
+| posts/paws-haven-16.jpg | Cat window |  | CC0 | https://www.rawpixel.com/image/4021678/photo-image-wallpaper-house-cat |
+| posts/paws-haven-17.jpg | Animal Dog | Matt Bango | CC0 | https://stocksnap.io/photo/animal-dog-ZO5GDP2QY1 |
+| posts/paws-haven-18.jpg | Dog shower, animal photography |  | CC0 | https://www.rawpixel.com/image/6025967/photo-image-public-domain-person-dog |
+| posts/paws-haven-19.jpg | Untitled (dog bath) |  | CC0 | https://www.rawpixel.com/image/5959260/free-public-domain-cc0-photo |
+| posts/paws-haven-20.jpg | Free dalmatian dog beach image |  | CC0 | https://www.rawpixel.com/image/5915124/image-background-public-domain-dog |
+| posts/paws-haven-21.jpg | Cute female beagle dog beach |  | CC0 | https://www.rawpixel.com/image/6075752/photo-image-face-public-domain-blue |
+| posts/paws-haven-22.jpg | Dog Puppy | Jairo Alzate | CC0 | https://stocksnap.io/photo/dog-puppy-19KEJ58BB9 |
+| posts/green-seattle-15.jpg | Sogi Park Autumn Leaves | aimnotboy | CC0 | https://commons.wikimedia.org/w/index.php?curid=86896811 |
+| posts/green-seattle-16.jpg | Autumn Leaves | Flo Dahm | CC0 | https://stocksnap.io/photo/autumn-leaves-VWCAICDB8W |
+| posts/green-seattle-17.jpg | Autumn Leaves | Mary | CC0 | https://stocksnap.io/photo/autumn-leaves-0A80BXDFCN |
 | posts/green-seattle-18.jpg | Girl Woman | Leeroy | CC0 | https://stocksnap.io/photo/girl-woman-K5VUUDLK6L |
 | posts/green-seattle-19.jpg | Bicycle Bike | Alisa Anton | CC0 | https://stocksnap.io/photo/bicycle-bike-Y2KCFMGHD1 |
-| posts/green-seattle-20.jpg | (Openverse search "mushroom forest") |  | CC0 or PDM | source link to be added |
-| posts/green-seattle-21.jpg | (Openverse search "mushroom forest") |  | CC0 or PDM | source link to be added |
+| posts/green-seattle-20.jpg | Wild mushroom forest floor |  | CC0 | https://www.rawpixel.com/image/6021342/photo-image-public-domain-plant-woods |
+| posts/green-seattle-21.jpg | Wild mushroom forest floor |  | CC0 | https://www.rawpixel.com/image/6021218/photo-image-public-domain-plant-woods |
 | posts/green-seattle-22.jpg | Running Fitness | Chanan Greenblatt | CC0 | https://stocksnap.io/photo/running-fitness-RMDYXIJFJN |
 | posts/bright-futures-15.jpg | Rainbow color chalks | Sharon McCutcheon | CC0 | https://commons.wikimedia.org/w/index.php?curid=97045397 |
 | posts/bright-futures-16.jpg | Free colored chalk, art aesthetic |  | CC0 | https://www.rawpixel.com/image/5910479/image-background-aesthetic-design |
@@ -97,43 +97,43 @@ Slideshow reels for Bright Futures, Open Pantry and New Roots are made from the 
 | posts/new-roots-19.jpg | Rainy April |  | CC0 | https://www.rawpixel.com/image/6079217/rainy-april |
 | posts/new-roots-20.jpg | One Historic Wooden Houses Key | U.S. National Archives | CC0 | https://www.rawpixel.com/image/8803027/photo-image-house-door-arch |
 | posts/new-roots-21.jpg | Bike Bicycle | Huney Co | CC0 | https://stocksnap.io/photo/bike-bicycle-J4D7AJ8YU0 |
-| posts/new-roots-22.jpg | (Openverse search "dog leash walk") |  | CC0 or PDM | source link to be added |
-| events/paws-haven-1.jpg | (Openverse search "dog leash walk") |  | CC0 or PDM | source link to be added |
-| events/paws-haven-2.jpg | (Openverse search "cat window") |  | CC0 or PDM | source link to be added |
+| posts/new-roots-22.jpg | Lake Hayes Walkway, Queenstown NZ | Bernard Spragg. NZ from Christchurch, New Zealand | CC0 | https://commons.wikimedia.org/w/index.php?curid=70713105 |
+| events/paws-haven-1.jpg | White dog leash walking grass |  | CC0 | https://www.rawpixel.com/image/6042139/photo-image-background-public-domain-plant |
+| events/paws-haven-2.jpg | Sleeping Cat Window |  | CC0 | https://www.rawpixel.com/image/5966655/sleeping-cat-window |
 | events/green-seattle-2.jpg | Trees Plants | Alex%20Bl%u0103jan | CC0 | https://stocksnap.io/photo/trees-plants-YM863UXAFR |
 | events/open-pantry-1.jpg |  |  | CC0 | https://www.rawpixel.com/image/5949500/free-public-domain-cc0-photo |
 | events/open-pantry-2.jpg | Free big bread bakery shop |  | CC0 | https://www.rawpixel.com/image/5928055/photo-image-public-domain-food-free |
-| stories/paws-haven-5.jpg | (Openverse search "dog beach") |  | CC0 or PDM | source link to be added |
-| stories/paws-haven-6.jpg | (Openverse search "dog leash walk") |  | CC0 or PDM | source link to be added |
+| stories/paws-haven-5.jpg | Dog Beach | Studio 7042 | CC0 | https://stocksnap.io/photo/dog-beach-8N5GOMBTAB |
+| stories/paws-haven-6.jpg | Walking Dog | Matt Bango | CC0 | https://stocksnap.io/photo/walking-dog-GJJ6TGNARW |
 | stories/paws-haven-7.jpg | (Openverse search "dog leash walk") |  | CC0 or PDM | source link to be added |
-| stories/green-seattle-4.jpg | (Openverse search "mushroom forest") |  | CC0 or PDM | source link to be added |
-| stories/bright-futures-3.jpg | (Openverse search "colored chalk") |  | CC0 or PDM | source link to be added |
-| stories/bright-futures-4.jpg | (Openverse search "guitar") |  | CC0 or PDM | source link to be added |
-| stories/bright-futures-5.jpg | (Openverse search "colored chalk") |  | CC0 or PDM | source link to be added |
-| stories/open-pantry-4.jpg | (Openverse search "fresh herbs") |  | CC0 or PDM | source link to be added |
+| stories/green-seattle-4.jpg | Brown mushroom forest floor |  | CC0 | https://www.rawpixel.com/image/6034846/photo-image-public-domain-plant-nature |
+| stories/bright-futures-3.jpg | Colored Chalk | Artsy Crafty | CC0 | https://stocksnap.io/photo/colored-chalk-1OEIUV4JNK |
+| stories/bright-futures-4.jpg | Guitar | Matteo Sellas | CC0 | https://commons.wikimedia.org/w/index.php?curid=57858379 |
+| stories/bright-futures-5.jpg | Free colored chalk, art aesthetic |  | CC0 | https://www.rawpixel.com/image/5910777/image-background-aesthetic-design |
+| stories/open-pantry-4.jpg | Variety of fresh herbs | Jakub Kapusnak | CC0 | https://www.rawpixel.com/image/448385/free-photo-image-herbs-herbal-green |
 | stories/open-pantry-5.jpg | Bread Bakery | Drew Coffman | CC0 | https://stocksnap.io/photo/bread-bakery-EA1243E167 |
 | stories/open-pantry-6.jpg | Freee red apple crate image |  | CC0 | https://www.rawpixel.com/image/5920961/photo-image-public-domain-green-fruit |
 | stories/new-roots-3.jpg | Rainy scratched bus stop view |  | CC0 | https://www.rawpixel.com/image/6083558/rain |
 | profiles/daniel.ortiz.jpg | Boxes of disaster foods being | U.S. Department of Agriculture | CC0 | https://www.rawpixel.com/image/3306948/free-photo-image-warehouse-store |
-| profiles/priya.raman.jpg | (Openverse search "colored chalk") |  | CC0 or PDM | source link to be added |
-| profiles/olek.kovalenko.jpg | (Openverse search "sunrise city") |  | CC0 or PDM | source link to be added |
+| profiles/priya.raman.jpg | Colored Chalk | Artsy Crafty | CC0 | https://stocksnap.io/photo/colored-chalk-IGEJPSXF2S |
+| profiles/olek.kovalenko.jpg | Sydney city sunrise | Wyncliffe | CC0 | https://commons.wikimedia.org/w/index.php?curid=49244816 |
 | profiles/grace.liu.jpg | Autumn Path | Tricia Gray | CC0 | https://stocksnap.io/photo/autumn-path-SBPB82MIOJ |
 | profiles/sam.okafor.jpg | Still Items | Markus Spiske | CC0 | https://stocksnap.io/photo/still-items-KTQZYM7YXM |
 | profiles/lucia.herrera.jpg | Free library shelves many books |  | CC0 | https://www.rawpixel.com/image/5924956/photo-image-book-public-domain-room |
-| profiles/ben.fischer.jpg | (Openverse search "dog bath") |  | CC0 or PDM | source link to be added |
-| profiles/hana.sato.jpg | (Openverse search "colored chalk") |  | CC0 or PDM | source link to be added |
+| profiles/ben.fischer.jpg | Wet dog | MarkBuckawicki | CC0 | https://commons.wikimedia.org/w/index.php?curid=29560350 |
+| profiles/hana.sato.jpg | Colored Chalk | Steve Johnson | CC0 | https://stocksnap.io/photo/colored-chalk-BLIKHSAS8N |
 | profiles/marcus.bell.jpg | Basketball Court | Eric Haidara | CC0 | https://stocksnap.io/photo/basketball-court-FRDRMS892W |
-| profiles/elena.petrova.jpg | (Openverse search "dog leash walk") |  | CC0 or PDM | source link to be added |
+| profiles/elena.petrova.jpg | Dog Animal | Tabitha Mort | CC0 | https://stocksnap.io/photo/dog-animal-JOJI7ZCAPQ |
 | profiles/theo.nguyen.jpg | Salmon River Francis Seymour Haden | clevelandart | CC0 | https://www.rawpixel.com/image/9669687/salmon-river-francis-seymour-haden |
 | profiles/aisha.rahman.jpg | Thick yellow rapeseed wildflowers meadow |  | CC0 | https://www.rawpixel.com/image/3301449/free-photo-image-cc0-countryside-creative-commons |
-| profiles/jonah.weiss.jpg | (Openverse search "guitar") |  | CC0 or PDM | source link to be added |
+| profiles/jonah.weiss.jpg | Acoustic Guitar | Negative Space | CC0 | https://stocksnap.io/photo/acoustic-guitar-HP2GGWWPIN |
 | profiles/sofia.rossi.jpg | A statue of a monkey with a thoughtful expression, seated with its han | Riwaj Lamichhane | CC0 | https://wordpress.org/photos/photo/6606978b80/ |
 | profiles/kwame.mensah.jpg | Chalkboard Chalk | Flat Lay Photos | CC0 | https://stocksnap.io/photo/chalkboard-chalk-FQCCUDQ3N0 |
 | profiles/ingrid.larsen.jpg | A person with a backpack and hiking gear stands on a forest trail, fac | Yam B Chhetri | CC0 | https://wordpress.org/photos/photo/3656659a03/ |
 | profiles/diego.morales.jpg | White soccer ball field | Markus Spiske | CC0 | https://www.rawpixel.com/image/431837/free-photo-image-soccer-ball-goals |
-| profiles/nadia.haddad.jpg | (Openverse search "dog leash walk") |  | CC0 or PDM | source link to be added |
+| profiles/nadia.haddad.jpg | Person Walking | World Travel Adventures | CC0 | https://stocksnap.io/photo/person-walking-HZN7IJIKBN |
 | profiles/ruth.abrams.jpg | A classroom in Cameroon | Peace Corps | CC0 | https://www.rawpixel.com/image/3387969/free-photo-image-class-desk-school-table-africa |
-| profiles/judge.supporter.jpg | (Openverse search "mushroom forest") |  | CC0 or PDM | source link to be added |
+| profiles/judge.supporter.jpg | Mushrooms Forest | Bango Renders | CC0 | https://stocksnap.io/photo/mushrooms-forest-LUYHIZXNWX |
 
 Organization profile photos (seed-media/profiles/<org>.jpg) are square crops of photos listed above
 (Paws Haven: the chocolate lab puppy; Green Seattle: the pine forest at sunrise; Bright Futures: the
